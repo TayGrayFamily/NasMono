@@ -2,9 +2,9 @@ name: CI - package-aware
 
 on:
   pull_request:
-    branches: [ master ]
+    branches: [master]
   push:
-    branches: [ master ]
+    branches: [master]
 
 jobs:
   pr_checks:
@@ -27,6 +27,9 @@ jobs:
 
       - name: Install dependencies
         run: pnpm install
+
+      - name: Format check (Prettier)
+        run: pnpm -w format:check
 
       - name: Detect changed packages
         id: changed
@@ -81,6 +84,9 @@ jobs:
 
       - name: Install dependencies
         run: pnpm install
+
+      - name: Format check (Prettier)
+        run: pnpm -w format:check
 
       - name: Build all packages
         run: pnpm -w -r build

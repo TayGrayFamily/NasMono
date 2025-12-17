@@ -27,7 +27,7 @@ export default function Page() {
             <Checkbox.Control>
               <Checkbox.Indicator />
             </Checkbox.Control>
-            <Checkbox.Label>Checkbox</Checkbox.Label>
+            <Checkbox.Label>Checkbox Different</Checkbox.Label>
           </Checkbox.Root>
 
           <RadioGroup.Root display="inline-flex" defaultValue="1">

@@ -10,7 +10,6 @@
     "lint": "pnpm -w -r lint",
     "format": "pnpm exec -- prettier --write .",
     "format:check": "pnpm exec -- prettier --check .",
-    "prepare": "pnpm -w exec husky install",
     "preview": "pnpm --filter ./packages/home preview",
     "start": "pnpm -w -r dev",
     "lint-staged": "lint-staged",

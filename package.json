@@ -18,7 +18,7 @@
   },
   "lint-staged": {
     "*.{js,jsx,ts,tsx,css,scss,md,json,html}": [
-      "pnpm exec -- prettier --write"
+      "pnpm run format"
     ]
   },
   "devDependencies": {

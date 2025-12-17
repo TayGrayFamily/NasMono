@@ -92,3 +92,35 @@ Troubleshooting
 - "env: node: No such file or directory" — install Node (and pnpm) on the machine running the commands.
 - Peer dependency errors — inspect package.json `peerDependencies` and align versions across workspace packages or add the dependency at the root.
 - Port conflicts when running many dev servers — set package dev scripts to accept a PORT env var or run them individually.
+
+## Hooks & Node PATH troubleshooting
+
+Git hooks run in non-login, non-interactive shells, so your usual shell init files (like `~/.zshrc`) may not be sourced by hooks and GUI Git clients. If you see `env: node: No such file or directory` when committing, try one of the following:
+
+- Install Node so it's available system-wide (Homebrew on macOS):
+
+```bash
+brew install node
+```
+
+- If you use nvm (or asdf), make sure the version manager is initialized for non-interactive shells by adding initialization to `~/.zshenv` (zsh):
+
+```bash
+# ~/.zshenv
+export NVM_DIR="$HOME/.nvm"
+[ -s "$NVM_DIR/nvm.sh" ] && . "$NVM_DIR/nvm.sh"
+# Optionally add npm global bins
+export PATH="$HOME/.npm-global/bin:/opt/homebrew/bin:$PATH"
+```
+
+- Run the provided hooks normalization script if you add new hooks:
+
+```bash
+pnpm run husky:normalize
+```
+
+This repository's top-level hook already tries to source common init scripts and adds typical Homebrew/npm bin paths. If issues persist, follow one of the system-wide fixes above.
+
+## CI Formatting & Linting (example)
+
+The repo includes a GitHub Actions example that runs formatting and build checks on PRs. See `.github/workflows/format-and-lint.yml` for details.

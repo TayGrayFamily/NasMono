@@ -39,4 +39,5 @@ if ! command -v node >/dev/null 2>&1; then
 fi
 
 # Run lint-staged via pnpm (workspace-aware)
-pnpm -w lint-staged
+# Use `pnpm -w exec --` to ensure the binary is resolved reliably across environments
+pnpm -w exec -- lint-staged

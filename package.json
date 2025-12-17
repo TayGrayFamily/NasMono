@@ -3,9 +3,6 @@
   "private": true,
   "version": "0.0.0",
   "type": "module",
-  "engines": {
-    "node": ">=20 <21"
-  },
   "scripts": {
     "dev": "pnpm -w -r dev",
     "build": "pnpm -w -r build",
@@ -13,7 +10,6 @@
     "lint": "pnpm -w -r lint",
     "format": "pnpm exec -- prettier --write .",
     "format:check": "pnpm exec -- prettier --check .",
-    "prepare": "pnpm -w exec husky install",
     "preview": "pnpm --filter ./packages/home preview",
     "start": "pnpm -w -r dev",
     "lint-staged": "lint-staged",

@@ -3,11 +3,13 @@
 This repository is a pnpm workspace for web applications and utilities that run on my home Unraid NAS. It contains apps and tools for home automation, IoT, and monitoring.
 
 Purpose
+
 - Host frontend web apps and small tools that integrate with home automation systems (Home Assistant, Node-RED, MQTT, etc.).
 - Centralize shared dev scripts, dependency management, and CI for all web apps.
 - Make it easy to add new apps, reuse UI components, and run multiple dev servers locally.
 
 Repository layout
+
 - `package.json` - workspace root package.json with workspace-level scripts.
 - `pnpm-workspace.yaml` - pnpm workspace globs (currently `packages/*`).
 - `.npmrc` - pnpm workspace config (shared lockfile, save-exact, etc.).
@@ -15,6 +17,7 @@ Repository layout
   - `packages/home` - existing Vite + React app used for the NAS dashboard or experiments.
 
 How to add a new app
+
 1. Create a new folder under `packages/`, e.g. `packages/device-manager`.
 2. Add a `package.json` with at least a `name`, `version`, `private: true` and scripts such as `dev` and `build`.
 3. Add your source files (e.g. `src/`, `public/`, config files) and any config (Vite, tsconfig, eslint).
@@ -47,6 +50,7 @@ pnpm -w test
 ```
 
 Notes and best practices
+
 - Keep the root `package.json` `private: true` to avoid accidental publishes.
 - Prefer adding shared dependencies at the root (pnpm will hoist them) if multiple packages use the same library.
 - If a package will be published to npm, give it a globally unique `name` in its `package.json` and remove `private: true`.
@@ -54,6 +58,7 @@ Notes and best practices
 - If tools/IDEs have trouble resolving modules, try enabling hoisting in `.npmrc` by uncommenting the `public-hoist-pattern[]="*"` line.
 
 Vite-specific notes
+
 - Files placed in a package's `public/` directory are served at the root of that package's dev server. In this repo `packages/home/public/vite.svg` is referenced in code as `/vite.svg`.
 - If you change the package layout or move files, update `vite.config.ts` `base` or `root` options as needed.
 
@@ -83,6 +88,39 @@ jobs:
 ```
 
 Troubleshooting
+
 - "env: node: No such file or directory" — install Node (and pnpm) on the machine running the commands.
 - Peer dependency errors — inspect package.json `peerDependencies` and align versions across workspace packages or add the dependency at the root.
 - Port conflicts when running many dev servers — set package dev scripts to accept a PORT env var or run them individually.
+
+## Hooks & Node PATH troubleshooting
+
+Git hooks run in non-login, non-interactive shells, so your usual shell init files (like `~/.zshrc`) may not be sourced by hooks and GUI Git clients. If you see `env: node: No such file or directory` when committing, try one of the following:
+
+- Install Node so it's available system-wide (Homebrew on macOS):
+
+```bash
+brew install node
+```
+
+- If you use nvm (or asdf), make sure the version manager is initialized for non-interactive shells by adding initialization to `~/.zshenv` (zsh):
+
+```bash
+# ~/.zshenv
+export NVM_DIR="$HOME/.nvm"
+[ -s "$NVM_DIR/nvm.sh" ] && . "$NVM_DIR/nvm.sh"
+# Optionally add npm global bins
+export PATH="$HOME/.npm-global/bin:/opt/homebrew/bin:$PATH"
+```
+
+- Run the provided hooks normalization script if you add new hooks:
+
+```bash
+pnpm run husky:normalize
+```
+
+This repository's top-level hook already tries to source common init scripts and adds typical Homebrew/npm bin paths. If issues persist, follow one of the system-wide fixes above.
+
+## CI Formatting & Linting (example)
+
+The repo includes a GitHub Actions example that runs formatting and build checks on PRs. See `.github/workflows/format-and-lint.yml` for details.

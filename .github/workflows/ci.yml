@@ -1,14 +1,13 @@
-name: CI - package-aware
+name: CI
 
 on:
   pull_request:
-    branches: [ master ]
+    branches: [master]
   push:
-    branches: [ master ]
+    branches: [master]
 
 jobs:
-  pr_checks:
-    name: PR package-aware checks
+  Checks:
     if: github.event_name == 'pull_request'
     runs-on: ubuntu-latest
     steps:
@@ -27,6 +26,9 @@ jobs:
 
       - name: Install dependencies
         run: pnpm install
+
+      - name: Format check (Prettier)
+        run: pnpm -w format:check
 
       - name: Detect changed packages
         id: changed
@@ -63,8 +65,8 @@ jobs:
           pnpm -w -r build
 
   full_build:
-    name: Full build on main
-    if: github.event_name == 'push' && contains(github.ref, 'refs/heads/main')
+    name: Full build on master
+    if: github.event_name == 'push' && contains(github.ref, 'refs/heads/master')
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -81,6 +83,9 @@ jobs:
 
       - name: Install dependencies
         run: pnpm install
+
+      - name: Format check (Prettier)
+        run: pnpm -w format:check
 
       - name: Build all packages
         run: pnpm -w -r build

@@ -1,0 +1,43 @@
+#!/usr/bin/env zsh
+# Ensure Node is available to the hook in environments where node is installed via nvm/asdf
+# Try common locations and init scripts. This makes hooks robust when run from GUI/git hooks.
+
+# Helper: try to source a file if it exists
+_source_if_exists() {
+  local f="$1"
+  if [ -f "$f" ]; then
+    # shellcheck disable=SC1090
+    . "$f" >/dev/null 2>&1 || true
+  fi
+}
+
+# If node is not found, try to initialize common version managers and add common bin dirs
+if ! command -v node >/dev/null 2>&1; then
+  # try nvm
+  _source_if_exists "$HOME/.nvm/nvm.sh"
+  _source_if_exists "$HOME/.nvm/bash_completion"
+  # try asdf
+  _source_if_exists "$HOME/.asdf/asdf.sh"
+  _source_if_exists "$HOME/.asdf/completions/asdf.bash"
+  # source shell rc files (zsh, bash) which may initialize nvm/asdf via user's config
+  _source_if_exists "$HOME/.zshrc"
+  _source_if_exists "$HOME/.bashrc"
+  _source_if_exists "$HOME/.bash_profile"
+  _source_if_exists "$HOME/.profile"
+  # add common Homebrew and npm bin locations
+  export PATH="$HOME/.npm-global/bin:/opt/homebrew/bin:/usr/local/bin:/usr/bin:$PATH"
+fi
+
+# Final check
+if ! command -v node >/dev/null 2>&1; then
+  echo "error: node not found in PATH. Git hooks need access to node to run pnpm/husky."
+  echo "Ensure Node is installed and available to non-login shells. Common fixes:"
+  echo "  - Install Node via Homebrew (brew install node)"
+  echo "  - If you use nvm, add a tiny init script for hooks (e.g. source ~/.nvm/nvm.sh) or run 'pnpm run husky:normalize' after opening a new shell"
+  echo "  - Add the directory containing 'node' to your PATH in /etc/paths or a shell init file that's loaded for non-login shells."
+  exit 127
+fi
+
+# Run lint-staged via pnpm (workspace-aware)
+# Use `pnpm -w exec --` to ensure the binary is resolved reliably across environments
+pnpm -w exec -- lint-staged

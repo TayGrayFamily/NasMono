@@ -69,5 +69,5 @@ jobs:
           else
             NOTES="Direct push to master by @${{ github.actor }}"
           fi
-          
+
           gh release create $NEW_TAG --title "$NEW_TAG" --notes "$NOTES"

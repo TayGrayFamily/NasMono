@@ -1,27 +1,28 @@
-name: Release on PR merge
-
+name: Release
 on:
+  push:
+    branches: [ master ]
   pull_request:
     types: [closed]
+    branches: [master]
 
 permissions:
   contents: write
 
 jobs:
   bump-and-release:
-    if: github.event.pull_request.merged == true && github.event.pull_request.base.ref == 'master'
+    if: github.event.pull_request.merged == true
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
         uses: actions/checkout@v4
         with:
-          persist-credentials: true
-          fetch-depth: 0
+          fetch-depth: 0 # Get all tags/history for versioning
 
-      - name: Setup pnpm
+      - name: Install pnpm
         uses: pnpm/action-setup@v4
         with:
-          run_install: false # Do not run install yet
+          version: 10 # Current version for 2025
 
       - name: Setup Node
         uses: actions/setup-node@v4
@@ -33,59 +34,36 @@ jobs:
       - name: Install dependencies
         run: pnpm install --frozen-lockfile
 
-      - name: Enable Corepack and pnpm
-        run: |
-          # Enable corepack (bundled with Node 18+) and activate pnpm
-          corepack enable
-          corepack prepare pnpm@8.10.0 --activate
-
       - name: Configure git
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
 
-      - name: Determine semver bump (labels or PR body)
+      - name: Determine semver bump
         id: semver
-        uses: actions/github-script@v6
+        uses: actions/github-script@v7
         with:
+          result-encoding: string
           script: |
-            const p = context.payload.pull_request || {};
-            const labels = (p.labels || []).map(l => (l && l.name) || '');
-            for (const name of labels) {
-              const m = name.match(/^(?:semver:\s*)?(major|minor|patch)$/i);
-              if (m) return m[1].toLowerCase();
-            }
-            const body = p.body || '';
-            if (/\[x\].*semver.*major/i.test(body) || /\/semver\s+major/i.test(body) || /semver:\s*major/i.test(body)) return 'major';
-            if (/\[x\].*semver.*minor/i.test(body) || /\/semver\s+minor/i.test(body) || /semver:\s*minor/i.test(body)) return 'minor';
-            if (/\[x\].*semver.*patch/i.test(body) || /\/semver\s+patch/i.test(body) || /semver:\s*patch/i.test(body)) return 'patch';
+            const labels = context.payload.pull_request.labels.map(l => l.name.toLowerCase());
+            if (labels.includes('major')) return 'major';
+            if (labels.includes('minor')) return 'minor';
             return 'patch';
 
-      - name: Bump version with pnpm
+      - name: Bump version
         run: |
-          # Ensure full history so pnpm/npm can create annotated tags
-          git fetch --unshallow || true
-          echo "Bumping version: ${{ steps.semver.outputs.result }}"
-          pnpm -w version ${{ steps.semver.outputs.result }} -m "chore(release): %s [skip ci]"
+          # pnpm version handles package.json update and git tag
+          pnpm version ${{ steps.semver.outputs.result }} -m "chore(release): %s [skip ci]"
 
-      - name: Get new version
-        id: get_version
-        run: |
-          VERSION=$(node -p "require('./package.json').version")
-          echo "version=$VERSION" >> $GITHUB_OUTPUT
-
-      - name: Push commit and tags
-        run: |
-          # Push the bumped package.json commit and the created tag
-          git push origin HEAD
-          git push origin --tags
+      - name: Push changes
+        run: git push origin HEAD --tags
 
       - name: Create GitHub Release
-        uses: actions/create-release@v1
-        with:
-          tag_name: v${{ steps.get_version.outputs.version }}
-          release_name: v${{ steps.get_version.outputs.version }}
-          body: |
-            Release created from PR #${{ github.event.pull_request.number }} merged by @${{ github.event.pull_request.merged_by.login }}
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          # Use the modern GH CLI instead of deprecated actions
+          NEW_TAG=$(git describe --tags --abbrev=0)
+          gh release create $NEW_TAG \
+            --title "$NEW_TAG" \
+            --notes "Merged PR #${{ github.event.pull_request.number }} by @${{ github.event.pull_request.user.login }}"

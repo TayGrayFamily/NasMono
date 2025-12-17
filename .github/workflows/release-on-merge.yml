@@ -1,7 +1,9 @@
-name: Release
+name: Release on Push or Merge
+
 on:
   push:
-    branches: [ master ]
+    branches: [master]
+  # Keep pull_request closed as a backup to ensure merged PR logic is captured
   pull_request:
     types: [closed]
     branches: [master]
@@ -11,18 +13,19 @@ permissions:
 
 jobs:
   bump-and-release:
-    if: github.event.pull_request.merged == true
+    # Run if it's a direct push OR a merged pull request
+    if: github.event_name == 'push' || (github.event_name == 'pull_request' && github.event.pull_request.merged == true)
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
         uses: actions/checkout@v4
         with:
-          fetch-depth: 0 # Get all tags/history for versioning
+          fetch-depth: 0
 
       - name: Install pnpm
         uses: pnpm/action-setup@v4
         with:
-          version: 10 # Current version for 2025
+          version: 10
 
       - name: Setup Node
         uses: actions/setup-node@v4
@@ -45,14 +48,17 @@ jobs:
         with:
           result-encoding: string
           script: |
-            const labels = context.payload.pull_request.labels.map(l => l.name.toLowerCase());
-            if (labels.includes('major')) return 'major';
-            if (labels.includes('minor')) return 'minor';
+            // If it's a PR, check labels. If it's a direct push, default to 'patch'.
+            const event = context.eventName;
+            if (event === 'pull_request') {
+              const labels = context.payload.pull_request.labels.map(l => l.name.toLowerCase());
+              if (labels.includes('major')) return 'major';
+              if (labels.includes('minor')) return 'minor';
+            }
             return 'patch';
 
       - name: Bump version
         run: |
-          # pnpm version handles package.json update and git tag
           pnpm version ${{ steps.semver.outputs.result }} -m "chore(release): %s [skip ci]"
 
       - name: Push changes
@@ -62,8 +68,12 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
-          # Use the modern GH CLI instead of deprecated actions
           NEW_TAG=$(git describe --tags --abbrev=0)
-          gh release create $NEW_TAG \
-            --title "$NEW_TAG" \
-            --notes "Merged PR #${{ github.event.pull_request.number }} by @${{ github.event.pull_request.user.login }}"
+          # Determine release notes based on the event type
+          if [[ "${{ github.event_name }}" == "pull_request" ]]; then
+            NOTES="Merged PR #${{ github.event.pull_request.number }} by @${{ github.event.pull_request.user.login }}"
+          else
+            NOTES="Direct push to master by @${{ github.actor }}"
+          fi
+          
+          gh release create $NEW_TAG --title "$NEW_TAG" --notes "$NOTES"

@@ -1,0 +1,86 @@
+name: CI - package-aware
+
+on:
+  pull_request:
+    branches: [ master ]
+  push:
+    branches: [ master ]
+
+jobs:
+  pr_checks:
+    name: PR package-aware checks
+    if: github.event_name == 'pull_request'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Install pnpm
+        run: npm install -g pnpm
+
+      - name: Install dependencies
+        run: pnpm install
+
+      - name: Detect changed packages
+        id: changed
+        run: |
+          echo "Detecting changed packages..."
+          # fetch base branch for comparison
+          git fetch origin ${{ github.event.pull_request.base.ref }} --depth=1 || true
+          CHANGED_FILES=$(git diff --name-only origin/${{ github.event.pull_request.base.ref }}...HEAD || git diff --name-only ${{ github.sha }}^..${{ github.sha }})
+          echo "Changed files: $CHANGED_FILES"
+          PACKAGES=$(printf "%s\n" "$CHANGED_FILES" | awk -F/ '/^packages\//{print $2}' | sort -u | tr '\n' ' ')
+          echo "packages=$PACKAGES" >> $GITHUB_OUTPUT
+
+      - name: Run checks for changed packages
+        if: steps.changed.outputs.packages != ''
+        run: |
+          echo "Running per-package checks for: $PACKAGES"
+          for p in $PACKAGES; do
+            echo "Checking package: $p"
+            if [ -f "packages/$p/package.json" ]; then
+              # run lint if script exists
+              node -e "process.exit(require('./packages/$p/package.json').scripts && require('./packages/$p/package.json').scripts.lint ? 0 : 1)" && pnpm --filter ./packages/$p lint || echo "no lint for $p"
+              # run build if script exists
+              node -e "process.exit(require('./packages/$p/package.json').scripts && require('./packages/$p/package.json').scripts.build ? 0 : 1)" && pnpm --filter ./packages/$p build || echo "no build for $p"
+            else
+              echo "packages/$p/package.json not found, skipping"
+            fi
+          done
+
+      - name: Fallback - run workspace checks when no packages changed
+        if: steps.changed.outputs.packages == ''
+        run: |
+          echo "No package changes detected; running workspace lint and build"
+          pnpm -w lint || true
+          pnpm -w -r build
+
+  full_build:
+    name: Full build on main
+    if: github.event_name == 'push' && contains(github.ref, 'refs/heads/main')
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Install pnpm
+        run: npm install -g pnpm
+
+      - name: Install dependencies
+        run: pnpm install
+
+      - name: Build all packages
+        run: pnpm -w -r build

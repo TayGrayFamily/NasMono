@@ -1,0 +1,14 @@
+{
+  "name": "web-monorepo",
+  "private": true,
+  "version": "1.0.0",
+  "type": "module",
+  "scripts": {
+    "dev": "pnpm -w -r dev",
+    "build": "pnpm -w -r build",
+    "bootstrap": "pnpm -w install",
+    "lint": "pnpm -w -r lint",
+    "preview": "pnpm --filter ./packages/home preview",
+    "start": "pnpm -w -r dev"
+  }
+}

@@ -1,0 +1,82 @@
+name: Release on PR merge
+
+on:
+  pull_request:
+    types: [closed]
+
+permissions:
+  contents: write
+
+jobs:
+  bump-and-release:
+    if: github.event.pull_request.merged == true && github.event.pull_request.base.ref == 'main'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          persist-credentials: true
+          fetch-depth: 0
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: '18'
+          cache: 'pnpm'
+
+      - name: Enable Corepack and pnpm
+        run: |
+          # Enable corepack (bundled with Node 18+) and activate pnpm
+          corepack enable
+          corepack prepare pnpm@8.10.0 --activate
+
+      - name: Configure git
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+
+      - name: Determine semver bump (labels or PR body)
+        id: semver
+        uses: actions/github-script@v6
+        with:
+          script: |
+            const p = context.payload.pull_request || {};
+            const labels = (p.labels || []).map(l => (l && l.name) || '');
+            for (const name of labels) {
+              const m = name.match(/^(?:semver:\s*)?(major|minor|patch)$/i);
+              if (m) return m[1].toLowerCase();
+            }
+            const body = p.body || '';
+            if (/\[x\].*semver.*major/i.test(body) || /\/semver\s+major/i.test(body) || /semver:\s*major/i.test(body)) return 'major';
+            if (/\[x\].*semver.*minor/i.test(body) || /\/semver\s+minor/i.test(body) || /semver:\s*minor/i.test(body)) return 'minor';
+            if (/\[x\].*semver.*patch/i.test(body) || /\/semver\s+patch/i.test(body) || /semver:\s*patch/i.test(body)) return 'patch';
+            return 'patch';
+
+      - name: Bump version with pnpm
+        run: |
+          # Ensure full history so pnpm/npm can create annotated tags
+          git fetch --unshallow || true
+          echo "Bumping version: ${{ steps.semver.outputs.result }}"
+          pnpm -w version ${{ steps.semver.outputs.result }} -m "chore(release): %s [skip ci]"
+
+      - name: Get new version
+        id: get_version
+        run: |
+          VERSION=$(node -p "require('./package.json').version")
+          echo "version=$VERSION" >> $GITHUB_OUTPUT
+
+      - name: Push commit and tags
+        run: |
+          # Push the bumped package.json commit and the created tag
+          git push origin HEAD
+          git push origin --tags
+
+      - name: Create GitHub Release
+        uses: actions/create-release@v1
+        with:
+          tag_name: v${{ steps.get_version.outputs.version }}
+          release_name: v${{ steps.get_version.outputs.version }}
+          body: |
+            Release created from PR #${{ github.event.pull_request.number }} merged by @${{ github.event.pull_request.merged_by.login }}
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

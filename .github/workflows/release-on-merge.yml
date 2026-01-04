@@ -10,6 +10,7 @@ on:
 
 permissions:
   contents: write
+  packages: write
 
 jobs:
   bump-and-release:
@@ -76,45 +77,44 @@ jobs:
       - name: Build workspace packages
         run: pnpm -r run build
 
-      - name: Package built outputs
-        run: |
-          set -e
-          ARTDIR=release-artifact
-          rm -rf "$ARTDIR"
-          mkdir -p "$ARTDIR"
-          # Copy each package's build output directory (dist/build/out) into the artifact dir
-          while IFS= read -r d; do
-            pkg_dir=$(dirname "$d")
-            pkg_name=$(basename "$pkg_dir")
-            cp -r "$d" "$ARTDIR/$pkg_name"
-          done < <(find . -type d \( -name dist -o -name build -o -name out \) -print)
+      - name: Log in to GitHub Container Registry
+        uses: docker/login-action@v2
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
 
-          # Fail early if nothing was found
-          if [ -z "$(ls -A "$ARTDIR")" ]; then
-            echo "No build outputs found in dist/build/out — aborting packaging" >&2
-            exit 1
-          fi
-
-          # Create a tarball containing only the built outputs
-          ARCHIVE="release-${NEW_TAG}.tar.gz"
-          tar -czf "$ARCHIVE" -C "$ARTDIR" .
-          echo "ARCHIVE=$ARCHIVE" >> $GITHUB_ENV
-
-      - name: Upload CI artifact
-        uses: actions/upload-artifact@v4
+      - name: Build and push Docker image for packages/home
         env:
           NEW_TAG: ${{ env.NEW_TAG }}
-          ARCHIVE: ${{ env.ARCHIVE }}
-        with:
-          name: release-${{ env.NEW_TAG }}
-          path: ${{ env.ARCHIVE }}
-          retention-days: 30
+          IMAGE: ghcr.io/${{ github.repository_owner }}/${{ github.event.repository.name }}-home:${{ env.NEW_TAG }}
+        run: |
+          set -e
+          echo "Building image: $IMAGE"
+          if [ ! -d "packages/home/dist" ]; then
+            echo "packages/home/dist not found — ensure the build produced output" >&2
+            ls -la packages/home || true
+            exit 1
+          fi
+          # Create a minimal Dockerfile to serve the built frontend with nginx
+          cat > packages/home/Dockerfile <<'DOCKER'
+          FROM nginx:stable-alpine
+          COPY dist /usr/share/nginx/html
+          EXPOSE 80
+          CMD ["nginx","-g","daemon off;"]
+          DOCKER
 
-      - name: Create GitHub Release with built artifact
+          docker build -t "$IMAGE" packages/home
+          docker push "$IMAGE"
+          echo "IMAGE=$IMAGE" >> $GITHUB_ENV
+
+      - name: Create GitHub Release with image reference
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          IMAGE: ${{ env.IMAGE }}
         run: |
           NEW_TAG=${NEW_TAG}
+          IMAGE=${IMAGE}
           # Determine release notes based on the event type
           if [[ "${{ github.event_name }}" == "pull_request" ]]; then
             NOTES="Merged PR #${{ github.event.pull_request.number }} by @${{ github.event.pull_request.user.login }}"
@@ -122,4 +122,6 @@ jobs:
             NOTES="Direct push to master by @${{ github.actor }}"
           fi
 
-          gh release create "$NEW_TAG" "$ARCHIVE" --title "$NEW_TAG" --notes "$NOTES"
+          printf -v NOTES "%s\n\nDocker image: %s" "$NOTES" "$IMAGE"
+
+          gh release create "$NEW_TAG" --title "$NEW_TAG" --notes "$NOTES"

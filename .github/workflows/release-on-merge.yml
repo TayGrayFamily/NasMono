@@ -111,15 +111,22 @@ jobs:
 
           docker build -t "$IMAGE" packages/home
           docker push "$IMAGE"
+          # Also tag and push a :latest tag so consumers can pull the latest image
+          LATEST_IMAGE="ghcr.io/${OWNER_LC}/${REPO_LC}-home:latest"
+          docker tag "$IMAGE" "$LATEST_IMAGE"
+          docker push "$LATEST_IMAGE"
           echo "IMAGE=$IMAGE" >> $GITHUB_ENV
+          echo "LATEST_IMAGE=$LATEST_IMAGE" >> $GITHUB_ENV
 
       - name: Create GitHub Release with image reference
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           IMAGE: ${{ env.IMAGE }}
+          LATEST_IMAGE: ${{ env.LATEST_IMAGE }}
         run: |
           NEW_TAG=${NEW_TAG}
           IMAGE=${IMAGE}
+          LATEST_IMAGE=${LATEST_IMAGE}
           # Determine release notes based on the event type
           if [[ "${{ github.event_name }}" == "pull_request" ]]; then
             NOTES="Merged PR #${{ github.event.pull_request.number }} by @${{ github.event.pull_request.user.login }}"
@@ -127,6 +134,6 @@ jobs:
             NOTES="Direct push to master by @${{ github.actor }}"
           fi
 
-          printf -v NOTES "%s\n\nDocker image: %s" "$NOTES" "$IMAGE"
+          printf -v NOTES "%s\n\nDocker image: %s\nLatest tag: %s" "$NOTES" "$IMAGE" "$LATEST_IMAGE"
 
           gh release create "$NEW_TAG" --title "$NEW_TAG" --notes "$NOTES"

@@ -1,6 +1,7 @@
+import { serverIp } from '@/constants/ServerConst';
 import { getServerVersion, init } from '@immich/sdk';
 
-init({ baseUrl: 'http://tower:9001/api', apiKey: import.meta.env.VITE_IMMICH_KEY });
+init({ baseUrl: `http://${serverIp}:9001/api`, apiKey: import.meta.env.VITE_IMMICH_KEY });
 
 export async function testImmichApi(): Promise<boolean> {
   console.log('Testing Immich API...');

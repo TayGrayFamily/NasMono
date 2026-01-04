@@ -1,5 +1,7 @@
+import { serverIp } from '@/constants/ServerConst';
+
 export async function testRadarrApi(): Promise<boolean> {
-  return fetch('http://tower:9004/api/', {
+  return fetch(`http://${serverIp}:9004/api/`, {
     headers: {
       'X-Api-Key': import.meta.env.VITE_RADARR_API_KEY || '',
     },

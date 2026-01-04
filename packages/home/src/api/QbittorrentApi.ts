@@ -1,3 +1,5 @@
+import { serverIp } from '@/constants/ServerConst';
+
 export async function testQbittorrentApi(): Promise<boolean> {
   return login().then((token) => !!token);
 }
@@ -8,14 +10,14 @@ export async function login(): Promise<boolean | null> {
     password: import.meta.env.VITE_QBIT_PASSWORD || 'adminadmin',
   });
 
-  return fetch('http://tower:9006/api/v2/auth/login', {
+  return fetch(`http://${serverIp}:9006/api/v2/auth/login`, {
     method: 'POST',
     headers: {
       // 2. Content-Type MUST be this for qBittorrent API
       'Content-Type': 'application/x-www-form-urlencoded',
 
-      // 3. Referer MUST match the 'tower' target exactly, not localhost
-      Referer: 'http://tower:9006',
+      // 3. Referer MUST match the IP target exactly, not localhost
+      Referer: `http://${serverIp}:9006`,
     },
     body: body,
   })

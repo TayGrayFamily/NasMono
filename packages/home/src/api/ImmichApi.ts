@@ -1,4 +1,4 @@
-import { serverIp } from '@/constants/ServerConst';
+import { serverIp } from '../constants/ServerConst';
 import { getServerVersion, init } from '@immich/sdk';
 
 init({ baseUrl: `http://${serverIp}:9001/api`, apiKey: import.meta.env.VITE_IMMICH_KEY });

@@ -1,4 +1,4 @@
-import { serverIp } from '@/constants/ServerConst';
+import { serverIp } from '../constants/ServerConst';
 
 export async function testRadarrApi(): Promise<boolean> {
   return fetch(`http://${serverIp}:9004/api/`, {

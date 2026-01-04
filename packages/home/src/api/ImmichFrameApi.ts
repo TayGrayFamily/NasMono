@@ -1,4 +1,4 @@
-import { serverIp } from '@/constants/ServerConst';
+import { serverIp } from '../constants/ServerConst';
 
 export async function testImmichFrameApi(): Promise<boolean> {
   return fetch(`http://${serverIp}:9003/health`)

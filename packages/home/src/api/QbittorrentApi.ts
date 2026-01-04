@@ -1,4 +1,4 @@
-import { serverIp } from '@/constants/ServerConst';
+import { serverIp } from '../constants/ServerConst';
 
 export async function testQbittorrentApi(): Promise<boolean> {
   return login().then((token) => !!token);

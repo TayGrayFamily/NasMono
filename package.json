@@ -7,7 +7,7 @@
   "scripts": {
     "dev": "cd packages/home && pnpm run dev",
     "start": "cd packages/home && pnpm run dev",
-    "build": "pnpm -w -r build",
+    "build": "pnpm -r run build",
     "bootstrap": "pnpm -w install",
     "lint": "pnpm -w -r lint",
     "format": "pnpm exec -- prettier --write .",

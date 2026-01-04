@@ -62,11 +62,59 @@ jobs:
       - name: Push changes
         run: git push origin HEAD --tags
 
-      - name: Create GitHub Release
+      - name: Checkout the released tag
+        run: |
+          # use the most recent tag (the version bump created it) and check it out
+          NEW_TAG=$(git describe --tags --abbrev=0)
+          echo "NEW_TAG=$NEW_TAG" >> $GITHUB_ENV
+          git fetch --tags
+          git checkout "$NEW_TAG"
+
+      - name: Install dependencies (for build)
+        run: pnpm install --frozen-lockfile
+
+      - name: Build workspace packages
+        run: pnpm -r run build
+
+      - name: Package built outputs
+        run: |
+          set -e
+          ARTDIR=release-artifact
+          rm -rf "$ARTDIR"
+          mkdir -p "$ARTDIR"
+          # Copy each package's build output directory (dist/build/out) into the artifact dir
+          while IFS= read -r d; do
+            pkg_dir=$(dirname "$d")
+            pkg_name=$(basename "$pkg_dir")
+            cp -r "$d" "$ARTDIR/$pkg_name"
+          done < <(find . -type d \( -name dist -o -name build -o -name out \) -print)
+
+          # Fail early if nothing was found
+          if [ -z "$(ls -A "$ARTDIR")" ]; then
+            echo "No build outputs found in dist/build/out — aborting packaging" >&2
+            exit 1
+          fi
+
+          # Create a tarball containing only the built outputs
+          ARCHIVE="release-${NEW_TAG}.tar.gz"
+          tar -czf "$ARCHIVE" -C "$ARTDIR" .
+          echo "ARCHIVE=$ARCHIVE" >> $GITHUB_ENV
+
+      - name: Upload CI artifact
+        uses: actions/upload-artifact@v4
+        env:
+          NEW_TAG: ${{ env.NEW_TAG }}
+          ARCHIVE: ${{ env.ARCHIVE }}
+        with:
+          name: release-${{ env.NEW_TAG }}
+          path: ${{ env.ARCHIVE }}
+          retention-days: 30
+
+      - name: Create GitHub Release with built artifact
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
-          NEW_TAG=$(git describe --tags --abbrev=0)
+          NEW_TAG=${NEW_TAG}
           # Determine release notes based on the event type
           if [[ "${{ github.event_name }}" == "pull_request" ]]; then
             NOTES="Merged PR #${{ github.event.pull_request.number }} by @${{ github.event.pull_request.user.login }}"
@@ -74,4 +122,4 @@ jobs:
             NOTES="Direct push to master by @${{ github.actor }}"
           fi
 
-          gh release create $NEW_TAG --title "$NEW_TAG" --notes "$NOTES"
+          gh release create "$NEW_TAG" "$ARCHIVE" --title "$NEW_TAG" --notes "$NOTES"

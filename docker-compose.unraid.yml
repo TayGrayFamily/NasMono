@@ -1,0 +1,26 @@
+version: '3.8'
+
+services:
+  nasmono-home:
+    # Image can be overridden via IMAGE env var; default uses GHCR with lowercase owner/repo
+    image: '${IMAGE:-ghcr.io/taygrayfamily/nasmono-home:${IMAGE_TAG:-latest}}'
+    container_name: nasmono-home
+    env_file:
+      - .env
+    ports:
+      - '${HOST_PORT:-8888}:80'
+    restart: unless-stopped
+    healthcheck:
+      test: ['CMD', 'wget', '-qO-', '--timeout=2', 'http://localhost/']
+      interval: 30s
+      timeout: 5s
+      retries: 3
+    # All runtime configuration (including secrets) should be provided via the adjacent .env file
+    # The .env file is loaded by `env_file:` above and its values will be available inside the container.
+    # Do NOT commit `.env` to source control. Use Unraid secrets/registry auth for private values.
+    labels:
+      - 'com.tailscale.description=NasMono Home app'
+
+# Notes:
+# - Put a .env file next to this compose file with values like IMAGE_TAG=latest HOST_PORT=8888
+# - Do NOT commit secrets in .env to version control. Use Unraid UI secrets or repo secrets instead.

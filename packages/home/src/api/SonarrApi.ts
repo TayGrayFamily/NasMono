@@ -1,7 +1,7 @@
 export async function testSonarrApi(): Promise<boolean> {
   return fetch('http://tower:9005/api/', {
     headers: {
-      'X-Api-Key': '7b18992949254a0a9a064e813004dcbe',
+      'X-Api-Key': import.meta.env.VITE_SONARR_API_KEY || '',
     },
   })
     .then((response) => {

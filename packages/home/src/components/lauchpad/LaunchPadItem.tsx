@@ -12,23 +12,27 @@ export function LaunchPadItem(props: LaunchPadItemProps): JSX.Element {
   const { config } = props;
   const [isOnline, setIsOnline] = useState<boolean | null>(null);
 
-  const url = 'http://' + serverIp + ':' + config.port + '/' + (config.params ? config.params : '');
+  const url =
+    'http://' +
+    serverIp +
+    ':' +
+    config.port +
+    (config.path ? config.path : '') +
+    (config.params ? config.params : '');
 
   useEffect(() => {
-    fetch(url)
-      .then((response) => {
-        if (!response.ok) {
-          console.error(`Service ${config.displayName} is not reachable.`);
+    if (config.testApi) {
+      config.testApi().then(setIsOnline);
+    } else {
+      fetch(url)
+        .then((value) => {
+          setIsOnline(value.ok);
+        })
+        .catch((_) => {
           setIsOnline(false);
-        } else {
-          setIsOnline(true);
-        }
-      })
-      .catch((error) => {
-        console.error(`Error reaching service ${config.displayName}:`, error);
-        setIsOnline(false);
-      });
-  });
+        });
+    }
+  }, [url, config.displayName, config]);
 
   return (
     <Card.Root>
@@ -42,9 +46,9 @@ export function LaunchPadItem(props: LaunchPadItemProps): JSX.Element {
           {isOnline === null ? (
             <Card.Description>Checking...</Card.Description>
           ) : isOnline ? (
-            <Card.Description>Online</Card.Description>
+            <Card.Description style={{ color: 'green' }}>Online</Card.Description>
           ) : (
-            <Card.Description>Offline</Card.Description>
+            <Card.Description style={{ color: 'red' }}>Offline</Card.Description>
           )}
         </VStack>
       </Card.Body>

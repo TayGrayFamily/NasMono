@@ -26,6 +26,9 @@ importers:
       '@emotion/react':
         specifier: 11.14.0
         version: 11.14.0(@types/react@19.2.7)(react@19.2.3)
+      '@immich/sdk':
+        specifier: 2.4.1
+        version: 2.4.1
       next-themes:
         specifier: ^0.4.6
         version: 0.4.6(react-dom@19.2.3(react@19.2.3))(react@19.2.3)
@@ -284,6 +287,9 @@ packages:
     resolution: {integrity: sha512-bV0Tgo9K4hfPCek+aMAn81RppFKv2ySDQeMoSZuvTASywNTnVJCArCZE2FWqpvIatKu7VMRLWlR1EazvVhDyhQ==}
     engines: {node: '>=18.18'}
 
+  '@immich/sdk@2.4.1':
+    resolution: {integrity: sha512-n8wrKrb+/0Krywozvq6Vp7PS0ENl106dhYuetGOP8Cf3axbFxWSYvfzas6ZH2MV9aecRUQBWPsjYE1YHL0bTvg==}
+
   '@internationalized/date@3.10.0':
     resolution: {integrity: sha512-oxDR/NTEJ1k+UFVQElaNIk65E/Z83HK1z1WI3lQyhTtnNg4R5oVXaPzK3jcpKG8UHKDVuDQHzn+wsxSz8RP3aw==}
 
@@ -308,6 +314,9 @@ packages:
 
   '@napi-rs/wasm-runtime@1.1.0':
     resolution: {integrity: sha512-Fq6DJW+Bb5jaWE69/qOE0D1TUN9+6uWhCeZpdnSBk14pjLcCWR7Q8n49PTSPHazM37JqrsdpEthXy2xn6jWWiA==}
+
+  '@oazapfts/runtime@1.1.0':
+    resolution: {integrity: sha512-PwCn69pexqg/uhc0bpEHSlRFdfTtSnq3icXHd0wf4BQwZSMKsCerTnydzegVScEegYkokzIxMcl9li7on86A2w==}
 
   '@oxc-project/runtime@0.97.0':
     resolution: {integrity: sha512-yH0zw7z+jEws4dZ4IUKoix5Lh3yhqIJWF9Dc8PWvhpo7U7O+lJrv7ZZL4BeRO0la8LBQFwcCewtLBnVV7hPe/w==}
@@ -2470,6 +2479,10 @@ snapshots:
 
   '@humanwhocodes/retry@0.4.3': {}
 
+  '@immich/sdk@2.4.1':
+    dependencies:
+      '@oazapfts/runtime': 1.1.0
+
   '@internationalized/date@3.10.0':
     dependencies:
       '@swc/helpers': 0.5.17
@@ -2503,6 +2516,8 @@ snapshots:
       '@emnapi/runtime': 1.7.1
       '@tybys/wasm-util': 0.10.1
     optional: true
+
+  '@oazapfts/runtime@1.1.0': {}
 
   '@oxc-project/runtime@0.97.0': {}
 

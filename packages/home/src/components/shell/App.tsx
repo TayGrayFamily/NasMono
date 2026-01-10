@@ -5,7 +5,7 @@ import { LaunchPad } from '../lauchpad/LaunchPad';
 
 export function App(): JSX.Element {
   return (
-    <Grid templateRows="50px 1fr" height="100%" width="100%">
+    <Grid height="100%" width="100%">
       <GridItem>
         <Toolbar />
       </GridItem>

@@ -5,7 +5,7 @@ import { MenuButton } from './MenuButton';
 
 export function Toolbar(_props: object): JSX.Element {
   return (
-    <HStack padding={2} borderBottom="1px solid" borderColor="gray.200" h="50px">
+    <HStack padding={2} borderBottom="1px solid" borderColor="gray.200" h="75px">
       <MenuButton />
       <Box flex={1} />
       <ColorModeToggle />

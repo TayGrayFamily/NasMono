@@ -1,7 +1,7 @@
 import { Badge, Card, Link, Text, VStack } from '@chakra-ui/react';
 import { useMemo, type JSX } from 'react';
 import type { ContainerRow } from '@/types/dockerContainer';
-import { getLaunchHost } from '@/constants/ServerConst';
+import { getLaunchHost, getLaunchProtocol } from '@/constants/ServerConst';
 import { iconUrlForImage } from './launchPadIcons';
 import { ReachabilityProbe } from './ReachabilityProbe';
 
@@ -32,7 +32,7 @@ export function ContainerTile(props: ContainerTileProps): JSX.Element {
     const p = container.primaryPort;
     if (!p) return null;
     const host = getLaunchHost();
-    const proto = typeof window !== 'undefined' ? window.location.protocol : 'http:';
+    const proto = getLaunchProtocol();
     return `${proto}//${host}:${p.hostPort}/`;
   }, [container.primaryPort]);
 
@@ -87,9 +87,7 @@ export function ContainerTile(props: ContainerTileProps): JSX.Element {
               Bound to loopback only — may not work from other devices (Tailscale)
             </Text>
           ) : null}
-          {showProbe && container.primaryPort ? (
-            <ReachabilityProbe openUrl={openUrl!} hostPort={container.primaryPort.hostPort} />
-          ) : null}
+          {showProbe && openUrl ? <ReachabilityProbe openUrl={openUrl} /> : null}
         </VStack>
       </Card.Body>
     </Card.Root>

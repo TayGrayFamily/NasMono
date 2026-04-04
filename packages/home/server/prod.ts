@@ -1,7 +1,7 @@
 import express from 'express';
 import path from 'path';
 import { fileURLToPath } from 'url';
-import { createApiRouter } from './apiRouter.js';
+import { createApiApp } from './apiRouter.js';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const distDir = path.resolve(__dirname, '..', 'dist');
@@ -9,7 +9,7 @@ const port = Number(process.env.PORT ?? 80);
 const host = process.env.HOST ?? '0.0.0.0';
 
 const app = express();
-app.use('/api', createApiRouter());
+app.use('/api', createApiApp());
 app.use(express.static(distDir));
 
 app.use((req, res, next) => {

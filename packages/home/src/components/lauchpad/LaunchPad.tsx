@@ -52,9 +52,25 @@ export function LaunchPad(_props: object): JSX.Element {
     );
   }
 
+  const showLocalhostTip =
+    import.meta.env.DEV &&
+    typeof window !== 'undefined' &&
+    window.location.hostname === 'localhost' &&
+    !import.meta.env.VITE_LAUNCH_HOST?.trim();
+
   return (
-    <Grid padding={5} gap={4} height="100%" templateColumns="repeat(auto-fill, minmax(180px, 1fr))">
-      <For each={containers}>{(c) => <ContainerTile container={c} key={c.id} />}</For>
-    </Grid>
+    <VStack align="stretch" gap={3} height="100%" paddingBottom={4}>
+      {showLocalhostTip ? (
+        <Text fontSize="sm" color="fg.muted" paddingX={5} paddingTop={2}>
+          You are on <strong>localhost</strong>, so open links and reachability checks target this
+          machine. Set <code>VITE_LAUNCH_HOST=tower</code> (or your Tailscale name) in the repo-root{' '}
+          <code>.env</code>, restart <code>pnpm dev</code>, and optionally{' '}
+          <code>VITE_LAUNCH_PROTOCOL=http</code> if services are plain HTTP on the NAS.
+        </Text>
+      ) : null}
+      <Grid paddingX={5} gap={4} flex="1" templateColumns="repeat(auto-fill, minmax(180px, 1fr))">
+        <For each={containers}>{(c) => <ContainerTile container={c} key={c.id} />}</For>
+      </Grid>
+    </VStack>
   );
 }

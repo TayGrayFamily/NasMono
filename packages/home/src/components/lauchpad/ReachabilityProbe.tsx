@@ -1,32 +1,26 @@
 import { Text } from '@chakra-ui/react';
 import { useEffect, useState, type JSX } from 'react';
-import { getProbeForHostPort } from './probeForPort';
 
 export type ReachabilityProbeProps = {
   openUrl: string;
-  hostPort: number;
 };
 
+/**
+ * Reachability is checked from the **app server** (Vite/Node in dev, container in prod), not the
+ * browser, so homelab services that omit CORS headers still probe correctly.
+ */
 export function ReachabilityProbe(props: ReachabilityProbeProps): JSX.Element {
-  const { openUrl, hostPort } = props;
+  const { openUrl } = props;
   const [reachable, setReachable] = useState<boolean | null>(null);
 
   useEffect(() => {
     let cancelled = false;
-    const probe = getProbeForHostPort(hostPort);
-    if (probe) {
-      probe().then((ok) => {
-        if (!cancelled) setReachable(ok);
-      });
-      return () => {
-        cancelled = true;
-      };
-    }
-
     const ac = new AbortController();
-    fetch(openUrl, { method: 'GET', signal: ac.signal, mode: 'cors' })
-      .then((r) => {
-        if (!cancelled) setReachable(r.ok);
+    const q = `/api/reachability?target=${encodeURIComponent(openUrl)}`;
+    fetch(q, { signal: ac.signal })
+      .then(async (r) => {
+        const body = (await r.json().catch(() => ({}))) as { ok?: boolean };
+        if (!cancelled) setReachable(body.ok === true);
       })
       .catch(() => {
         if (!cancelled) setReachable(false);
@@ -35,7 +29,7 @@ export function ReachabilityProbe(props: ReachabilityProbeProps): JSX.Element {
       cancelled = true;
       ac.abort();
     };
-  }, [openUrl, hostPort]);
+  }, [openUrl]);
 
   if (reachable === null) {
     return (

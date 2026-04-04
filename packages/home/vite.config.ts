@@ -3,7 +3,7 @@ import react from '@vitejs/plugin-react-swc';
 import path from 'path';
 import { tanstackRouter } from '@tanstack/router-plugin/vite';
 import type { Connect, Plugin } from 'vite';
-import { createApiRouter } from './server/apiRouter.js';
+import { createApiApp } from './server/apiRouter.js';
 
 function nasmonoApiPlugin(mode: string): Plugin {
   return {
@@ -17,8 +17,8 @@ function nasmonoApiPlugin(mode: string): Plugin {
           process.env[key] = v;
         }
       }
-      const router = createApiRouter();
-      server.middlewares.use('/api', router as unknown as Connect.NextHandleFunction);
+      const apiApp = createApiApp();
+      server.middlewares.use('/api', apiApp as unknown as Connect.NextHandleFunction);
     },
   };
 }

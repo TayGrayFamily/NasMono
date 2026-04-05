@@ -1,14 +1,16 @@
-import { Box, HStack } from '@chakra-ui/react';
 import type { JSX } from 'react';
-import { ColorModeToggle } from './ColorModeToggle';
-import { MenuButton } from './MenuButton';
+import './Shell.css';
 
-export function Toolbar(_props: object): JSX.Element {
+export function Toolbar(): JSX.Element {
   return (
-    <HStack padding={2} borderBottom="1px solid" borderColor="gray.200" h="75px">
-      <MenuButton />
-      <Box flex={1} />
-      <ColorModeToggle />
-    </HStack>
+    <nav className="top-menu">
+      <div className="top-menu-brand">NAS MONO</div>
+      <div className="top-menu-spacer" />
+      <div className="top-menu-actions">
+        <button className="top-menu-button" type="button">
+          Status: Online
+        </button>
+      </div>
+    </nav>
   );
 }

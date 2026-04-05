@@ -1,15 +1,12 @@
-import { serverIp } from '../constants/ServerConst';
+import { getLaunchHost } from '../constants/ServerConst';
 
 export async function testRadarrApi(): Promise<boolean> {
-  return fetch(`http://${serverIp}:9004/api/`, {
+  const host = getLaunchHost();
+  return fetch(`http://${host}:9004/api/`, {
     headers: {
       'X-Api-Key': import.meta.env.VITE_RADARR_API_KEY || '',
     },
   })
-    .then((response) => {
-      return response.ok;
-    })
-    .catch((_) => {
-      return false;
-    });
+    .then((response) => response.ok)
+    .catch(() => false);
 }

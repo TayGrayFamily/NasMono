@@ -1,11 +1,8 @@
-import { serverIp } from '../constants/ServerConst';
+import { getLaunchHost } from '../constants/ServerConst';
 
 export async function testImmichFrameApi(): Promise<boolean> {
-  return fetch(`http://${serverIp}:9003/health`)
-    .then((response) => {
-      return response.ok;
-    })
-    .catch((_) => {
-      return false;
-    });
+  const host = getLaunchHost();
+  return fetch(`http://${host}:9003/health`)
+    .then((response) => response.ok)
+    .catch(() => false);
 }

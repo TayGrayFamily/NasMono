@@ -101,15 +101,12 @@ jobs:
             ls -la packages/home || true
             exit 1
           fi
-          # Create a minimal Dockerfile to serve the built frontend with nginx
-          cat > packages/home/Dockerfile <<'DOCKER'
-          FROM nginx:stable-alpine
-          COPY dist /usr/share/nginx/html
-          EXPOSE 80
-          CMD ["nginx","-g","daemon off;"]
-          DOCKER
+          if [ ! -d "packages/home/dist-server" ]; then
+            echo "packages/home/dist-server not found — server build must run with the client build" >&2
+            exit 1
+          fi
 
-          docker build -t "$IMAGE" packages/home
+          docker build -f packages/home/Dockerfile -t "$IMAGE" .
           docker push "$IMAGE"
           # Also tag and push a :latest tag so consumers can pull the latest image
           LATEST_IMAGE="ghcr.io/${OWNER_LC}/${REPO_LC}-home:latest"

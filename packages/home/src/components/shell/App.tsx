@@ -1,17 +1,15 @@
-import { Grid, GridItem } from '@chakra-ui/react';
 import type { JSX } from 'react';
 import { Toolbar } from './Toolbar';
 import { LaunchPad } from '../lauchpad/LaunchPad';
+import './Shell.css';
 
 export function App(): JSX.Element {
   return (
-    <Grid height="100%" width="100%">
-      <GridItem>
-        <Toolbar />
-      </GridItem>
-      <GridItem>
+    <div className="shell-container">
+      <Toolbar />
+      <main style={{ flex: 1 }}>
         <LaunchPad />
-      </GridItem>
-    </Grid>
+      </main>
+    </div>
   );
 }

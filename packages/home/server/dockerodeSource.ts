@@ -1,7 +1,7 @@
 import Docker from 'dockerode';
 import type { ContainerRow, DockerSource, PublicPortMapping } from './types.js';
 import { mapDockerodeState } from './mapDockerState.js';
-import { pickPrimaryPort, primaryIsLoopbackOnly } from './pickPrimaryPort.js';
+import { pickPrimaryPortWithDefaults, primaryIsLoopbackOnly } from './pickPrimaryPort.js';
 
 function stripLeadingSlash(name: string): string {
   return name.startsWith('/') ? name.slice(1) : name;
@@ -29,7 +29,7 @@ export class DockerodeSource implements DockerSource {
 
       const nameRaw = c.Names?.[0] ?? c.Id.slice(0, 12);
       const name = stripLeadingSlash(nameRaw);
-      const primary = pickPrimaryPort(publicPorts);
+      const primary = pickPrimaryPortWithDefaults(publicPorts, name, c.Image);
 
       return {
         id: c.Id,

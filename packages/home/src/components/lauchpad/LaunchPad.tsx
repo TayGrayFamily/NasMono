@@ -1,11 +1,12 @@
-import { For, Grid, Spinner, Text, VStack } from '@chakra-ui/react';
-import { useEffect, useState, type JSX } from 'react';
+import { useEffect, useState, type JSX, useMemo } from 'react';
 import type { ContainerRow } from '@/types/dockerContainer';
 import { ContainerTile } from './ContainerTile';
+import '../shell/Shell.css';
 
-export function LaunchPad(_props: object): JSX.Element {
+export function LaunchPad(): JSX.Element {
   const [containers, setContainers] = useState<ContainerRow[] | null>(null);
   const [error, setError] = useState<string | null>(null);
+  const [isServicesOpen, setIsServicesOpen] = useState(false);
 
   useEffect(() => {
     let cancelled = false;
@@ -19,12 +20,7 @@ export function LaunchPad(_props: object): JSX.Element {
       })
       .then((rows) => {
         if (!cancelled) {
-          const sorted = [...rows].sort((a, b) => {
-            if (a.state === 'running' && b.state !== 'running') return -1;
-            if (a.state !== 'running' && b.state === 'running') return 1;
-            return a.name.localeCompare(b.name);
-          });
-          setContainers(sorted);
+          setContainers(rows);
         }
       })
       .catch((e: unknown) => {
@@ -35,42 +31,104 @@ export function LaunchPad(_props: object): JSX.Element {
     };
   }, []);
 
+  const { webApps, otherServices } = useMemo(() => {
+    if (!containers) return { webApps: [], otherServices: [] };
+
+    const apps: ContainerRow[] = [];
+    const others: ContainerRow[] = [];
+
+    // Known services that expose a port but don't have a browseable Web UI
+    const API_ONLY_SERVICES = /flaresolverr|database|postgres|redis|mongo|mysql|mariadb|api-only/i;
+
+    for (const c of containers) {
+      const isApiOnly = API_ONLY_SERVICES.test(c.name) || API_ONLY_SERVICES.test(c.image);
+      if (c.primaryPort && !isApiOnly) {
+        apps.push(c);
+      } else {
+        others.push(c);
+      }
+    }
+
+    const sortFn = (a: ContainerRow, b: ContainerRow) => {
+      if (a.state === 'running' && b.state !== 'running') return -1;
+      if (a.state !== 'running' && b.state === 'running') return 1;
+      return a.name.localeCompare(b.name);
+    };
+
+    return {
+      webApps: apps.sort(sortFn),
+      otherServices: others.sort(sortFn),
+    };
+  }, [containers]);
+
   if (error) {
     return (
-      <VStack padding={6} align="stretch">
-        <Text color="red.solid">Could not load containers: {error}</Text>
-      </VStack>
+      <div style={{ padding: '40px', textAlign: 'center', color: 'var(--status-red)' }}>
+        <h2>Could not load containers</h2>
+        <p>{error}</p>
+      </div>
     );
   }
 
   if (containers === null) {
     return (
-      <VStack padding={10}>
-        <Spinner size="lg" />
-        <Text color="fg.muted">Loading Docker containers…</Text>
-      </VStack>
+      <div
+        style={{
+          padding: '100px',
+          textAlign: 'center',
+          color: 'var(--color-text-muted)',
+          display: 'flex',
+          flexDirection: 'column',
+          alignItems: 'center',
+          gap: '16px',
+        }}
+      >
+        <div className="loading-spinner" />
+        <p>Synchronizing with Docker daemon...</p>
+      </div>
     );
   }
 
-  const showLocalhostTip =
-    import.meta.env.DEV &&
-    typeof window !== 'undefined' &&
-    window.location.hostname === 'localhost' &&
-    !import.meta.env.VITE_LAUNCH_HOST?.trim();
-
   return (
-    <VStack align="stretch" gap={3} height="100%" paddingBottom={4}>
-      {showLocalhostTip ? (
-        <Text fontSize="sm" color="fg.muted" paddingX={5} paddingTop={2}>
-          You are on <strong>localhost</strong>, so open links and reachability checks target this
-          machine. Set <code>VITE_LAUNCH_HOST=tower</code> (or your Tailscale name) in the repo-root{' '}
-          <code>.env</code>, restart <code>pnpm dev</code>, and optionally{' '}
-          <code>VITE_LAUNCH_PROTOCOL=http</code> if services are plain HTTP on the NAS.
-        </Text>
-      ) : null}
-      <Grid paddingX={5} gap={4} flex="1" templateColumns="repeat(auto-fill, minmax(180px, 1fr))">
-        <For each={containers}>{(c) => <ContainerTile container={c} key={c.id} />}</For>
-      </Grid>
-    </VStack>
+    <div className="launchpad-container">
+      <section>
+        <h2 className="section-title">Web Applications</h2>
+        <div className="container-grid">
+          {webApps.map((c) => (
+            <ContainerTile container={c} key={c.id} />
+          ))}
+        </div>
+      </section>
+
+      {otherServices.length > 0 && (
+        <section className="other-services-section">
+          <div className="collapsible-header" onClick={() => setIsServicesOpen(!isServicesOpen)}>
+            <div className={`chevron ${isServicesOpen ? 'open' : ''}`}>
+              <svg
+                width="14"
+                height="14"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="3"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+              >
+                <path d="M9 18l6-6-6-6" />
+              </svg>
+            </div>
+            <h2 className="section-title-muted">System Services ({otherServices.length})</h2>
+          </div>
+
+          {isServicesOpen && (
+            <div className="services-grid">
+              {otherServices.map((c) => (
+                <ContainerTile container={c} key={c.id} />
+              ))}
+            </div>
+          )}
+        </section>
+      )}
+    </div>
   );
 }

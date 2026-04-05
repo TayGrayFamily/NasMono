@@ -1,6 +1,6 @@
 import type { ContainerRow, DockerSource, PublicPortMapping } from './types.js';
 import { mapUnraidState } from './mapDockerState.js';
-import { pickPrimaryPort, primaryIsLoopbackOnly } from './pickPrimaryPort.js';
+import { pickPrimaryPortWithDefaults, primaryIsLoopbackOnly } from './pickPrimaryPort.js';
 
 const CONTAINER_QUERY = `
 query NasMonoContainers {
@@ -93,7 +93,7 @@ export class UnraidDockerSource implements DockerSource {
 
       const nameRaw = c.names?.[0] ?? c.id;
       const name = stripLeadingSlash(nameRaw);
-      const primary = pickPrimaryPort(publicPorts);
+      const primary = pickPrimaryPortWithDefaults(publicPorts, name, c.image);
 
       return {
         id: c.id,

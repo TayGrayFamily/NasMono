@@ -1,9 +1,9 @@
-import { Badge, Card, Link, Text, VStack } from '@chakra-ui/react';
 import { useMemo, type JSX } from 'react';
 import type { ContainerRow } from '@/types/dockerContainer';
 import { getLaunchHost, getLaunchProtocol } from '@/constants/ServerConst';
 import { iconUrlForImage } from './launchPadIcons';
 import { ReachabilityProbe } from './ReachabilityProbe';
+import '../shell/Shell.css';
 
 export type ContainerTileProps = {
   container: ContainerRow;
@@ -38,58 +38,65 @@ export function ContainerTile(props: ContainerTileProps): JSX.Element {
 
   const iconUrl = iconUrlForImage(container.image);
   const showProbe = !!(openUrl && container.primaryPort && container.state === 'running');
+  const isWebApp = !!openUrl;
 
   return (
-    <Card.Root>
-      {openUrl ? (
-        <Link
-          href={openUrl}
-          target="_blank"
-          rel="noopener noreferrer"
-          margin="20px"
-          opacity={container.state === 'running' ? 1 : 0.45}
-        >
-          <img
-            src={iconUrl}
-            alt=""
-            width={72}
-            height={72}
-            style={{ margin: '0 auto', display: 'block' }}
-          />
-        </Link>
-      ) : (
-        <Card.Body paddingTop={6}>
-          <img
-            src={iconUrl}
-            alt=""
-            width={72}
-            height={72}
-            style={{ margin: '0 auto', display: 'block', opacity: 0.35 }}
-          />
-        </Card.Body>
-      )}
-      <Card.Body>
-        <VStack align="stretch" gap={1}>
-          <Card.Title fontSize="md">{container.name}</Card.Title>
-          <Badge colorPalette={stateColor(container.state)} width="fit-content">
+    <div className={`container-card ${!isWebApp ? 'service-card' : ''}`}>
+      <div className="card-header">
+        <div className="card-icon-wrapper">
+          {openUrl ? (
+            <a
+              href={openUrl}
+              target="_blank"
+              rel="noopener noreferrer"
+              style={{ opacity: container.state === 'running' ? 1 : 0.45, display: 'block' }}
+            >
+              <img src={iconUrl} alt="" width={isWebApp ? 48 : 24} height={isWebApp ? 48 : 24} />
+            </a>
+          ) : (
+            <img
+              src={iconUrl}
+              alt=""
+              width={isWebApp ? 48 : 24}
+              height={isWebApp ? 48 : 24}
+              style={{ opacity: 0.35, display: 'block' }}
+            />
+          )}
+        </div>
+
+        <div className="card-content">
+          <h3 className="card-title">{container.name}</h3>
+          <span
+            className="card-status"
+            style={{ color: `var(--status-${stateColor(container.state)})` }}
+          >
             {container.state}
-          </Badge>
-          <Text fontSize="xs" color="fg.muted" lineClamp={2}>
-            {container.image}
-          </Text>
-          {!openUrl && container.state === 'running' ? (
-            <Text fontSize="sm" color="fg.muted">
-              No published TCP port — open link unavailable
-            </Text>
-          ) : null}
+          </span>
+        </div>
+
+        {isWebApp && openUrl && (
+          <a
+            href={openUrl}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="launch-button"
+            title="Open Web UI"
+          >
+            Launch
+          </a>
+        )}
+      </div>
+
+      {isWebApp && (
+        <div className="card-footer">
           {container.primaryPortLoopbackOnly && openUrl ? (
-            <Text fontSize="sm" color="orange.solid">
-              Bound to loopback only — may not work from other devices (Tailscale)
-            </Text>
+            <p style={{ fontSize: '0.8rem', color: '#ffb74d', margin: '8px 0' }}>
+              Bound to loopback only
+            </p>
           ) : null}
           {showProbe && openUrl ? <ReachabilityProbe openUrl={openUrl} /> : null}
-        </VStack>
-      </Card.Body>
-    </Card.Root>
+        </div>
+      )}
+    </div>
   );
 }

@@ -2,7 +2,7 @@
 # Build from monorepo root:
 #   docker build -f packages/home/Dockerfile .
 
-FROM node:20-alpine AS build
+FROM node:24-alpine AS build
 WORKDIR /app
 ENV PNPM_HOME="/pnpm"
 ENV PATH="$PNPM_HOME:$PATH"
@@ -14,7 +14,7 @@ COPY packages/home ./packages/home
 RUN pnpm install --frozen-lockfile
 RUN pnpm --filter home build
 
-FROM node:20-alpine AS runtime
+FROM node:24-alpine AS runtime
 WORKDIR /app
 ENV NODE_ENV=production
 # Keep in sync with packages/home/package.json (express, dockerode)

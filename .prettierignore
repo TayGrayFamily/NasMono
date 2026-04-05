@@ -4,4 +4,5 @@ dist
 build
 .vscode
 *.log
+packages/home/src/routeTree.gen.ts
 

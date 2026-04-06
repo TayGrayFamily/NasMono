@@ -4,7 +4,7 @@ import { Server } from 'socket.io';
 import dotenv from 'dotenv';
 import path from 'path';
 import { fileURLToPath } from 'url';
-import { setupDatabase, getDbClient, pool, dbStatus, dbConnectionError } from './db.js';
+import { getDbClient, dbStatus, dbConnectionError } from './db.js';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -59,8 +59,8 @@ apiRouter.post('/players', async (req, res) => {
     ]);
     client.release();
     res.status(201).json(result.rows[0]);
-  } catch (err) {
-    res.status(500).json({ error: (err as Error).message });
+  } catch (err: unknown) {
+    res.status(500).json({ error: err instanceof Error ? err.message : String(err) });
   }
 });
 
@@ -76,8 +76,8 @@ apiRouter.post('/lobbies', async (req, res) => {
     ]);
     client.release();
     res.status(201).json({ lobbyId: lobby.rows[0].id });
-  } catch (err) {
-    res.status(500).json({ error: (err as Error).message });
+  } catch (err: unknown) {
+    res.status(500).json({ error: err instanceof Error ? err.message : String(err) });
   }
 });
 
@@ -89,8 +89,8 @@ apiRouter.get('/lobbies', async (req, res) => {
     );
     client.release();
     res.json(result.rows);
-  } catch (err) {
-    res.status(500).json({ error: (err as Error).message });
+  } catch (err: unknown) {
+    res.status(500).json({ error: err instanceof Error ? err.message : String(err) });
   }
 });
 
@@ -105,8 +105,8 @@ apiRouter.get('/lobbies/:id', async (req, res) => {
     client.release();
     if (lobby.rows.length === 0) return res.status(404).json({ error: 'Not found' });
     res.json({ ...lobby.rows[0], players: players.rows });
-  } catch (err) {
-    res.status(500).json({ error: (err as Error).message });
+  } catch (err: unknown) {
+    res.status(500).json({ error: err instanceof Error ? err.message : String(err) });
   }
 });
 
@@ -124,8 +124,8 @@ apiRouter.post('/lobbies/:lobbyId/join', async (req, res) => {
       name: user.rows[0].name,
     });
     res.status(200).json({ message: 'Joined' });
-  } catch (err) {
-    res.status(500).json({ error: (err as Error).message });
+  } catch (err: unknown) {
+    res.status(500).json({ error: err instanceof Error ? err.message : String(err) });
   }
 });
 
@@ -143,7 +143,7 @@ const HOST = process.env.SERVER_HOST || '0.0.0.0';
 
 httpServer
   .listen(PORT, HOST, () => console.log(`Server running on http://${HOST}:${PORT}`))
-  .on('error', (err: any) => {
+  .on('error', (err: Error) => {
     if (err.code === 'EADDRNOTAVAIL') {
       console.warn(`Could not bind to ${HOST}, falling back to 0.0.0.0`);
       httpServer.listen(PORT, '0.0.0.0', () =>

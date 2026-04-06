@@ -15,17 +15,24 @@ let dbConnectionError: string | null = null;
 
 let pool: Pool | null = null;
 
+function isValidConnectionString(connString: string | undefined): boolean {
+  if (!connString) return false;
+  return connString.startsWith('postgres://') || connString.startsWith('postgresql://');
+}
+
 const connectionString = process.env.DATABASE_URL;
 
-if (connectionString && connectionString.startsWith('postgres')) {
+if (isValidConnectionString(connectionString)) {
   console.log('--- DATABASE CONFIGURATION ---');
-  console.log(`Connecting to: ${connectionString.replace(/:[^@]+@/, ':****@')}`);
+  // Masking password in logs
+  const maskedConnectionString = connectionString!.replace(/:[^@]+@/, ':****@');
+  console.log(`Connecting to: ${maskedConnectionString}`);
   try {
     const poolConfig: PoolConfig = { connectionString };
     pool = new Pool(poolConfig);
     dbStatus = 'Initialized';
-  } catch (error: any) {
-    dbConnectionError = `Failed to create pool: ${error.message}`;
+  } catch (error: unknown) {
+    dbConnectionError = `Failed to create pool: ${error instanceof Error ? error.message : String(error)}`;
     console.error(dbConnectionError);
     dbStatus = 'Error';
   }
@@ -48,7 +55,7 @@ async function setupDatabase() {
     await client.query(`
             CREATE TABLE IF NOT EXISTS users (
                 id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-                name VARCHAR(255) NOT NULL,
+                name VARCHAR(255) NOT NULL UNIQUE,
                 is_temporary BOOLEAN NOT NULL DEFAULT true,
                 created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
             );
@@ -67,8 +74,8 @@ async function setupDatabase() {
     dbStatus = 'Schema OK';
     client.release();
     console.log('Database schema setup complete.');
-  } catch (err: any) {
-    const details = err.errors ? err.errors.map((e: any) => e.message).join(', ') : err.message;
+  } catch (err: unknown) {
+    const details = err instanceof Error ? err.message : String(err);
     dbConnectionError = `Database setup failed: ${details}`;
     dbStatus = 'Schema Error';
     console.error('Detailed DB error:', err);
@@ -79,8 +86,8 @@ async function getDbClient() {
   if (!pool) throw new Error('Database connection pool is not available.');
   try {
     return await pool.connect();
-  } catch (err: any) {
-    dbConnectionError = `Connection failed: ${err.message}`;
+  } catch (err: unknown) {
+    dbConnectionError = `Connection failed: ${err instanceof Error ? err.message : String(err)}`;
     console.error(dbConnectionError);
     dbStatus = 'Connection Error';
     throw err;

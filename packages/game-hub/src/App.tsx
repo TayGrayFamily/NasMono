@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
-import io from 'socket.io-client';
+import io, { Socket } from 'socket.io-client';
 import PlayerSetup from './components/PlayerSetup';
 import LobbyList from './components/LobbyList';
 import LobbyDetail from './components/LobbyDetail';
@@ -18,19 +18,69 @@ function App() {
   );
   const [selectedLobbyId, setSelectedLobbyId] = useState<string | null>(null);
   const [isConnected, setIsConnected] = useState(false);
-  const socketRef = useRef<any>(null);
+  const [socket, setSocket] = useState<Socket | null>(null);
 
   useEffect(() => {
     const backendUrl = import.meta.env.VITE_BACKEND_URL || 'http://localhost:3001';
-    socketRef.current = io(backendUrl);
+    const socketInstance = io(backendUrl);
 
-    socketRef.current.on('connect', () => setIsConnected(true));
-    socketRef.current.on('disconnect', () => setIsConnected(false));
+    socketInstance.on('connect', () => setIsConnected(true));
+    socketInstance.on('disconnect', () => setIsConnected(false));
+
+    setSocket(socketInstance);
 
     return () => {
-      if (socketRef.current) socketRef.current.disconnect();
+      socketInstance.disconnect();
     };
   }, []);
+
+  const handlePlayerCreated = (user: User) => {
+    setCurrentUser(user);
+    setCurrentView('lobbyList');
+  };
+
+  const handleCreateLobby = async () => {
+    if (!currentUser || !socket) return;
+
+    try {
+      const response = await fetch('/api/lobbies', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ userId: currentUser.id }),
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.error || 'Failed to create lobby');
+      }
+
+      const data = await response.json();
+      if (data.lobbyId) {
+        setSelectedLobbyId(data.lobbyId);
+        setCurrentView('lobbyDetail');
+        socket.emit('join_lobby_room', { lobbyId: data.lobbyId, userId: currentUser.id });
+      }
+    } catch (error: unknown) {
+      console.error('Error creating lobby:', error);
+      alert(`Failed to create lobby: ${error instanceof Error ? error.message : String(error)}`);
+    }
+  };
+
+  const handleLobbySelect = (lobbyId: string) => {
+    setSelectedLobbyId(lobbyId);
+    setCurrentView('lobbyDetail');
+    if (socket && currentUser) {
+      socket.emit('join_lobby_room', { lobbyId, userId: currentUser.id });
+    }
+  };
+
+  const handleBackToLobbies = () => {
+    if (socket && selectedLobbyId) {
+      // Optional: socket.emit('leave_lobby_room', { lobbyId: selectedLobbyId });
+    }
+    setCurrentView('lobbyList');
+    setSelectedLobbyId(null);
+  };
 
   return (
     <div className="container">
@@ -42,32 +92,16 @@ function App() {
       </header>
 
       <main className="panel">
-        {currentView === 'playerSetup' && (
-          <PlayerSetup
-            onUserCreated={(user) => {
-              setCurrentUser(user);
-              setCurrentView('lobbyList');
-            }}
-          />
-        )}
+        {currentView === 'playerSetup' && <PlayerSetup onUserCreated={handlePlayerCreated} />}
         {currentView === 'lobbyList' && currentUser && (
-          <LobbyList
-            currentUserId={currentUser.id}
-            onSelectLobby={(id) => {
-              setSelectedLobbyId(id);
-              setCurrentView('lobbyDetail');
-            }}
-          />
+          <LobbyList currentUserId={currentUser.id} onSelectLobby={handleLobbySelect} />
         )}
-        {currentView === 'lobbyDetail' && selectedLobbyId && currentUser && (
+        {currentView === 'lobbyDetail' && selectedLobbyId && currentUser && socket && (
           <LobbyDetail
             lobbyId={selectedLobbyId}
             currentUserId={currentUser.id}
-            onBack={() => {
-              setSelectedLobbyId(null);
-              setCurrentView('lobbyList');
-            }}
-            socket={socketRef.current}
+            onBack={handleBackToLobbies}
+            socket={socket}
           />
         )}
       </main>

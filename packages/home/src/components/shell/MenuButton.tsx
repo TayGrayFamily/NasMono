@@ -3,7 +3,7 @@ import type { JSX } from 'react';
 import { LuMenu } from 'react-icons/lu';
 import { Button, CloseButton, Drawer, Portal } from '@chakra-ui/react';
 
-export function MenuButton(_props: object): JSX.Element {
+export function MenuButton(): JSX.Element {
   return (
     <Drawer.Root placement="start">
       <Drawer.Trigger asChild>

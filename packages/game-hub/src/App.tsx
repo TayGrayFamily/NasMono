@@ -1,3 +1,4 @@
+/// <reference types="vite/client" />
 import React, { useState, useEffect } from 'react';
 import io, { Socket } from 'socket.io-client';
 import PlayerSetup from './components/PlayerSetup';
@@ -21,16 +22,14 @@ function App() {
   const [socket, setSocket] = useState<Socket | null>(null);
 
   useEffect(() => {
+    // In Vite, use import.meta.env
     const backendUrl = import.meta.env.VITE_BACKEND_URL || 'http://localhost:3001';
     const socketInstance = io(backendUrl);
 
     socketInstance.on('connect', () => setIsConnected(true));
     socketInstance.on('disconnect', () => setIsConnected(false));
 
-    // Fix: wrap the state update in a timeout to avoid synchronous setState inside useEffect
-    setTimeout(() => {
-      setSocket(socketInstance);
-    }, 0);
+    setSocket(socketInstance);
 
     return () => {
       socketInstance.disconnect();

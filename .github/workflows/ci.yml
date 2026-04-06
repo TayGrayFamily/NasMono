@@ -31,7 +31,7 @@ jobs:
         run: pnpm -w format:check
 
       - name: Lint workspace
-        run: pnpm -w -r lint || echo "Some packages may not have lint scripts"
+        run: pnpm -r run lint
 
   build-and-verify:
     name: Build and Verify Artifacts
@@ -60,6 +60,7 @@ jobs:
           if [ ! -d "packages/home/dist" ]; then
             echo "::error::packages/home/dist is missing! Client build failed."
             exit 1
+          fi
           if [ ! -d "packages/home/dist-server" ]; then
             echo "::error::packages/home/dist-server is missing! Server build failed."
             exit 1

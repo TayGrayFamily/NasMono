@@ -6,7 +6,7 @@ export default defineConfig({
   plugins: [react()],
   build: {
     lib: {
-      entry: path.resolve(__dirname, 'src/index.ts'), // Assuming your main entry point is src/index.ts
+      entry: path.resolve(__dirname, 'src/main.tsx'), // Assuming your main entry point is src/index.ts
       name: 'Just One', // A global variable name for UMD build
       formats: ['es', 'cjs', 'umd'], // Output formats
       fileName: (format) => `just-one.${format}.js`,

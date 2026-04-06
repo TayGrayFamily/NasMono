@@ -3,7 +3,6 @@ name: Release on Push or Merge
 on:
   push:
     branches: [master]
-  # Keep pull_request closed as a backup to ensure merged PR logic is captured
   pull_request:
     types: [closed]
     branches: [master]
@@ -14,7 +13,6 @@ permissions:
 
 jobs:
   bump-and-release:
-    # Run if it's a direct push OR a merged pull request
     if: github.event_name == 'push' || (github.event_name == 'pull_request' && github.event.pull_request.merged == true)
     runs-on: ubuntu-latest
     steps:
@@ -31,7 +29,6 @@ jobs:
         with:
           node-version: '24'
           cache: 'pnpm'
-          cache-dependency-path: '**/pnpm-lock.yaml'
 
       - name: Install dependencies
         run: pnpm install --frozen-lockfile
@@ -47,7 +44,6 @@ jobs:
         with:
           result-encoding: string
           script: |
-            // If it's a PR, check labels. If it's a direct push, default to 'patch'.
             const event = context.eventName;
             if (event === 'pull_request') {
               const labels = context.payload.pull_request.labels.map(l => l.name.toLowerCase());
@@ -65,7 +61,6 @@ jobs:
 
       - name: Checkout the released tag
         run: |
-          # use the most recent tag (the version bump created it) and check it out
           NEW_TAG=$(git describe --tags --abbrev=0)
           echo "NEW_TAG=$NEW_TAG" >> $GITHUB_ENV
           git fetch --tags
@@ -78,59 +73,41 @@ jobs:
         run: pnpm -r run build
 
       - name: Log in to GitHub Container Registry
-        uses: docker/login-action@v2
+        uses: docker/login-action@v3
         with:
           registry: ghcr.io
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
 
-      - name: Build and push Docker image for packages/home
+      - name: Build and push Docker images
         env:
           NEW_TAG: ${{ env.NEW_TAG }}
           REPO_OWNER: ${{ github.repository_owner }}
           REPO_NAME: ${{ github.event.repository.name }}
         run: |
           set -e
+          OWNER_LC=$(echo "$REPO_OWNER" | tr '[:upper:]' '[:lower:]')
+          REPO_LC=$(echo "$REPO_NAME" | tr '[:upper:]' '[:lower:]')
+          
           # Lowercase owner and repo names because Docker requires lowercase repository names
           OWNER_LC=$(echo "$REPO_OWNER" | tr '[:upper:]' '[:lower:]')
           REPO_LC=$(echo "$REPO_NAME" | tr '[:upper:]' '[:lower:]')
-          IMAGE="ghcr.io/${OWNER_LC}/${REPO_LC}-home:${NEW_TAG}"
-          echo "Building image: $IMAGE"
-          if [ ! -d "packages/home/dist" ]; then
-            echo "packages/home/dist not found — ensure the build produced output" >&2
-            ls -la packages/home || true
-            exit 1
-          fi
-          if [ ! -d "packages/home/dist-server" ]; then
-            echo "packages/home/dist-server not found — server build must run with the client build" >&2
-            exit 1
-          fi
 
-          docker build -f packages/home/Dockerfile -t "$IMAGE" .
-          docker push "$IMAGE"
-          # Also tag and push a :latest tag so consumers can pull the latest image
-          LATEST_IMAGE="ghcr.io/${OWNER_LC}/${REPO_LC}-home:latest"
-          docker tag "$IMAGE" "$LATEST_IMAGE"
-          docker push "$LATEST_IMAGE"
-          echo "IMAGE=$IMAGE" >> $GITHUB_ENV
-          echo "LATEST_IMAGE=$LATEST_IMAGE" >> $GITHUB_ENV
+          # Build and push packages
+          for pkg in home game-server game-hub; do
+            IMAGE="ghcr.io/${OWNER_LC}/${REPO_LC}-${pkg}:${NEW_TAG}"
+            LATEST_IMAGE="ghcr.io/${OWNER_LC}/${REPO_LC}-${pkg}:latest"
 
-      - name: Create GitHub Release with image reference
+            echo "Building image: $IMAGE"
+            docker build -f packages/$pkg/Dockerfile -t "$IMAGE" -t "$LATEST_IMAGE" .
+            docker push "$IMAGE"
+            docker push "$LATEST_IMAGE"
+          done
+
+      - name: Create GitHub Release
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          IMAGE: ${{ env.IMAGE }}
-          LATEST_IMAGE: ${{ env.LATEST_IMAGE }}
         run: |
-          NEW_TAG=${NEW_TAG}
-          IMAGE=${IMAGE}
-          LATEST_IMAGE=${LATEST_IMAGE}
-          # Determine release notes based on the event type
-          if [[ "${{ github.event_name }}" == "pull_request" ]]; then
-            NOTES="Merged PR #${{ github.event.pull_request.number }} by @${{ github.event.pull_request.user.login }}"
-          else
-            NOTES="Direct push to master by @${{ github.actor }}"
-          fi
-
-          printf -v NOTES "%s\n\nDocker image: %s\nLatest tag: %s" "$NOTES" "$IMAGE" "$LATEST_IMAGE"
-
+          NEW_TAG=${{ env.NEW_TAG }}
+          NOTES="Release $NEW_TAG"
           gh release create "$NEW_TAG" --title "$NEW_TAG" --notes "$NOTES"

@@ -12,7 +12,7 @@ COPY package.json pnpm-lock.yaml pnpm-workspace.yaml ./
 COPY packages/just-one ./packages/just-one
 COPY packages/game-server ./packages/game-server
 
-RUN pnpm install --frozen-lockfile
+RUN pnpm install --no-frozen-lockfile
 RUN pnpm --filter game-server build
 # Deploy production dependencies
 RUN pnpm --filter game-server --prod deploy /app/prod

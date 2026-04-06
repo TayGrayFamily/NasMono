@@ -2,37 +2,59 @@ version: '3.8'
 
 services:
   nasmono-home:
-    # Image can be overridden via IMAGE env var; default uses GHCR with lowercase owner/repo
-    image: '${IMAGE:-ghcr.io/taygrayfamily/nasmono-home:${IMAGE_TAG:-latest}}'
-    container_name: nasmono-home
-    env_file:
-      - .env
+    image: ghcr.io/taygrayfamily/nasmono-home:latest
+    container_name: web_app
+    env_file: .env
     ports:
-      - '${HOST_PORT:-8888}:80'
-    volumes:
-      # Read-only Docker socket (omit this block if you use UNRAID_GRAPHQL_URL + UNRAID_API_KEY instead)
-      - /var/run/docker.sock:/var/run/docker.sock:ro
+      - '${HOME_BACKEND_PORT:-8080}:80'
     restart: unless-stopped
     healthcheck:
-      test:
-        [
-          'CMD',
-          'node',
-          '-e',
-          "fetch('http://127.0.0.1/api/health').then(r=>process.exit(r.ok?0:1)).catch(()=>process.exit(1))",
-        ]
+      test: ['CMD', 'wget', '-qO-', '--timeout=2', 'http://localhost/']
       interval: 30s
       timeout: 5s
       retries: 3
-    # All runtime configuration (including secrets) should be provided via the adjacent .env file
-    # The .env file is loaded by `env_file:` above and its values will be available inside the container.
-    # Do NOT commit `.env` to source control. Use Unraid secrets/registry auth for private values.
     labels:
       - 'com.tailscale.description=NasMono Home app'
 
-# Notes:
-# - Put a .env next to this file: IMAGE_TAG=latest HOST_PORT=8888, optional PORT=80 (default 80 in container).
-# - Container list: mount docker.sock (above) OR set UNRAID_GRAPHQL_URL and UNRAID_API_KEY (omit the socket volume).
-# - UNRAID_GRAPHQL_URL must be reachable from this container (e.g. http://192.168.x.x/graphql).
-# - For local dev, optional UNRAID_* / DOCKER_SOCKET_PATH live in repo-root .env (Vite envDir).
-# - Do NOT commit secrets. Use Unraid UI secrets or registry auth for private images.
+  game-server:
+    image: ghcr.io/taygrayfamily/nasmono-game-server:latest
+    container_name: game_server
+    env_file: .env
+    restart: unless-stopped
+    ports:
+      - '${GAME_SERVER_PORT:-3001}:3001'
+    depends_on:
+      db:
+        condition: service_healthy
+
+  game-hub:
+    image: ghcr.io/taygrayfamily/nasmono-game-hub:latest
+    container_name: game_hub_ui
+    restart: unless-stopped
+    ports:
+      - '${GAME_HUB_PORT:-8000}:80'
+    healthcheck:
+      test: ['CMD', 'curl', '-f', 'http://localhost']
+      interval: 30s
+      timeout: 5s
+      retries: 3
+
+  db:
+    image: postgres:16-alpine
+    container_name: game_hub_db
+    restart: always
+    env_file: .env
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      POSTGRES_DB: ${POSTGRES_DB}
+      PGDATA: ${PGDATA:-/var/lib/postgresql/data}
+    volumes:
+      - /mnt/user/appdata/postgres-game-hub:/var/lib/postgresql/data
+    ports:
+      - '${POSTGRES_PORT:-5432}:5432'
+    healthcheck:
+      test: ['CMD-SHELL', 'pg_isready -U ${POSTGRES_USER} -d ${POSTGRES_DB}']
+      interval: 10s
+      timeout: 5s
+      retries: 5

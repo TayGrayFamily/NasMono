@@ -88,16 +88,12 @@ jobs:
           set -e
           OWNER_LC=$(echo "$REPO_OWNER" | tr '[:upper:]' '[:lower:]')
           REPO_LC=$(echo "$REPO_NAME" | tr '[:upper:]' '[:lower:]')
-          
-          # Lowercase owner and repo names because Docker requires lowercase repository names
-          OWNER_LC=$(echo "$REPO_OWNER" | tr '[:upper:]' '[:lower:]')
-          REPO_LC=$(echo "$REPO_NAME" | tr '[:upper:]' '[:lower:]')
 
           # Build and push packages
           for pkg in home game-server game-hub; do
             IMAGE="ghcr.io/${OWNER_LC}/${REPO_LC}-${pkg}:${NEW_TAG}"
             LATEST_IMAGE="ghcr.io/${OWNER_LC}/${REPO_LC}-${pkg}:latest"
-
+            
             echo "Building image: $IMAGE"
             docker build -f packages/$pkg/Dockerfile -t "$IMAGE" -t "$LATEST_IMAGE" .
             docker push "$IMAGE"

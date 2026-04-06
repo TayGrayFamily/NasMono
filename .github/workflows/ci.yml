@@ -65,4 +65,3 @@ jobs:
             exit 1
           fi
           echo "Build artifacts verified successfully."
-

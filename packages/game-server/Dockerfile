@@ -9,10 +9,9 @@ ENV PATH="$PNPM_HOME:$PATH"
 RUN corepack enable && corepack prepare pnpm@10.33.0 --activate
 
 COPY package.json pnpm-lock.yaml pnpm-workspace.yaml ./
+# Ensure just-one is copied if game-server depends on it
+COPY packages/just-one ./packages/just-one
 COPY packages/game-server ./packages/game-server
-COPY packages/game-hub ./packages/game-hub
-# Dependencies for the server
-COPY packages/home ./packages/home
 
 RUN pnpm install --no-frozen-lockfile
 RUN pnpm --filter game-server build
@@ -24,8 +23,6 @@ RUN npm install express@5.2.1 socket.io@4.8.1 pg@8.13.3 dotenv@16.0.0 --omit=dev
 
 COPY --from=build /app/packages/game-server/dist ./dist
 COPY --from=build /app/packages/game-server/node_modules ./node_modules
-# Ensure .env can be loaded if necessary by mounting or copying
-# COPY .env .env 
 
 EXPOSE 3001
 CMD ["node", "dist/index.js"]

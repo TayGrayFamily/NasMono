@@ -89,7 +89,7 @@ jobs:
           # Convert to lowercase
           OWNER_LC=$(echo "$REPO_OWNER" | tr '[:upper:]' '[:lower:]')
           REPO_LC=$(echo "$REPO_NAME" | tr '[:upper:]' '[:lower:]')
-          
+
           # Correct path: ghcr.io/owner/repo-package:tag
           # We'll use the REPO_LC as the base for the package names
           for pkg in home game-server game-hub; do

@@ -86,9 +86,12 @@ jobs:
           REPO_NAME: ${{ github.event.repository.name }}
         run: |
           set -e
+          # Convert to lowercase
           OWNER_LC=$(echo "$REPO_OWNER" | tr '[:upper:]' '[:lower:]')
           REPO_LC=$(echo "$REPO_NAME" | tr '[:upper:]' '[:lower:]')
           
+          # Correct path: ghcr.io/owner/repo-package:tag
+          # We'll use the REPO_LC as the base for the package names
           for pkg in home game-server game-hub; do
             IMAGE="ghcr.io/${OWNER_LC}/${REPO_LC}-${pkg}:${NEW_TAG}"
             LATEST_IMAGE="ghcr.io/${OWNER_LC}/${REPO_LC}-${pkg}:latest"
@@ -104,5 +107,4 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
           NEW_TAG=${{ env.NEW_TAG }}
-          NOTES="Release $NEW_TAG"
-          gh release create "$NEW_TAG" --title "$NEW_TAG" --notes "$NOTES"
+          gh release create "$NEW_TAG" --title "$NEW_TAG" --notes "Docker images pushed to ghcr.io/${{ github.repository_owner }}/${{ github.event.repository.name }}-*"

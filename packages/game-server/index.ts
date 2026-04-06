@@ -19,17 +19,23 @@ app.use('/api', apiRouter);
 const httpServer = createServer(app);
 const io = new Server(httpServer, { cors: { origin: '*' } });
 
-const socketIdToUserId: Map<string, string> = new Map();
+// Map userId -> socketId (for easy lookup)
+const userSocketMap = new Map<string, string>();
+// Map socketId -> userId (for disconnects)
+const socketToUserMap = new Map<string, string>();
 
 io.on('connection', (socket) => {
   socket.on('join_lobby_room', (data: { lobbyId: string; userId: string }) => {
     if (data.lobbyId && data.userId) {
       socket.join(data.lobbyId);
-      socketIdToUserId.set(socket.id, data.userId);
+      userSocketMap.set(data.userId, socket.id);
+      socketToUserMap.set(socket.id, data.userId);
+      console.log(`User ${data.userId} joined lobby ${data.lobbyId}`);
     }
   });
+
   socket.on('disconnect', async () => {
-    const userId = socketIdToUserId.get(socket.id);
+    const userId = socketToUserMap.get(socket.id);
     if (userId) {
       try {
         const client = await getDbClient();
@@ -39,26 +45,32 @@ io.on('connection', (socket) => {
         if (res.rows.length > 0) {
           const lobbyId = res.rows[0].lobby_id;
           await client.query('DELETE FROM lobby_players WHERE user_id = $1', [userId]);
-          io.to(lobbyId).emit('player_left', { lobbyId, userId });
+          io.to(lobbyId).emit('player_left', { userId });
         }
         client.release();
       } catch (e) {
         console.error(e);
       }
-      socketIdToUserId.delete(socket.id);
+      socketToUserMap.delete(socket.id);
+      userSocketMap.delete(userId);
     }
   });
 });
 
 // --- API Endpoints ---
-apiRouter.post('/players', async (req, res) => {
+apiRouter.post('/login', async (req, res) => {
   try {
+    const { name } = req.body;
     const client = await getDbClient();
-    const result = await client.query('INSERT INTO users (name) VALUES ($1) RETURNING *', [
-      req.body.name,
-    ]);
+    let result = await client.query('SELECT * FROM users WHERE name = $1', [name]);
+    if (result.rows.length === 0) {
+      result = await client.query(
+        'INSERT INTO users (name, is_temporary) VALUES ($1, false) RETURNING *',
+        [name],
+      );
+    }
     client.release();
-    res.status(201).json(result.rows[0]);
+    res.status(200).json(result.rows[0]);
   } catch (err) {
     res.status(500).json({ error: (err as Error).message });
   }
@@ -119,6 +131,8 @@ apiRouter.post('/lobbies/:lobbyId/join', async (req, res) => {
     );
     const user = await client.query('SELECT name FROM users WHERE id = $1', [req.body.userId]);
     client.release();
+
+    // Crucial: emit to the room (lobbyId)
     io.to(req.params.lobbyId).emit('player_joined', {
       userId: req.body.userId,
       name: user.rows[0].name,
@@ -129,30 +143,27 @@ apiRouter.post('/lobbies/:lobbyId/join', async (req, res) => {
   }
 });
 
-app.get('/status', (req, res) => {
+app.get('/debug', async (req, res) => {
+  let lobbies: any[] = [];
+  try {
+    const client = await getDbClient();
+    const result = await client.query('SELECT * FROM lobbies');
+    lobbies = result.rows;
+    client.release();
+  } catch (e) {}
+
   res.json({
-    server: { uptime: process.uptime() },
-    dbStatus,
-    dbConnectionError,
-    socketClients: io.engine.clientsCount,
+    status: {
+      uptime: process.uptime(),
+      dbStatus,
+      dbConnectionError,
+      socketClients: io.engine.clientsCount,
+    },
+    state: { activeLobbies: lobbies, connectedUsers: Array.from(socketToUserMap.values()) },
   });
 });
 
 const PORT = Number(process.env.GAME_SERVER_PORT || 3001);
 const HOST = process.env.SERVER_HOST || '0.0.0.0';
 
-httpServer
-  .listen(PORT, HOST, () => console.log(`Server running on http://${HOST}:${PORT}`))
-  .on('error', (err: any) => {
-    if (err.code === 'EADDRNOTAVAIL') {
-      console.warn(`Could not bind to ${HOST}, falling back to 0.0.0.0`);
-      httpServer.listen(PORT, '0.0.0.0', () =>
-        console.log(`Server running on http://0.0.0.0:${PORT}`),
-      );
-    } else {
-      throw err;
-    }
-  });
-
-process.on('uncaughtException', (err) => console.error('Uncaught Exception:', err));
-process.on('unhandledRejection', (err) => console.error('Unhandled Rejection:', err));
+httpServer.listen(PORT, HOST, () => console.log(`Server running on http://${HOST}:${PORT}`));

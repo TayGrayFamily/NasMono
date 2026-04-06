@@ -8,14 +8,20 @@ function stripLeadingSlash(name: string): string {
 }
 
 export class DockerodeSource implements DockerSource {
-  private readonly docker: Docker;
+  private readonly docker: Docker | null = null;
 
   constructor() {
-    const socketPath = process.env.DOCKER_SOCKET_PATH ?? '/var/run/docker.sock';
-    this.docker = new Docker({ socketPath });
+    const socketPath = process.env.DOCKER_SOCKET_PATH;
+    if (socketPath && socketPath !== 'null') {
+      this.docker = new Docker({ socketPath });
+    } else {
+      console.warn('Docker socket path not configured. Docker integration disabled.');
+    }
   }
 
   async listContainers(): Promise<ContainerRow[]> {
+    if (!this.docker) return [];
+
     const list = await this.docker.listContainers({ all: true });
     return list.map((c) => {
       const publicPorts: PublicPortMapping[] = (c.Ports ?? [])

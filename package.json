@@ -5,8 +5,9 @@
   "type": "module",
   "packageManager": "pnpm@10.33.0",
   "scripts": {
+    "start:all": "pnpm --filter ./packages/home --filter ./packages/game-server start --parallel",
     "dev": "cd packages/home && pnpm run dev",
-    "start": "cd packages/home && pnpm run dev",
+    "start": "pnpm start:all",
     "build": "pnpm -r run build",
     "bootstrap": "pnpm -w install",
     "lint": "pnpm -w -r lint",

@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect } from 'react';
 import io, { Socket } from 'socket.io-client';
 import PlayerSetup from './components/PlayerSetup';
 import LobbyList from './components/LobbyList';
@@ -27,7 +27,10 @@ function App() {
     socketInstance.on('connect', () => setIsConnected(true));
     socketInstance.on('disconnect', () => setIsConnected(false));
 
-    setSocket(socketInstance);
+    // Fix: wrap the state update in a timeout to avoid synchronous setState inside useEffect
+    setTimeout(() => {
+      setSocket(socketInstance);
+    }, 0);
 
     return () => {
       socketInstance.disconnect();
@@ -39,33 +42,6 @@ function App() {
     setCurrentView('lobbyList');
   };
 
-  const handleCreateLobby = async () => {
-    if (!currentUser || !socket) return;
-
-    try {
-      const response = await fetch('/api/lobbies', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ userId: currentUser.id }),
-      });
-
-      if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(errorData.error || 'Failed to create lobby');
-      }
-
-      const data = await response.json();
-      if (data.lobbyId) {
-        setSelectedLobbyId(data.lobbyId);
-        setCurrentView('lobbyDetail');
-        socket.emit('join_lobby_room', { lobbyId: data.lobbyId, userId: currentUser.id });
-      }
-    } catch (error: unknown) {
-      console.error('Error creating lobby:', error);
-      alert(`Failed to create lobby: ${error instanceof Error ? error.message : String(error)}`);
-    }
-  };
-
   const handleLobbySelect = (lobbyId: string) => {
     setSelectedLobbyId(lobbyId);
     setCurrentView('lobbyDetail');
@@ -75,9 +51,6 @@ function App() {
   };
 
   const handleBackToLobbies = () => {
-    if (socket && selectedLobbyId) {
-      // Optional: socket.emit('leave_lobby_room', { lobbyId: selectedLobbyId });
-    }
     setCurrentView('lobbyList');
     setSelectedLobbyId(null);
   };

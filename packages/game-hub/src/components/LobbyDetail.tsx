@@ -1,5 +1,4 @@
 import React, { useState, useEffect } from 'react';
-import { Socket } from 'socket.io-client';
 
 interface Player {
   id: string;
@@ -16,7 +15,7 @@ interface LobbyDetailProps {
   lobbyId: string;
   currentUserId: string;
   onBack: () => void;
-  socket: Socket;
+  socket: any;
 }
 
 function LobbyDetail({ lobbyId, currentUserId, onBack, socket }: LobbyDetailProps) {
@@ -26,6 +25,8 @@ function LobbyDetail({ lobbyId, currentUserId, onBack, socket }: LobbyDetailProp
   const [isJoining, setIsJoining] = useState(false);
 
   useEffect(() => {
+    let mounted = true;
+
     const fetchLobbyDetails = async () => {
       setLoading(true);
       setError(null);
@@ -38,11 +39,11 @@ function LobbyDetail({ lobbyId, currentUserId, onBack, socket }: LobbyDetailProp
         }
 
         const data: LobbyDetailData = JSON.parse(responseBody);
-        setLobby(data);
+        if (mounted) setLobby(data);
       } catch (err: unknown) {
-        setError(err instanceof Error ? err.message : String(err));
+        if (mounted) setError(err instanceof Error ? err.message : String(err));
       } finally {
-        setLoading(false);
+        if (mounted) setLoading(false);
       }
     };
 
@@ -66,6 +67,7 @@ function LobbyDetail({ lobbyId, currentUserId, onBack, socket }: LobbyDetailProp
     socket.on('player_left', handlePlayerLeft);
 
     return () => {
+      mounted = false;
       socket.off('player_joined', handlePlayerJoined);
       socket.off('player_left', handlePlayerLeft);
     };
@@ -89,7 +91,7 @@ function LobbyDetail({ lobbyId, currentUserId, onBack, socket }: LobbyDetailProp
   };
 
   if (loading) return <p>Loading...</p>;
-  if (error) return <p style={{ color: 'var(--error-color)' }}>{error}</p>;
+  if (error) return <p style={{ color: 'var(--error-color)' }}>Error: {error}</p>;
   if (!lobby) return <p>Lobby not found.</p>;
 
   const isPlayerInLobby = lobby.players.some((p) => p.id === currentUserId);

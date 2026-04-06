@@ -14,8 +14,8 @@ COPY packages/game-server ./packages/game-server
 
 RUN pnpm install --no-frozen-lockfile
 RUN pnpm --filter game-server build
-# Deploy production dependencies
-RUN pnpm --filter game-server --prod deploy /app/prod
+# Deploy production dependencies with legacy flag for pnpm v10+ compatibility
+RUN pnpm --filter game-server --prod deploy /app/prod --legacy
 
 FROM node:24-alpine AS runtime
 WORKDIR /app

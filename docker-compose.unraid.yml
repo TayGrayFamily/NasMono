@@ -2,7 +2,7 @@ version: '3.8'
 
 services:
   nasmono-home:
-    image: ghcr.io/taygrayfamily/nasmono-home:latest
+    image: '${IMAGE:-ghcr.io/taygrayfamily/nasmono-home:${IMAGE_TAG:-latest}}'
     container_name: web_app
     env_file: .env
     ports:

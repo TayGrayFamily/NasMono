@@ -65,6 +65,15 @@ services:
       timeout: 5s
       retries: 5
 
+  public-tunnel:
+    image: cloudflare/cloudflared:latest
+    container_name: game_tunnel
+    networks:
+      - game-network
+    # Force http2 protocol to avoid the "control stream" errors we saw earlier
+    command: tunnel --protocol http2 --url http://game_hub_ui:80
+    restart: unless-stopped
+
 networks:
   game-network: # Must match the name above exactly
     external: true

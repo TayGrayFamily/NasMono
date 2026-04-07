@@ -1,5 +1,3 @@
-version: '3.8'
-
 services:
   nasmono-home:
     image: '${IMAGE:-ghcr.io/taygrayfamily/nasmono-home:${IMAGE_TAG:-latest}}'

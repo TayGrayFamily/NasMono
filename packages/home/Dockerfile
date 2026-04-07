@@ -18,7 +18,7 @@ FROM node:24-alpine AS runtime
 WORKDIR /app
 ENV NODE_ENV=production
 # Keep in sync with packages/home/package.json (express, dockerode)
-RUN npm install express@5.2.1 dockerode@4.0.10 --omit=dev --ignore-scripts
+RUN corepack enable && pnpm install --prod --filter=home --ignore-scripts
 
 COPY --from=build /app/packages/home/dist ./dist
 COPY --from=build /app/packages/home/dist-server ./dist-server

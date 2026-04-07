@@ -94,7 +94,62 @@ async function getDbClient() {
   }
 }
 
+// New functions for user management
+export async function findUserByName(
+  name: string,
+): Promise<{ id: string; name: string; created_at: Date } | null> {
+  if (!pool) throw new Error('Database connection pool is not available.');
+  const client = await pool.connect();
+  try {
+    const result = await client.query('SELECT id, name, created_at FROM users WHERE name = $1', [
+      name,
+    ]);
+    return result.rows[0] || null;
+  } finally {
+    client.release();
+  }
+}
+
+export async function createUser(
+  name: string,
+): Promise<{ id: string; name: string; created_at: Date }> {
+  if (!pool) throw new Error('Database connection pool is not available.');
+  const client = await pool.connect();
+  try {
+    const result = await client.query(
+      'INSERT INTO users (name, is_temporary) VALUES ($1, true) RETURNING id, name, created_at',
+      [name],
+    );
+    return result.rows[0];
+  } finally {
+    client.release();
+  }
+}
+
+export async function findOrCreateUser(
+  name: string,
+): Promise<{ id: string; name: string; created_at: Date }> {
+  const existingUser = await findUserByName(name);
+  if (existingUser) {
+    console.log(`User found: ${name} (ID: ${existingUser.id})`);
+    return existingUser;
+  } else {
+    console.log(`User not found, creating: ${name}`);
+    return await createUser(name);
+  }
+}
+
 // Initialize
 setupDatabase();
 
-export { setupDatabase, getDbClient, pool, dbStatus, dbConnectionError };
+// Update exports to include new functions
+export {
+  setupDatabase,
+  getDbClient,
+  pool,
+  dbStatus,
+  dbConnectionError,
+  findUserByName,
+  createUser,
+  findOrCreateUser,
+};

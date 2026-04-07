@@ -22,26 +22,22 @@ function LobbyList({ currentUserId, onSelectLobby }: LobbyListProps) {
       if (response.ok) {
         const data = await response.json();
         setLobbies(data);
+      } else {
+        // Handle non-OK HTTP responses
+        setError('Failed to fetch lobbies: Server returned status ' + response.status);
       }
-    } catch (_err) {
-      console.error('Failed to fetch lobbies');
+    } catch (err) {
+      // Handle network errors or JSON parsing errors
+      console.error('Failed to fetch lobbies', err);
+      setError('Failed to fetch lobbies due to a network error.');
     }
   };
 
-  useEffect(() => {
-    let active = true;
-    const load = async () => {
-      const data = await fetch('/api/lobbies').then((r) => r.json());
-      if (active) setLobbies(data);
-    };
-    load();
-    return () => {
-      active = false;
-    };
-  }, []);
-
   const createLobby = async () => {
-    if (!newLobbyName.trim()) return;
+    if (!newLobbyName.trim()) {
+      setError('Lobby name cannot be empty.');
+      return;
+    }
     try {
       const res = await fetch('/api/lobbies', {
         method: 'POST',
@@ -49,15 +45,23 @@ function LobbyList({ currentUserId, onSelectLobby }: LobbyListProps) {
         body: JSON.stringify({ name: newLobbyName, userId: currentUserId }),
       });
       if (res.ok) {
-        const data = await res.json();
-        onSelectLobby(data.lobbyId);
+        const { lobbyId } = await res.json();
+        onSelectLobby(lobbyId); // Assuming onSelectLobby is the desired action after creation
+        setNewLobbyName(''); // Clear input after successful creation
+        setError(null); // Clear any previous errors
       } else {
-        setError('Failed to create lobby');
+        const errorData = await res.json();
+        setError(errorData.error || `Failed to create lobby: Server returned status ${res.status}`);
       }
-    } catch (_err) {
-      setError('Error creating lobby');
+    } catch (err) {
+      console.error('Error creating lobby', err);
+      setError('Error creating lobby due to a network error.');
     }
   };
+
+  useEffect(() => {
+    fetchLobbies();
+  }, []);
 
   return (
     <div className="panel">

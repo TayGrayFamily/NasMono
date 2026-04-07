@@ -143,13 +143,4 @@ export async function findOrCreateUser(
 setupDatabase();
 
 // Update exports to include new functions
-export {
-  setupDatabase,
-  getDbClient,
-  pool,
-  dbStatus,
-  dbConnectionError,
-  findUserByName,
-  createUser,
-  findOrCreateUser,
-};
+export { setupDatabase, getDbClient, pool, dbStatus, dbConnectionError };

@@ -33,7 +33,7 @@ const host = process.env.SERVER_HOST || '0.0.0.0';
 const app = express();
 
 // Helper to log all incoming requests for debugging
-app.use((req, res, next) => {
+app.use((req, _res, next) => {
   console.log(`${req.method} ${req.url}`);
   next();
 });

@@ -1,4 +1,5 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 
 interface Lobby {
   id: string;
@@ -12,56 +13,54 @@ interface LobbyListProps {
 }
 
 function LobbyList({ currentUserId, onSelectLobby }: LobbyListProps) {
-  const [lobbies, setLobbies] = useState<Lobby[]>([]);
   const [newLobbyName, setNewLobbyName] = useState('');
   const [error, setError] = useState<string | null>(null);
+  const queryClient = useQueryClient();
 
-  const fetchLobbies = async () => {
-    try {
+  const {
+    data: lobbies = [],
+    isLoading,
+    isError,
+  } = useQuery({
+    queryKey: ['lobbies'],
+    queryFn: async () => {
       const response = await fetch('/api/lobbies');
-      if (response.ok) {
-        const data = await response.json();
-        setLobbies(data);
-      } else {
-        // Handle non-OK HTTP responses
-        setError('Failed to fetch lobbies: Server returned status ' + response.status);
-      }
-    } catch (err) {
-      // Handle network errors or JSON parsing errors
-      console.error('Failed to fetch lobbies', err);
-      setError('Failed to fetch lobbies due to a network error.');
-    }
-  };
+      if (!response.ok) throw new Error('Failed to fetch lobbies');
+      return response.json();
+    },
+  });
 
-  const createLobby = async () => {
+  const createLobbyMutation = useMutation({
+    mutationFn: async (name: string) => {
+      const res = await fetch('/api/lobbies', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ name, userId: currentUserId }),
+      });
+      if (!res.ok) throw new Error('Failed to create lobby');
+      return res.json();
+    },
+    onSuccess: (data) => {
+      queryClient.invalidateQueries({ queryKey: ['lobbies'] });
+      onSelectLobby(data.lobbyId);
+      setNewLobbyName('');
+      setError(null);
+    },
+    onError: (err) => {
+      setError(err.message);
+    },
+  });
+
+  const createLobby = () => {
     if (!newLobbyName.trim()) {
       setError('Lobby name cannot be empty.');
       return;
     }
-    try {
-      const res = await fetch('/api/lobbies', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ name: newLobbyName, userId: currentUserId }),
-      });
-      if (res.ok) {
-        const { lobbyId } = await res.json();
-        onSelectLobby(lobbyId); // Assuming onSelectLobby is the desired action after creation
-        setNewLobbyName(''); // Clear input after successful creation
-        setError(null); // Clear any previous errors
-      } else {
-        const errorData = await res.json();
-        setError(errorData.error || `Failed to create lobby: Server returned status ${res.status}`);
-      }
-    } catch (err) {
-      console.error('Error creating lobby', err);
-      setError('Error creating lobby due to a network error.');
-    }
+    createLobbyMutation.mutate(newLobbyName);
   };
 
-  useEffect(() => {
-    fetchLobbies();
-  }, []);
+  if (isLoading) return <div>Loading...</div>;
+  if (isError) return <div>Failed to load lobbies.</div>;
 
   return (
     <div className="panel">
@@ -72,9 +71,11 @@ function LobbyList({ currentUserId, onSelectLobby }: LobbyListProps) {
           value={newLobbyName}
           onChange={(e) => setNewLobbyName(e.target.value)}
         />
-        <button onClick={createLobby}>Create Lobby</button>
+        <button onClick={createLobby} disabled={createLobbyMutation.isPending}>
+          {createLobbyMutation.isPending ? 'Creating...' : 'Create Lobby'}
+        </button>
       </div>
-      {lobbies.map((l) => (
+      {lobbies.map((l: Lobby) => (
         <div
           key={l.id}
           style={{

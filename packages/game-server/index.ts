@@ -58,23 +58,6 @@ io.on('connection', (socket) => {
 });
 
 // --- API Endpoints ---
-apiRouter.post('/login', async (req, res) => {
-  try {
-    const { name } = req.body;
-    const client = await getDbClient();
-    let result = await client.query('SELECT * FROM users WHERE name = $1', [name]);
-    if (result.rows.length === 0) {
-      result = await client.query(
-        'INSERT INTO users (name, is_temporary) VALUES ($1, false) RETURNING *',
-        [name],
-      );
-    }
-    client.release();
-    res.status(200).json(result.rows[0]);
-  } catch (err: unknown) {
-    res.status(500).json({ error: err instanceof Error ? err.message : String(err) });
-  }
-});
 
 apiRouter.post('/lobbies', async (req, res) => {
   try {
@@ -143,7 +126,6 @@ apiRouter.post('/lobbies/:lobbyId/join', async (req, res) => {
   }
 });
 
-// --- Login API ---
 apiRouter.post('/login', async (req, res) => {
   const { name } = req.body;
   if (!name) {
@@ -151,9 +133,10 @@ apiRouter.post('/login', async (req, res) => {
   }
 
   try {
-    // Use findOrCreateUser to log in an existing user or create a new one
     const user = await findOrCreateUser(name);
-    console.log(`User logged in/created: ${user.name} (ID: ${user.id})`);
+    console.log(`User logged in: ${user.name} (ID: ${user.id})`);
+
+    // Basic tracking (will refine with socket integration in next step)
     res.status(200).json(user);
   } catch (err: unknown) {
     console.error('Login/create user failed:', err);

@@ -2,6 +2,10 @@ import { Pool, PoolConfig } from 'pg';
 import dotenv from 'dotenv';
 import path from 'path';
 import { fileURLToPath } from 'url';
+import { drizzle } from 'drizzle-orm/node-postgres';
+import * as schema from './src/schema.js';
+import { eq } from 'drizzle-orm';
+import { users } from './src/schema.js';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -14,6 +18,7 @@ let dbStatus = 'Not Initialized';
 let dbConnectionError: string | null = null;
 
 let pool: Pool | null = null;
+let db: ReturnType<typeof drizzle<typeof schema>> | null = null;
 
 function isValidConnectionString(connString: string | undefined): boolean {
   if (!connString) return false;
@@ -30,6 +35,7 @@ if (isValidConnectionString(connectionString)) {
   try {
     const poolConfig: PoolConfig = { connectionString };
     pool = new Pool(poolConfig);
+    db = drizzle(pool, { schema });
     dbStatus = 'Initialized';
   } catch (error: unknown) {
     dbConnectionError = `Failed to create pool: ${error instanceof Error ? error.message : String(error)}`;
@@ -94,41 +100,19 @@ async function getDbClient() {
   }
 }
 
-// New functions for user management
-export async function findUserByName(
-  name: string,
-): Promise<{ id: string; name: string; created_at: Date } | null> {
-  if (!pool) throw new Error('Database connection pool is not available.');
-  const client = await pool.connect();
-  try {
-    const result = await client.query('SELECT id, name, created_at FROM users WHERE name = $1', [
-      name,
-    ]);
-    return result.rows[0] || null;
-  } finally {
-    client.release();
-  }
+export async function findUserByName(name: string) {
+  if (!db) throw new Error('Database connection is not available.');
+  const result = await db.select().from(users).where(eq(users.name, name));
+  return result[0] || null;
 }
 
-export async function createUser(
-  name: string,
-): Promise<{ id: string; name: string; created_at: Date }> {
-  if (!pool) throw new Error('Database connection pool is not available.');
-  const client = await pool.connect();
-  try {
-    const result = await client.query(
-      'INSERT INTO users (name, is_temporary) VALUES ($1, true) RETURNING id, name, created_at',
-      [name],
-    );
-    return result.rows[0];
-  } finally {
-    client.release();
-  }
+export async function createUser(name: string) {
+  if (!db) throw new Error('Database connection is not available.');
+  const result = await db.insert(users).values({ name, isTemporary: true }).returning();
+  return result[0];
 }
 
-export async function findOrCreateUser(
-  name: string,
-): Promise<{ id: string; name: string; created_at: Date }> {
+export async function findOrCreateUser(name: string) {
   const existingUser = await findUserByName(name);
   if (existingUser) {
     console.log(`User found: ${name} (ID: ${existingUser.id})`);
@@ -139,8 +123,4 @@ export async function findOrCreateUser(
   }
 }
 
-// Initialize
-setupDatabase();
-
-// Update exports to include new functions
-export { setupDatabase, getDbClient, pool, dbStatus, dbConnectionError };
+export { setupDatabase, getDbClient, pool, db, dbStatus, dbConnectionError };

@@ -13,7 +13,8 @@ import type { DockerSource } from './types.js';
 // Using '.js' extension assuming compiled JS files are imported.
 // If running with ts-node or similar, the path might remain '.ts'.
 // For broader compatibility, we'll assume '.js' for the compiled output.
-import { findOrCreateUser } from '../../game-server/db.js'; // <-- Import added
+// Removed the direct import from game-server to maintain package independence.
+// We will interact via HTTP calls instead.
 
 let source: DockerSource | null = null;
 
@@ -101,14 +102,23 @@ export function createApiRouter(): Router {
     }
 
     try {
-      // Ensure we are calling the correctly imported function
-      const user = await findOrCreateUser(username.trim());
-      // In a real app, you'd generate a JWT or session token here.
-      // For now, just return the user details.
-      res.json({ ok: true, user });
+      // Proxy the request to the game-server
+      const gameServerUrl = process.env.VITE_BACKEND_URL || 'http://localhost:3001';
+      const response = await fetch(`${gameServerUrl}/api/login`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ name: username.trim() }),
+      });
+
+      const userData: any = await response.json();
+      if (!response.ok) {
+        throw new Error(userData.error || 'Login failed');
+      }
+
+      res.json({ ok: true, user: userData });
     } catch (err) {
-      console.error('Error during login or signup:', err);
-      next(err); // Pass to the error handler
+      console.error('Error during login or signup proxy:', err);
+      next(err);
     }
   });
 

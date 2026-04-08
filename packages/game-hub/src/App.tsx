@@ -57,8 +57,11 @@ function App() {
 
   return (
     <div className="container">
-      <header style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-        <h1>Game Hub</h1>
+      <header className="main-header">
+        <div className="header-content">
+          <h1 className="header-title">Game Hub</h1>
+          <p className="header-subtitle">Welcome back. Join a lobby or start a game.</p>
+        </div>
         <div className={`status-indicator ${isConnected ? 'connected' : 'disconnected'}`}>
           {isConnected ? 'Online' : 'Offline'}
         </div>

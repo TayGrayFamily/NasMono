@@ -7,12 +7,10 @@ interface User {
 }
 
 interface PlayerSetupProps {
-  // Using PlayerSetupProps for consistency with component name
   onUserCreated: (user: User) => void;
 }
 
 function PlayerSetup({ onUserCreated }: PlayerSetupProps) {
-  // Using PlayerSetupProps
   const [userName, setUserName] = useState('');
   const [error, setError] = useState<string | null>(null);
 
@@ -24,41 +22,46 @@ function PlayerSetup({ onUserCreated }: PlayerSetupProps) {
     setError(null);
 
     try {
-      const response = await fetch('/api/login', {
+      const backendUrl = import.meta.env.VITE_BACKEND_URL || 'http://localhost:3001';
+      const response = await fetch(`${backendUrl}/api/login`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ name: userName }),
       });
 
-      const responseBody = await response.text(); // Read as text first to inspect
+      const responseBody = await response.text();
 
       if (!response.ok) {
-        // Throw an error including the response body for better debugging
         throw new Error(`Login failed: ${responseBody || response.statusText}`);
       }
 
-      // Parse the JSON response only if the request was successful
       const user: User = JSON.parse(responseBody);
       onUserCreated(user);
     } catch (err: unknown) {
-      // Using 'unknown' for safer error handling
-      // Display the error message to the user
       setError(err instanceof Error ? err.message : 'An unknown error occurred during login.');
       console.error('Error during login:', err);
     }
   };
 
   return (
-    <div className="panel">
-      <h2>Welcome</h2>
-      {error && <p style={{ color: 'var(--error-color)' }}>{error}</p>}
-      <input
-        type="text"
-        placeholder="Enter your name"
-        value={userName}
-        onChange={(e) => setUserName(e.target.value)}
-      />
-      <button onClick={handleLogin}>Log In / Sign Up</button>
+    <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
+      <div>
+        <h2 style={{ margin: '0 0 0.5rem 0' }}>Get Started</h2>
+        <p style={{ margin: 0, color: 'var(--text-muted)' }}>
+          Enter your name to join the game hub.
+        </p>
+      </div>
+      {error && <p style={{ color: 'var(--error-color)', margin: 0 }}>{error}</p>}
+      <div style={{ display: 'flex', gap: '0.5rem', width: '100%' }}>
+        <input
+          type="text"
+          placeholder="Player name"
+          value={userName}
+          onChange={(e) => setUserName(e.target.value)}
+          onKeyDown={(e) => e.key === 'Enter' && handleLogin()}
+        />
+        <button onClick={handleLogin}>Join</button>
+      </div>
     </div>
   );
 }

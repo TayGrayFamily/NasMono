@@ -1,11 +1,11 @@
-import { Pool, PoolConfig } from 'pg';
+import { Pool, type PoolConfig } from 'pg';
 import dotenv from 'dotenv';
 import path from 'path';
 import { fileURLToPath } from 'url';
 import { drizzle } from 'drizzle-orm/node-postgres';
-import * as schema from './src/schema.js';
+import * as schema from '../schema.js';
 import { eq } from 'drizzle-orm';
-import { users } from './src/schema.js';
+import { users } from '../schema.js';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -58,11 +58,21 @@ async function setupDatabase() {
 
   try {
     const client = await pool.connect();
+    const dropTablesOnStart = process.env.GAME_SERVER_DROP_TABLES_ON_START === 'true';
+
+    if (dropTablesOnStart) {
+      console.log('GAME_SERVER_DROP_TABLES_ON_START is true. Dropping tables...');
+      await client.query(`
+            DROP TABLE IF EXISTS lobby_players;
+            DROP TABLE IF EXISTS lobbies;
+            DROP TABLE IF EXISTS users;
+        `);
+    }
+
     await client.query(`
             CREATE TABLE IF NOT EXISTS users (
                 id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
                 name VARCHAR(255) NOT NULL UNIQUE,
-                is_temporary BOOLEAN NOT NULL DEFAULT true,
                 created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
             );
             CREATE TABLE IF NOT EXISTS lobbies (
@@ -100,19 +110,19 @@ async function getDbClient() {
   }
 }
 
-export async function findUserByName(name: string) {
+async function findUserByName(name: string) {
   if (!db) throw new Error('Database connection is not available.');
   const result = await db.select().from(users).where(eq(users.name, name));
   return result[0] || null;
 }
 
-export async function createUser(name: string) {
+async function createUser(name: string) {
   if (!db) throw new Error('Database connection is not available.');
-  const result = await db.insert(users).values({ name, isTemporary: true }).returning();
+  const result = await db.insert(users).values({ name }).returning();
   return result[0];
 }
 
-export async function findOrCreateUser(name: string) {
+async function findOrCreateUser(name: string) {
   const existingUser = await findUserByName(name);
   if (existingUser) {
     console.log(`User found: ${name} (ID: ${existingUser.id})`);
@@ -123,4 +133,4 @@ export async function findOrCreateUser(name: string) {
   }
 }
 
-export { setupDatabase, getDbClient, pool, db, dbStatus, dbConnectionError };
+export { setupDatabase, getDbClient, pool, db, dbStatus, dbConnectionError, findOrCreateUser };

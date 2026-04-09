@@ -147,7 +147,7 @@ export async function createApp() {
 
   app.get('/debug', async (req, res) => {
     let lobbies: any[] = [];
-    let connectionDetails: any[] = [];
+    const connectionDetails: any[] = [];
     let dbStatusError: string | null = null;
 
     try {

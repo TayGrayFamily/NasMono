@@ -49,6 +49,13 @@ export async function createApp() {
 
     socket.on('disconnect', async () => {
       const userId = socketToUserMap.get(socket.id);
+
+      // Always remove from maps regardless of DB state to prevent leaks
+      socketToUserMap.delete(socket.id);
+      if (userId) {
+        userSocketMap.delete(userId);
+      }
+
       if (userId) {
         try {
           const client = await getDbClient();
@@ -64,9 +71,14 @@ export async function createApp() {
         } catch (e) {
           console.error(e);
         }
-        socketToUserMap.delete(socket.id);
-        userSocketMap.delete(userId);
       }
+
+      // Leave all rooms
+      socket.rooms.forEach((room) => {
+        if (room !== socket.id) {
+          socket.leave(room);
+        }
+      });
     });
   });
 
@@ -135,63 +147,59 @@ export async function createApp() {
 
   app.get('/debug', async (req, res) => {
     let lobbies: any[] = [];
+    let connectionDetails: any[] = [];
+    let dbStatusError: string | null = null;
+
     try {
       const client = await getDbClient();
-      const result = await client.query('SELECT * FROM lobbies');
-      lobbies = result.rows;
-      client.release();
-    } catch (e) {
-      console.error('Error fetching lobbies for debug:', e);
-    }
-
-    const connectionDetails: any[] = [];
-    const client = await getDbClient(); // Get client to fetch user details
-
-    for (const [socketId, socket] of io.sockets.sockets.entries()) {
-      const userId = socketToUserMap.get(socketId);
-      let userObject = null;
-      let userDetails: { userId: string | null; user: any | null } = { userId: null, user: null };
-
-      if (userId) {
-        try {
-          const userRecord = await client.query('SELECT id, name FROM users WHERE id = $1', [
-            userId,
-          ]);
-          if (userRecord.rows.length > 0) {
-            userObject = userRecord.rows[0];
-            userDetails = { userId, user: userObject };
-          } else {
-            // User ID exists in map but not in DB - might be stale or temporary
-            userDetails = { userId, user: null };
-          }
-        } catch (e) {
-          console.error(`Error fetching user details for user ID ${userId}:`, e);
-          userDetails = { userId, user: { error: 'Failed to fetch user details' } };
-        }
+      try {
+        const result = await client.query('SELECT * FROM lobbies');
+        lobbies = result.rows;
+      } catch (e) {
+        console.error('Error fetching lobbies for debug:', e);
       }
 
-      // Filter out the default socket room, which is the socket's own ID
-      const subscribedRooms = Array.from(socket.rooms).filter((room) => room !== socket.id);
+      for (const [socketId, socket] of io.sockets.sockets.entries()) {
+        const userId = socketToUserMap.get(socketId);
+        let userDetails: { userId: string | null; user: any | null } = { userId: null, user: null };
 
-      connectionDetails.push({
-        socketId,
-        ...userDetails,
-        rooms: subscribedRooms,
-        // Add other status indicators if needed, e.g., connection time, ping
-      });
+        if (userId) {
+          try {
+            const userRecord = await client.query('SELECT id, name FROM users WHERE id = $1', [
+              userId,
+            ]);
+            userDetails = {
+              userId,
+              user: userRecord.rows.length > 0 ? userRecord.rows[0] : null,
+            };
+          } catch (e) {
+            console.error(`Error fetching user details for user ID ${userId}:`, e);
+          }
+        }
+
+        const subscribedRooms = Array.from(socket.rooms).filter((room) => room !== socket.id);
+        connectionDetails.push({ socketId, ...userDetails, rooms: subscribedRooms });
+      }
+      client.release();
+    } catch (e) {
+      dbStatusError = e instanceof Error ? e.message : String(e);
+      console.error('Database connection error in /debug endpoint:', e);
     }
-
-    client.release(); // Release client after all queries
 
     res.json({
       status: {
         uptime: process.uptime(),
         socketClients: io.engine.clientsCount,
+        dbError: dbStatusError,
       },
       state: {
-        activeLobbies: lobbies,
-        connectedUsers: Array.from(socketToUserMap.values()), // User IDs
-        connectionDetails: connectionDetails, // Detailed connection info
+        ephemeralState: {
+          connectedUsers: Array.from(socketToUserMap.values()),
+          connectionDetails: connectionDetails,
+        },
+        persistentState: {
+          activeLobbies: lobbies,
+        },
       },
     });
   });

@@ -105,10 +105,15 @@ async function getDbClient() {
   try {
     return await pool.connect();
   } catch (err: unknown) {
-    dbConnectionError = `Connection failed: ${err instanceof Error ? err.message : String(err)}`;
+    const errorDetails = err instanceof Error ? err.message : String(err);
+    if (errorDetails.includes('ECONNREFUSED')) {
+      dbConnectionError = 'Connection refused. Check if the database (or SSH tunnel) is running.';
+    } else {
+      dbConnectionError = `Connection failed: ${errorDetails}`;
+    }
     console.error(dbConnectionError);
     dbStatus = 'Connection Error';
-    throw err;
+    throw new Error(dbConnectionError);
   }
 }
 
@@ -136,3 +141,5 @@ async function findOrCreateUser(name: string) {
 }
 
 export { setupDatabase, getDbClient, pool, db, dbStatus, dbConnectionError, findOrCreateUser };
+
+// setupDatabase();

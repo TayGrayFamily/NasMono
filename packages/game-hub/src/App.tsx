@@ -1,5 +1,5 @@
 /// <reference types="vite/client" />
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import PlayerSetup from './components/PlayerSetup';
 import LobbyList from './components/LobbyList';
 import LobbyDetail from './components/LobbyDetail';
@@ -35,6 +35,31 @@ function AppContent({
   handleBackToLobbies: () => void;
 }) {
   const socket = useSocket();
+  const [isConnected, setIsConnected] = useState(socket.connected);
+
+  useEffect(() => {
+    const onConnect = () => setIsConnected(true);
+    const onDisconnect = () => setIsConnected(false);
+
+    socket.on('connect', onConnect);
+    socket.on('disconnect', onDisconnect);
+
+    // If we have a user, ensure they are registered on the server whenever we connect
+    if (currentUser) {
+      socket.emit('set_user', { userId: currentUser.id });
+    }
+
+    return () => {
+      socket.off('connect', onConnect);
+      socket.off('disconnect', onDisconnect);
+    };
+  }, [socket, currentUser]);
+
+  useEffect(() => {
+    if (isConnected && currentUser) {
+      socket.emit('set_user', { userId: currentUser.id });
+    }
+  }, [isConnected, currentUser, socket]);
 
   return (
     <div className="container">
@@ -43,8 +68,8 @@ function AppContent({
           <h1 className="header-title">Game Hub</h1>
           <p className="header-subtitle">Welcome back. Join a lobby or start a game.</p>
         </div>
-        <div className={`status-indicator ${socket.connected ? 'connected' : 'disconnected'}`}>
-          {socket.connected ? 'Online' : 'Offline'}
+        <div className={`status-indicator ${isConnected ? 'connected' : 'disconnected'}`}>
+          {isConnected ? 'Online' : 'Offline'}
         </div>
       </header>
 
@@ -61,6 +86,22 @@ function AppContent({
           />
         )}
       </main>
+
+      <footer
+        style={{
+          position: 'fixed',
+          bottom: '0',
+          left: '0',
+          width: '100%',
+          padding: '0.25rem 1rem',
+          fontSize: '0.65rem',
+          textAlign: 'center',
+          backgroundColor: 'transparent',
+          color: '#888',
+        }}
+      >
+        v0.0.34 | {isConnected ? `SID: ${socket.id}` : 'Disconnected'}
+      </footer>
     </div>
   );
 }
@@ -76,6 +117,10 @@ function App() {
   const handlePlayerCreated = (user: User) => {
     setCurrentUser(user);
     setCurrentView('lobbyList');
+    // Once user is set, ensure socket knows about this user
+    // Accessing socket via context provider is implicit in components,
+    // but here we need a way to emit from App.
+    // Let's modify AppContent or use a specialized component/hook for this.
   };
 
   const handleLobbySelect = (lobbyId: string) => {
@@ -93,7 +138,7 @@ function App() {
 
   return (
     // App renders SocketProvider, and passes state/handlers to AppContent
-    <SocketProvider url="http://localhost:3001">
+    <SocketProvider url="/">
       <AppContent
         currentUser={currentUser}
         setCurrentUser={setCurrentUser}

@@ -22,6 +22,7 @@ RUN corepack enable && pnpm install --prod --filter=home --ignore-scripts
 
 COPY --from=build /app/packages/home/dist ./dist
 COPY --from=build /app/packages/home/dist-server ./dist-server
+COPY --from=build /app/packages/home/package.json ./package.json
 
 EXPOSE 80
 CMD ["node", "dist-server/prod.js"]

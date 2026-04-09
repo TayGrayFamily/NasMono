@@ -1,4 +1,5 @@
 import express from 'express';
+import cors from 'cors';
 import { createServer } from 'http';
 import { Server } from 'socket.io';
 import dotenv from 'dotenv';
@@ -13,6 +14,7 @@ dotenv.config({ path: path.resolve(__dirname, '../../.env') });
 
 export async function createApp() {
   const app = express();
+  app.use(cors());
   app.use(express.json());
 
   const lobbyService = new LobbyService();
@@ -28,6 +30,14 @@ export async function createApp() {
   const socketToUserMap = new Map<string, string>();
 
   io.on('connection', (socket) => {
+    socket.on('set_user', (data: { userId: string }) => {
+      if (data.userId) {
+        userSocketMap.set(data.userId, socket.id);
+        socketToUserMap.set(socket.id, data.userId);
+        console.log(`User ${data.userId} connected socket ${socket.id}`);
+      }
+    });
+
     socket.on('join_lobby_room', (data: { lobbyId: string; userId: string }) => {
       if (data.lobbyId && data.userId) {
         socket.join(data.lobbyId);
@@ -130,14 +140,59 @@ export async function createApp() {
       const result = await client.query('SELECT * FROM lobbies');
       lobbies = result.rows;
       client.release();
-    } catch (e) {}
+    } catch (e) {
+      console.error('Error fetching lobbies for debug:', e);
+    }
+
+    const connectionDetails: any[] = [];
+    const client = await getDbClient(); // Get client to fetch user details
+
+    for (const [socketId, socket] of io.sockets.sockets.entries()) {
+      const userId = socketToUserMap.get(socketId);
+      let userObject = null;
+      let userDetails: { userId: string | null; user: any | null } = { userId: null, user: null };
+
+      if (userId) {
+        try {
+          const userRecord = await client.query('SELECT id, name FROM users WHERE id = $1', [
+            userId,
+          ]);
+          if (userRecord.rows.length > 0) {
+            userObject = userRecord.rows[0];
+            userDetails = { userId, user: userObject };
+          } else {
+            // User ID exists in map but not in DB - might be stale or temporary
+            userDetails = { userId, user: null };
+          }
+        } catch (e) {
+          console.error(`Error fetching user details for user ID ${userId}:`, e);
+          userDetails = { userId, user: { error: 'Failed to fetch user details' } };
+        }
+      }
+
+      // Filter out the default socket room, which is the socket's own ID
+      const subscribedRooms = Array.from(socket.rooms).filter((room) => room !== socket.id);
+
+      connectionDetails.push({
+        socketId,
+        ...userDetails,
+        rooms: subscribedRooms,
+        // Add other status indicators if needed, e.g., connection time, ping
+      });
+    }
+
+    client.release(); // Release client after all queries
 
     res.json({
       status: {
         uptime: process.uptime(),
         socketClients: io.engine.clientsCount,
       },
-      state: { activeLobbies: lobbies, connectedUsers: Array.from(socketToUserMap.values()) },
+      state: {
+        activeLobbies: lobbies,
+        connectedUsers: Array.from(socketToUserMap.values()), // User IDs
+        connectionDetails: connectionDetails, // Detailed connection info
+      },
     });
   });
 

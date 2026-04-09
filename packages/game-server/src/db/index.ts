@@ -11,7 +11,7 @@ const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
 // Load .env file from the project root
-dotenv.config({ path: path.resolve(__dirname, '../../.env') });
+dotenv.config({ path: path.resolve(__dirname, '../../../../.env') });
 
 // Status variables
 let dbStatus = 'Not Initialized';
@@ -43,9 +43,11 @@ if (isValidConnectionString(connectionString)) {
     dbStatus = 'Error';
   }
 } else {
-  console.warn('--- DATABASE WARNING ---');
-  console.warn('DATABASE_URL is not set or invalid in .env!');
-  console.warn('The application will run without persistence.');
+  console.error('--- DATABASE ERROR ---');
+  console.error('DATABASE_URL is missing or invalid in your .env file.');
+  console.error('Expected format: postgresql://user:password@localhost:5432/db_name');
+  console.error('Current value:', process.env.DATABASE_URL ? '[REDACTED]' : '[UNDEFINED]');
+  console.warn('The application will run in non-persistent mode.');
   dbConnectionError = 'DATABASE_URL not configured correctly.';
   dbStatus = 'Not Available';
 }

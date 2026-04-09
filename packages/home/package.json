@@ -8,6 +8,7 @@
     "build": "tsc -b && vite build && tsc -p tsconfig.server.json",
     "start": "node dist-server/prod.js",
     "lint": "eslint .",
+    "test": "vitest run --passWithNoTests",
     "preview": "vite preview"
   },
   "dependencies": {
@@ -30,8 +31,7 @@
     "@types/node": "^24.10.1",
     "@types/react": "^19.2.5",
     "@types/react-dom": "^19.2.3",
-    "@vitejs/plugin-react-swc": "^4.2.2",
-    "dotenv": "^16.0.0",
+    "@vitejs/plugin-react": "^4.2.0",
     "eslint": "^9.39.1",
     "eslint-plugin-jsx-a11y": "^6.7.1",
     "eslint-plugin-react": "^7.32.2",

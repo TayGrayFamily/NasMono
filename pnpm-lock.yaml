@@ -93,6 +93,12 @@ importers:
 
   packages/game-server:
     dependencies:
+      '@types/cors':
+        specifier: 2.8.19
+        version: 2.8.19
+      cors:
+        specifier: 2.8.6
+        version: 2.8.6
       dotenv:
         specifier: ^16.0.0
         version: 16.6.1

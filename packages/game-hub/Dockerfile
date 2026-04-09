@@ -8,11 +8,20 @@ ENV PNPM_HOME="/pnpm"
 ENV PATH="$PNPM_HOME:$PATH"
 RUN corepack enable && corepack prepare pnpm@10.33.0 --activate
 
+# Copy workspace configuration and root package.json
 COPY package.json pnpm-lock.yaml pnpm-workspace.yaml ./
-COPY packages/just-one ./packages/just-one
-COPY packages/game-hub ./packages/game-hub
 
+# Copy package-specific package.json files
+COPY packages/game-hub/package.json ./packages/game-hub/
+COPY packages/just-one/package.json ./packages/just-one/
+
+# Install dependencies
 RUN pnpm install --no-frozen-lockfile
+
+# Now copy the source code
+COPY packages/game-hub ./packages/game-hub
+COPY packages/just-one ./packages/just-one
+
 RUN pnpm --filter game-hub build
 
 FROM nginx:alpine AS runtime

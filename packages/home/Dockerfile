@@ -17,8 +17,16 @@ RUN pnpm --filter home build
 FROM node:24-alpine AS runtime
 WORKDIR /app
 ENV NODE_ENV=production
-# Keep in sync with packages/home/package.json (express, dockerode)
-RUN corepack enable && pnpm install --prod --filter=home --ignore-scripts
+# Copy lockfile and package.json for production dependency installation.
+# Ensure express and dockerode are installed.
+COPY pnpm-lock.yaml ./
+COPY packages/home/package.json ./packages/home/
+
+# Install production dependencies for the 'home' package using the lockfile.
+# --frozen-lockfile ensures consistency with the build stage.
+# --filter=home targets the specific package.
+# --ignore-scripts is kept as it was in the original.
+RUN corepack enable && pnpm install --prod --filter=home --frozen-lockfile --ignore-scripts
 
 COPY --from=build /app/packages/home/dist ./dist
 COPY --from=build /app/packages/home/dist-server ./dist-server

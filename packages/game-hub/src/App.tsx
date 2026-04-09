@@ -72,7 +72,6 @@ function AppContent({
           {isConnected ? 'Online' : 'Offline'}
         </div>
       </header>
-
       <main className="panel">
         {currentView === 'playerSetup' && <PlayerSetup onUserCreated={handlePlayerCreated} />}
         {currentView === 'lobbyList' && currentUser && (
@@ -86,7 +85,6 @@ function AppContent({
           />
         )}
       </main>
-
       <footer
         style={{
           position: 'fixed',
@@ -100,8 +98,8 @@ function AppContent({
           color: '#888',
         }}
       >
-        v0.0.34 | {isConnected ? `SID: ${socket.id}` : 'Disconnected'}
-      </footer>
+        v{__APP_VERSION__} | {isConnected ? `SID: ${socket.id}` : 'Disconnected'}
+      </footer>{' '}
     </div>
   );
 }

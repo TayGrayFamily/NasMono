@@ -1,4 +1,5 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 
 interface Lobby {
   id: string;
@@ -12,52 +13,54 @@ interface LobbyListProps {
 }
 
 function LobbyList({ currentUserId, onSelectLobby }: LobbyListProps) {
-  const [lobbies, setLobbies] = useState<Lobby[]>([]);
   const [newLobbyName, setNewLobbyName] = useState('');
   const [error, setError] = useState<string | null>(null);
+  const queryClient = useQueryClient();
 
-  const fetchLobbies = async () => {
-    try {
+  const {
+    data: lobbies = [],
+    isLoading,
+    isError,
+  } = useQuery({
+    queryKey: ['lobbies'],
+    queryFn: async () => {
       const response = await fetch('/api/lobbies');
-      if (response.ok) {
-        const data = await response.json();
-        setLobbies(data);
-      }
-    } catch (_err) {
-      console.error('Failed to fetch lobbies');
-    }
-  };
+      if (!response.ok) throw new Error('Failed to fetch lobbies');
+      return response.json();
+    },
+  });
 
-  useEffect(() => {
-    let active = true;
-    const load = async () => {
-      const data = await fetch('/api/lobbies').then((r) => r.json());
-      if (active) setLobbies(data);
-    };
-    load();
-    return () => {
-      active = false;
-    };
-  }, []);
-
-  const createLobby = async () => {
-    if (!newLobbyName.trim()) return;
-    try {
+  const createLobbyMutation = useMutation({
+    mutationFn: async (name: string) => {
       const res = await fetch('/api/lobbies', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ name: newLobbyName, userId: currentUserId }),
+        body: JSON.stringify({ name, userId: currentUserId }),
       });
-      if (res.ok) {
-        const data = await res.json();
-        onSelectLobby(data.lobbyId);
-      } else {
-        setError('Failed to create lobby');
-      }
-    } catch (_err) {
-      setError('Error creating lobby');
+      if (!res.ok) throw new Error('Failed to create lobby');
+      return res.json();
+    },
+    onSuccess: (data) => {
+      queryClient.invalidateQueries({ queryKey: ['lobbies'] });
+      onSelectLobby(data.lobbyId);
+      setNewLobbyName('');
+      setError(null);
+    },
+    onError: (err) => {
+      setError(err.message);
+    },
+  });
+
+  const createLobby = () => {
+    if (!newLobbyName.trim()) {
+      setError('Lobby name cannot be empty.');
+      return;
     }
+    createLobbyMutation.mutate(newLobbyName);
   };
+
+  if (isLoading) return <div>Loading...</div>;
+  if (isError) return <div>Failed to load lobbies.</div>;
 
   return (
     <div className="panel">
@@ -68,9 +71,11 @@ function LobbyList({ currentUserId, onSelectLobby }: LobbyListProps) {
           value={newLobbyName}
           onChange={(e) => setNewLobbyName(e.target.value)}
         />
-        <button onClick={createLobby}>Create Lobby</button>
+        <button onClick={createLobby} disabled={createLobbyMutation.isPending}>
+          {createLobbyMutation.isPending ? 'Creating...' : 'Create Lobby'}
+        </button>
       </div>
-      {lobbies.map((l) => (
+      {lobbies.map((l: Lobby) => (
         <div
           key={l.id}
           style={{

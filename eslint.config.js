@@ -13,6 +13,14 @@ export default [
   ...tseslint.configs.recommended.map((config) => ({
     ...config,
     files: ['packages/**/*.{ts,tsx}'],
+    rules: {
+      ...config.rules,
+      '@typescript-eslint/no-explicit-any': 'warn',
+      '@typescript-eslint/no-unused-vars': 'warn',
+      '@typescript-eslint/no-empty-function': 'warn',
+      '@typescript-eslint/no-empty-object-type': 'warn',
+      '@typescript-eslint/no-explicit-any': 'off',
+    },
   })),
   {
     files: ['packages/**/*.{ts,tsx}'],

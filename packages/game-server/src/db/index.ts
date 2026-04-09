@@ -1,19 +1,24 @@
-import { Pool, PoolConfig } from 'pg';
+import { Pool, type PoolConfig } from 'pg';
 import dotenv from 'dotenv';
 import path from 'path';
 import { fileURLToPath } from 'url';
+import { drizzle } from 'drizzle-orm/node-postgres';
+import * as schema from '../schema.js';
+import { eq } from 'drizzle-orm';
+import { users } from '../schema.js';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
 // Load .env file from the project root
-dotenv.config({ path: path.resolve(__dirname, '../../.env') });
+dotenv.config({ path: path.resolve(__dirname, '../../../../.env') });
 
 // Status variables
 let dbStatus = 'Not Initialized';
 let dbConnectionError: string | null = null;
 
 let pool: Pool | null = null;
+let db: ReturnType<typeof drizzle<typeof schema>> | null = null;
 
 function isValidConnectionString(connString: string | undefined): boolean {
   if (!connString) return false;
@@ -30,6 +35,7 @@ if (isValidConnectionString(connectionString)) {
   try {
     const poolConfig: PoolConfig = { connectionString };
     pool = new Pool(poolConfig);
+    db = drizzle(pool, { schema });
     dbStatus = 'Initialized';
   } catch (error: unknown) {
     dbConnectionError = `Failed to create pool: ${error instanceof Error ? error.message : String(error)}`;
@@ -37,9 +43,11 @@ if (isValidConnectionString(connectionString)) {
     dbStatus = 'Error';
   }
 } else {
-  console.warn('--- DATABASE WARNING ---');
-  console.warn('DATABASE_URL is not set or invalid in .env!');
-  console.warn('The application will run without persistence.');
+  console.error('--- DATABASE ERROR ---');
+  console.error('DATABASE_URL is missing or invalid in your .env file.');
+  console.error('Expected format: postgresql://user:password@localhost:5432/db_name');
+  console.error('Current value:', process.env.DATABASE_URL ? '[REDACTED]' : '[UNDEFINED]');
+  console.warn('The application will run in non-persistent mode.');
   dbConnectionError = 'DATABASE_URL not configured correctly.';
   dbStatus = 'Not Available';
 }
@@ -52,11 +60,21 @@ async function setupDatabase() {
 
   try {
     const client = await pool.connect();
+    const dropTablesOnStart = process.env.GAME_SERVER_DROP_TABLES_ON_START === 'true';
+
+    if (dropTablesOnStart) {
+      console.log('GAME_SERVER_DROP_TABLES_ON_START is true. Dropping tables...');
+      await client.query(`
+            DROP TABLE IF EXISTS lobby_players;
+            DROP TABLE IF EXISTS lobbies;
+            DROP TABLE IF EXISTS users;
+        `);
+    }
+
     await client.query(`
             CREATE TABLE IF NOT EXISTS users (
                 id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
                 name VARCHAR(255) NOT NULL UNIQUE,
-                is_temporary BOOLEAN NOT NULL DEFAULT true,
                 created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
             );
             CREATE TABLE IF NOT EXISTS lobbies (
@@ -87,14 +105,41 @@ async function getDbClient() {
   try {
     return await pool.connect();
   } catch (err: unknown) {
-    dbConnectionError = `Connection failed: ${err instanceof Error ? err.message : String(err)}`;
+    const errorDetails = err instanceof Error ? err.message : String(err);
+    if (errorDetails.includes('ECONNREFUSED')) {
+      dbConnectionError = 'Connection refused. Check if the database (or SSH tunnel) is running.';
+    } else {
+      dbConnectionError = `Connection failed: ${errorDetails}`;
+    }
     console.error(dbConnectionError);
     dbStatus = 'Connection Error';
-    throw err;
+    throw new Error(dbConnectionError);
   }
 }
 
-// Initialize
-setupDatabase();
+async function findUserByName(name: string) {
+  if (!db) throw new Error('Database connection is not available.');
+  const result = await db.select().from(users).where(eq(users.name, name));
+  return result[0] || null;
+}
 
-export { setupDatabase, getDbClient, pool, dbStatus, dbConnectionError };
+async function createUser(name: string) {
+  if (!db) throw new Error('Database connection is not available.');
+  const result = await db.insert(users).values({ name }).returning();
+  return result[0];
+}
+
+async function findOrCreateUser(name: string) {
+  const existingUser = await findUserByName(name);
+  if (existingUser) {
+    console.log(`User found: ${name} (ID: ${existingUser.id})`);
+    return existingUser;
+  } else {
+    console.log(`User not found, creating: ${name}`);
+    return await createUser(name);
+  }
+}
+
+export { setupDatabase, getDbClient, pool, db, dbStatus, dbConnectionError, findOrCreateUser };
+
+// setupDatabase();

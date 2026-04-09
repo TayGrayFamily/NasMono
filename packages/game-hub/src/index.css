@@ -1,7 +1,12 @@
+* {
+  box-sizing: border-box;
+}
+
 :root {
   --bg-color: #0f172a;
   --panel-bg: #1e293b;
   --text-color: #f1f5f9;
+  --text-muted: #94a3b8;
   --primary-cyan: #06b6d4;
   --primary-green: #22c55e;
   --primary-blue: #3b82f6;
@@ -9,36 +14,75 @@
 }
 
 body {
-  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+  font-family:
+    'Inter',
+    system-ui,
+    -apple-system,
+    sans-serif;
   background-color: var(--bg-color);
   color: var(--text-color);
   margin: 0;
+  min-height: 100vh;
+  padding: 2rem;
   display: flex;
   justify-content: center;
-  min-height: 100vh;
 }
 
 .container {
+  display: flex;
+  flex-direction: column;
   width: 100%;
-  max-width: 480px;
-  padding: 20px;
+  max-width: 1200px;
+  gap: 1.5rem;
+  padding-bottom: 2rem;
+}
+
+.main-header {
+  padding: 1.5rem 2rem;
+  background: linear-gradient(135deg, var(--panel-bg), #334155);
+  border-radius: 16px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1);
+  border: 1px solid rgba(255, 255, 255, 0.05);
+  flex-shrink: 0;
+}
+
+.header-title {
+  margin: 0;
+  font-size: 2rem;
+  font-weight: 800;
+  background: linear-gradient(to right, var(--primary-cyan), var(--primary-blue));
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+
+.header-subtitle {
+  margin: 0.5rem 0 0 0;
+  color: var(--text-muted);
+  font-size: 1rem;
 }
 
 .panel {
   background-color: var(--panel-bg);
-  padding: 20px;
-  border-radius: 12px;
-  box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1);
+  padding: 2rem;
+  border-radius: 16px;
+  box-shadow: 0 10px 15px -3px rgb(0 0 0 / 0.1);
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
 }
 
 button {
   background-color: var(--primary-cyan);
   color: white;
   border: none;
-  padding: 10px 20px;
-  border-radius: 6px;
+  padding: 0.75rem 1.5rem;
+  border-radius: 8px;
   cursor: pointer;
-  font-weight: bold;
+  font-weight: 600;
+  transition: background-color 0.2s ease;
 }
 
 button:hover {
@@ -47,22 +91,24 @@ button:hover {
 
 input {
   background-color: var(--bg-color);
-  border: 1px solid var(--panel-bg);
+  border: 1px solid #334155;
   color: white;
-  padding: 10px;
-  border-radius: 6px;
+  padding: 0.75rem 1rem;
+  border-radius: 8px;
   width: 100%;
-  margin-bottom: 10px;
 }
 
 .status-indicator {
-  padding: 5px 10px;
+  padding: 0.5rem 1rem;
   border-radius: 20px;
-  font-size: 0.8rem;
+  font-size: 0.875rem;
+  font-weight: 500;
 }
 .connected {
-  background-color: var(--primary-green);
+  background-color: rgba(34, 197, 94, 0.2);
+  color: var(--primary-green);
 }
 .disconnected {
-  background-color: var(--error-color);
+  background-color: rgba(244, 63, 94, 0.2);
+  color: var(--error-color);
 }

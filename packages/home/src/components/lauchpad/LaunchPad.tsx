@@ -63,7 +63,15 @@ export function LaunchPad(): JSX.Element {
 
   if (error) {
     return (
-      <div style={{ padding: '40px', textAlign: 'center', color: 'var(--status-red)' }}>
+      <div
+        style={{
+          padding: '40px',
+          textAlign: 'center',
+          color: 'var(--status-red)',
+          maxWidth: '800px',
+          margin: '0 auto',
+        }}
+      >
         <h2>Could not load containers</h2>
         <p>{error}</p>
       </div>

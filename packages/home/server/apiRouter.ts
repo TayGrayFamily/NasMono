@@ -8,6 +8,14 @@ import express, {
 import { createDockerSource } from './createDockerSource.js';
 import type { DockerSource } from './types.js';
 
+// Assuming game-server db functions are available via import.
+// The actual path might need adjustment based on build output.
+// Using '.js' extension assuming compiled JS files are imported.
+// If running with ts-node or similar, the path might remain '.ts'.
+// For broader compatibility, we'll assume '.js' for the compiled output.
+// Removed the direct import from game-server to maintain package independence.
+// We will interact via HTTP calls instead.
+
 let source: DockerSource | null = null;
 
 function getSource(): DockerSource {
@@ -85,10 +93,39 @@ export function createApiRouter(): Router {
     }
   });
 
+  // New endpoint for login/signup
+  r.post('/api/auth/login_or_signup', async (req: Request, res: Response, next: NextFunction) => {
+    const { username } = req.body;
+
+    if (!username || typeof username !== 'string' || username.trim() === '') {
+      return res.status(400).json({ ok: false, error: 'Username is required.' });
+    }
+
+    try {
+      // Proxy the request to the game-server
+      const gameServerUrl = process.env.VITE_BACKEND_URL || 'http://localhost:3001';
+      const response = await fetch(`${gameServerUrl}/api/login`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ name: username.trim() }),
+      });
+
+      const userData: any = await response.json();
+      if (!response.ok) {
+        throw new Error(userData.error || 'Login failed');
+      }
+
+      res.json({ ok: true, user: userData });
+    } catch (err) {
+      console.error('Error during login or signup proxy:', err);
+      next(err);
+    }
+  });
+
   r.use((err: unknown, _req: Request, res: Response) => {
     console.error(err);
     const message = err instanceof Error ? err.message : String(err);
-    res.status(500).json({ error: message });
+    res.status(500).json({ ok: false, error: message });
   });
 
   return r;
@@ -97,6 +134,8 @@ export function createApiRouter(): Router {
 /** Sub-app so Connect/Vite gets Express-patched `req`/`res` (`res.status`, `res.json`, …). */
 export function createApiApp(): Express {
   const app = express();
+  // Add body parsing middleware to handle JSON request bodies
+  app.use(express.json());
   app.use(createApiRouter());
   return app;
 }

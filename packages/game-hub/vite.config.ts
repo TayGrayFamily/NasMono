@@ -1,5 +1,5 @@
 import { defineConfig } from 'vite';
-import react from '@vitejs/plugin-react-swc';
+import react from '@vitejs/plugin-react';
 import path from 'path';
 
 export default defineConfig({
@@ -15,6 +15,10 @@ export default defineConfig({
       '/api': {
         target: `http://localhost:${process.env.GAME_SERVER_PORT || 3001}`,
         changeOrigin: true,
+      },
+      '/socket.io': {
+        target: `http://localhost:${process.env.GAME_SERVER_PORT || 3001}`,
+        ws: true,
       },
     },
   },

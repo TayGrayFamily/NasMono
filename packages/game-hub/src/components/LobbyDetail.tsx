@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { useSocket } from './SocketContext';
 
 interface Player {
   id: string;
@@ -15,10 +16,10 @@ interface LobbyDetailProps {
   lobbyId: string;
   currentUserId: string;
   onBack: () => void;
-  socket: any;
 }
 
-function LobbyDetail({ lobbyId, currentUserId, onBack, socket }: LobbyDetailProps) {
+function LobbyDetail({ lobbyId, currentUserId, onBack }: LobbyDetailProps) {
+  const socket = useSocket();
   const [lobby, setLobby] = useState<LobbyDetailData | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -63,14 +64,16 @@ function LobbyDetail({ lobbyId, currentUserId, onBack, socket }: LobbyDetailProp
       });
     };
 
-    socket.on('player_joined', handlePlayerJoined);
-    socket.on('player_left', handlePlayerLeft);
+    if (socket) {
+      socket.on('player_joined', handlePlayerJoined);
+      socket.on('player_left', handlePlayerLeft);
 
-    return () => {
-      mounted = false;
-      socket.off('player_joined', handlePlayerJoined);
-      socket.off('player_left', handlePlayerLeft);
-    };
+      return () => {
+        mounted = false;
+        socket.off('player_joined', handlePlayerJoined);
+        socket.off('player_left', handlePlayerLeft);
+      };
+    }
   }, [lobbyId, socket]);
 
   const handleJoinLobby = async () => {

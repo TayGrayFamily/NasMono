@@ -5,7 +5,7 @@ import { Server } from 'socket.io';
 import dotenv from 'dotenv';
 import path from 'path';
 import { fileURLToPath } from 'url';
-import { getDbClient, findOrCreateUser } from './src/db/index.js';
+import { getDbClient, findOrCreateUser, setupDatabase } from './src/db/index.js';
 import { LobbyService } from './src/services/LobbyService.js';
 
 const __filename = fileURLToPath(import.meta.url);
@@ -17,9 +17,72 @@ export async function createApp() {
   app.use(cors());
   app.use(express.json());
 
+  // Serve Admin GUI
+  app.use('/admin', express.static(path.join(__dirname, 'admin')));
+
   const lobbyService = new LobbyService();
   const apiRouter = express.Router();
   app.use('/api', apiRouter);
+
+  // --- Administrative API ---
+  const adminRouter = express.Router();
+  app.use('/api/admin', adminRouter);
+
+  adminRouter.post('/actions/sync-db', async (req, res) => {
+    try {
+      await setupDatabase();
+      res.json({ message: 'Database schema synchronized.' });
+    } catch (e) {
+      res.status(500).json({ error: String(e) });
+    }
+  });
+
+  adminRouter.post('/actions/clean-lobbies', async (req, res) => {
+    try {
+      const client = await getDbClient();
+      const result = await client.query(`
+        DELETE FROM lobbies 
+        WHERE id NOT IN (SELECT DISTINCT lobby_id FROM lobby_players)
+      `);
+      client.release();
+      res.json({ message: `Cleaned up ${result.rowCount} empty lobbies.` });
+    } catch (e) {
+      res.status(500).json({ error: String(e) });
+    }
+  });
+
+  adminRouter.post('/actions/wipe-lobbies', async (req, res) => {
+    try {
+      const client = await getDbClient();
+      await client.query('DELETE FROM lobbies');
+      client.release();
+      res.json({ message: 'All lobbies wiped.' });
+    } catch (e) {
+      res.status(500).json({ error: String(e) });
+    }
+  });
+
+  adminRouter.delete('/lobbies/:id', async (req, res) => {
+    try {
+      const client = await getDbClient();
+      await client.query('DELETE FROM lobbies WHERE id = $1', [req.params.id]);
+      client.release();
+      res.json({ message: 'Lobby deleted.' });
+    } catch (e) {
+      res.status(500).json({ error: String(e) });
+    }
+  });
+
+  adminRouter.delete('/users/:id', async (req, res) => {
+    try {
+      const client = await getDbClient();
+      await client.query('DELETE FROM users WHERE id = $1', [req.params.id]);
+      client.release();
+      res.json({ message: 'User deleted.' });
+    } catch (e) {
+      res.status(500).json({ error: String(e) });
+    }
+  });
 
   const httpServer = createServer(app);
   const io = new Server(httpServer, { cors: { origin: '*' } });
@@ -30,57 +93,70 @@ export async function createApp() {
   const socketToUserMap = new Map<string, string>();
 
   io.on('connection', (socket) => {
-    console.log(`New socket connection attempt: ${socket.id} from ${socket.handshake.address}`);
+    console.log(`New socket connection: ${socket.id} from ${socket.handshake.address}`);
 
     socket.on('set_user', (data: { userId: string }) => {
       if (data.userId) {
+        // Cleanup any old socket this user might have had (prevent ghost connections)
+        const oldSocketId = userSocketMap.get(data.userId);
+        if (oldSocketId && oldSocketId !== socket.id) {
+          socketToUserMap.delete(oldSocketId);
+          // Optional: actually disconnect the old socket if it still exists
+          const oldSocket = io.sockets.sockets.get(oldSocketId);
+          if (oldSocket) oldSocket.disconnect(true);
+        }
+
         userSocketMap.set(data.userId, socket.id);
         socketToUserMap.set(socket.id, data.userId);
-        console.log(`User ${data.userId} connected socket ${socket.id}`);
+        console.log(`User ${data.userId} identified on socket ${socket.id}`);
       }
     });
 
     socket.on('join_lobby_room', (data: { lobbyId: string; userId: string }) => {
       if (data.lobbyId && data.userId) {
         socket.join(data.lobbyId);
+        // Ensure maps are current
         userSocketMap.set(data.userId, socket.id);
         socketToUserMap.set(socket.id, data.userId);
-        console.log(`User ${data.userId} joined lobby ${data.lobbyId}`);
+        console.log(`User ${data.userId} joined lobby room ${data.lobbyId}`);
       }
     });
 
-    socket.on('disconnect', async () => {
+    socket.on('disconnect', async (reason) => {
+      console.log(`Socket disconnected: ${socket.id}. Reason: ${reason}`);
       const userId = socketToUserMap.get(socket.id);
 
-      // Always remove from maps regardless of DB state to prevent leaks
+      // 1. Remove from maps
       socketToUserMap.delete(socket.id);
       if (userId) {
-        userSocketMap.delete(userId);
+        // Only delete from userSocketMap if it's still pointing to THIS socket
+        if (userSocketMap.get(userId) === socket.id) {
+          userSocketMap.delete(userId);
+        }
       }
 
+      // 2. Database cleanup for lobbies
       if (userId) {
         try {
           const client = await getDbClient();
+          // Find if this player was in any lobby
           const res = await client.query('SELECT lobby_id FROM lobby_players WHERE user_id = $1', [
             userId,
           ]);
+
           if (res.rows.length > 0) {
             const lobbyId = res.rows[0].lobby_id;
+            // Delete player from lobby
             await client.query('DELETE FROM lobby_players WHERE user_id = $1', [userId]);
+            // Notify other players in that room
             io.to(lobbyId).emit('player_left', { userId });
+            console.log(`Cleaned up user ${userId} from lobby ${lobbyId} on disconnect`);
           }
           client.release();
         } catch (e) {
-          console.error(e);
+          console.error('Error cleaning up lobby on disconnect:', e);
         }
       }
-
-      // Leave all rooms
-      socket.rooms.forEach((room) => {
-        if (room !== socket.id) {
-          socket.leave(room);
-        }
-      });
     });
   });
 
@@ -143,6 +219,39 @@ export async function createApp() {
       res.status(200).json(user);
     } catch (err: unknown) {
       console.error('Login/create user failed:', err);
+      res.status(500).json({ error: err instanceof Error ? err.message : String(err) });
+    }
+  });
+
+  apiRouter.patch('/users/:id', async (req, res) => {
+    const { id } = req.params;
+    const { name } = req.body;
+
+    if (!name) {
+      return res.status(400).json({ error: 'Name is required' });
+    }
+
+    try {
+      const client = await getDbClient();
+      const result = await client.query(
+        'UPDATE users SET name = $1 WHERE id = $2 RETURNING id, name',
+        [name, id],
+      );
+      client.release();
+
+      if (result.rows.length === 0) {
+        return res.status(404).json({ error: 'User not found' });
+      }
+
+      console.log(`User updated: ${result.rows[0].name} (ID: ${id})`);
+      res.json(result.rows[0]);
+    } catch (err: unknown) {
+      console.error('Update user failed:', err);
+      // Handle unique constraint violation (name already taken)
+      const pgErr = err as any;
+      if (pgErr.code === '23505') {
+        return res.status(409).json({ error: 'Username is already taken' });
+      }
       res.status(500).json({ error: err instanceof Error ? err.message : String(err) });
     }
   });

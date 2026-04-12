@@ -1,0 +1,349 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Game Server Admin</title>
+    <style>
+      :root {
+        --bg: #0f172a;
+        --panel: #1e293b;
+        --text: #f1f5f9;
+        --text-muted: #94a3b8;
+        --primary: #06b6d4;
+        --danger: #f43f5e;
+        --success: #22c55e;
+        --border: rgba(255, 255, 255, 0.1);
+      }
+      body {
+        font-family: 'Inter', system-ui, sans-serif;
+        background: var(--bg);
+        color: var(--text);
+        margin: 0;
+        padding: 2rem;
+      }
+      .container {
+        max-width: 1200px;
+        margin: 0 auto;
+        display: grid;
+        gap: 2rem;
+      }
+      header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding-bottom: 1rem;
+        border-bottom: 1px solid var(--border);
+      }
+      .grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
+        gap: 1.5rem;
+      }
+      .card {
+        background: var(--panel);
+        padding: 1.5rem;
+        border-radius: 12px;
+        border: 1px solid var(--border);
+        box-shadow: 0 10px 15px -3px rgb(0 0 0 / 0.1);
+      }
+      h2 {
+        margin-top: 0;
+        font-size: 1.25rem;
+        color: var(--primary);
+      }
+      .stats {
+        display: flex;
+        gap: 2rem;
+        margin-bottom: 1rem;
+      }
+      .stat-item {
+        display: flex;
+        flex-direction: column;
+      }
+      .stat-label {
+        font-size: 0.75rem;
+        color: var(--text-muted);
+        text-transform: uppercase;
+      }
+      .stat-value {
+        font-size: 1.5rem;
+        font-weight: 700;
+      }
+
+      table {
+        width: 100%;
+        border-collapse: collapse;
+        margin-top: 1rem;
+        font-size: 0.875rem;
+      }
+      th {
+        text-align: left;
+        color: var(--text-muted);
+        padding: 0.5rem;
+        border-bottom: 1px solid var(--border);
+      }
+      td {
+        padding: 0.75rem 0.5rem;
+        border-bottom: 1px solid var(--border);
+      }
+
+      .actions {
+        display: flex;
+        gap: 0.5rem;
+        margin-top: 1rem;
+      }
+      button {
+        background: var(--primary);
+        color: white;
+        border: none;
+        padding: 0.5rem 1rem;
+        border-radius: 6px;
+        cursor: pointer;
+        font-weight: 600;
+        font-size: 0.875rem;
+        transition: opacity 0.2s;
+      }
+      button:hover {
+        opacity: 0.9;
+      }
+      button.danger {
+        background: var(--danger);
+      }
+      button.secondary {
+        background: transparent;
+        border: 1px solid var(--border);
+      }
+
+      .badge {
+        padding: 2px 8px;
+        border-radius: 4px;
+        font-size: 0.7rem;
+        font-weight: 700;
+        background: rgba(255, 255, 255, 0.1);
+      }
+      pre {
+        background: #000;
+        padding: 1rem;
+        border-radius: 8px;
+        overflow-x: auto;
+        font-size: 0.75rem;
+        color: #0f0;
+      }
+      .log-container {
+        max-height: 200px;
+        overflow-y: auto;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="container">
+      <header>
+        <div>
+          <h1 style="margin: 0">Server Control Panel</h1>
+          <p style="margin: 0; color: var(--text-muted)">Internal Management for Port 3001</p>
+        </div>
+        <div id="connection-status">
+          <span class="badge" style="background: var(--success)">Live</span>
+        </div>
+      </header>
+
+      <div class="grid">
+        <!-- System Health -->
+        <div class="card">
+          <h2>System Health</h2>
+          <div class="stats">
+            <div class="stat-item">
+              <span class="stat-label">Uptime</span>
+              <span class="stat-value" id="uptime">0s</span>
+            </div>
+            <div class="stat-item">
+              <span class="stat-label">Connections</span>
+              <span class="stat-value" id="socket-count">0</span>
+            </div>
+          </div>
+          <div id="db-status-container">
+            <span class="stat-label">Database Status</span>
+            <div
+              id="db-error"
+              style="color: var(--danger); font-size: 0.8rem; margin-top: 0.25rem"
+            ></div>
+          </div>
+          <div class="actions">
+            <button onclick="refreshData()">Refresh Now</button>
+            <button class="secondary" onclick="runAction('sync-db')">Sync Schema</button>
+          </div>
+        </div>
+
+        <!-- Maintenance Actions -->
+        <div class="card">
+          <h2>Maintenance</h2>
+          <p style="font-size: 0.875rem; color: var(--text-muted)">
+            Quick actions to keep the server clean.
+          </p>
+          <div class="actions" style="flex-direction: column">
+            <button onclick="runAction('clean-lobbies')">🧹 Remove Empty Lobbies</button>
+            <button class="danger" onclick="confirmWipe()">🧨 Wipe All Lobbies (Nuclear)</button>
+          </div>
+        </div>
+      </div>
+
+      <div class="grid">
+        <!-- Active Connections -->
+        <div class="card" style="grid-column: span 2">
+          <h2>Real-time Connections</h2>
+          <table>
+            <thead>
+              <tr>
+                <th>Socket ID</th>
+                <th>User Name</th>
+                <th>User ID</th>
+                <th>Active Rooms</th>
+              </tr>
+            </thead>
+            <tbody id="connections-table"></tbody>
+          </table>
+        </div>
+      </div>
+
+      <div class="grid">
+        <!-- Database Tables -->
+        <div class="card">
+          <h2>Persisted Lobbies</h2>
+          <table id="lobbies-table">
+            <thead>
+              <tr>
+                <th>Name</th>
+                <th>ID</th>
+                <th>Action</th>
+              </tr>
+            </thead>
+            <tbody></tbody>
+          </table>
+        </div>
+
+        <div class="card">
+          <h2>Registered Users</h2>
+          <table id="users-table">
+            <thead>
+              <tr>
+                <th>Name</th>
+                <th>ID</th>
+                <th>Action</th>
+              </tr>
+            </thead>
+            <tbody></tbody>
+          </table>
+        </div>
+      </div>
+
+      <div class="card">
+        <h2>Server Output</h2>
+        <div class="log-container">
+          <pre id="server-logs">Ready for commands...</pre>
+        </div>
+      </div>
+    </div>
+
+    <script>
+      async function refreshData() {
+        try {
+          const res = await fetch('/debug');
+          const data = await res.json();
+
+          // Stats
+          document.getElementById('uptime').textContent = Math.floor(data.status.uptime) + 's';
+          document.getElementById('socket-count').textContent = data.status.socketClients;
+          document.getElementById('db-error').textContent =
+            data.status.dbError || 'Healthy (Connected)';
+          document.getElementById('db-error').style.color = data.status.dbError
+            ? 'var(--danger)'
+            : 'var(--success)';
+
+          // Connections
+          const connTable = document.getElementById('connections-table');
+          connTable.innerHTML = data.state.ephemeralState.connectionDetails
+            .map(
+              (c) => `
+                    <tr>
+                        <td><code>${c.socketId}</code></td>
+                        <td>${c.user ? c.user.name : '<span class="text-muted">Anonymous</span>'}</td>
+                        <td><small>${c.userId || '-'}</small></td>
+                        <td>${c.rooms.join(', ') || 'None'}</td>
+                    </tr>
+                `,
+            )
+            .join('');
+
+          // Lobbies
+          const lobbyTable = document.querySelector('#lobbies-table tbody');
+          lobbyTable.innerHTML = data.state.persistentState.activeLobbies
+            .map(
+              (l) => `
+                    <tr>
+                        <td><strong>${l.name}</strong></td>
+                        <td><code>${l.id.slice(0, 8)}...</code></td>
+                        <td><button class="danger" style="padding: 2px 8px; font-size: 0.7rem;" onclick="deleteItem('lobbies', '${l.id}')">Del</button></td>
+                    </tr>
+                `,
+            )
+            .join('');
+
+          // Users
+          const userTable = document.querySelector('#users-table tbody');
+          userTable.innerHTML = data.state.persistentState.persistedUsers
+            .map(
+              (u) => `
+                    <tr>
+                        <td><strong>${u.name}</strong></td>
+                        <td><code>${u.id.slice(0, 8)}...</code></td>
+                        <td><button class="danger" style="padding: 2px 8px; font-size: 0.7rem;" onclick="deleteItem('users', '${u.id}')">Del</button></td>
+                    </tr>
+                `,
+            )
+            .join('');
+        } catch (e) {
+          console.error('Refresh failed', e);
+        }
+      }
+
+      async function runAction(action) {
+        log(`Running action: ${action}...`);
+        try {
+          const res = await fetch(`/api/admin/actions/${action}`, { method: 'POST' });
+          const result = await res.json();
+          log(JSON.stringify(result, null, 2));
+          refreshData();
+        } catch (e) {
+          log('Error: ' + e.message);
+        }
+      }
+
+      async function deleteItem(type, id) {
+        if (!confirm(`Delete this ${type.slice(0, -1)}?`)) return;
+        try {
+          const res = await fetch(`/api/admin/${type}/${id}`, { method: 'DELETE' });
+          log(`Deleted ${id} from ${type}`);
+          refreshData();
+        } catch (e) {
+          log('Delete failed: ' + e.message);
+        }
+      }
+
+      function confirmWipe() {
+        if (confirm('DANGER: This will delete ALL lobbies. Continue?')) {
+          runAction('wipe-lobbies');
+        }
+      }
+
+      function log(msg) {
+        const pre = document.getElementById('server-logs');
+        pre.textContent = `[${new Date().toLocaleTimeString()}] ${msg}\n` + pre.textContent;
+      }
+
+      // Auto refresh
+      setInterval(refreshData, 3000);
+      refreshData();
+    </script>
+  </body>
+</html>

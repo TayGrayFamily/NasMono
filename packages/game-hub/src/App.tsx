@@ -38,11 +38,6 @@ function AppContent({
   const [isConnected, setIsConnected] = useState(socket.connected);
 
   useEffect(() => {
-    if (socket.connected) {
-      console.log('Socket already connected on mount:', socket.id);
-      setIsConnected(true);
-    }
-
     const onConnect = () => {
       console.log('Socket connected event:', socket.id);
       setIsConnected(true);

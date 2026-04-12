@@ -101,16 +101,34 @@ async function setupDatabase() {
 }
 
 async function getDbClient() {
-  if (!pool) throw new Error('Database connection pool is not available.');
+  if (!pool) {
+    const msg = 'Database connection pool is not available. Check if DATABASE_URL was provided.';
+    dbConnectionError = msg;
+    throw new Error(msg);
+  }
+
   try {
     return await pool.connect();
   } catch (err: unknown) {
-    const errorDetails = err instanceof Error ? err.message : String(err);
+    let errorDetails = '';
+    if (err instanceof Error) {
+      errorDetails = err.message;
+      // Capture PostgreSQL specific error details if they exist
+      const pgErr = err as any;
+      if (pgErr.code) errorDetails += ` [Code: ${pgErr.code}]`;
+      if (pgErr.detail) errorDetails += ` [Detail: ${pgErr.detail}]`;
+      if (pgErr.hint) errorDetails += ` [Hint: ${pgErr.hint}]`;
+    } else {
+      errorDetails = typeof err === 'object' ? JSON.stringify(err) : String(err);
+    }
+
     if (errorDetails.includes('ECONNREFUSED')) {
-      dbConnectionError = 'Connection refused. Check if the database (or SSH tunnel) is running.';
+      dbConnectionError = `Connection refused (${errorDetails}). Ensure the DB container or SSH tunnel is running and accessible at the configured host/port.`;
     } else {
       dbConnectionError = `Connection failed: ${errorDetails}`;
     }
+
+    console.error('--- DATABASE CONNECTION ERROR ---');
     console.error(dbConnectionError);
     dbStatus = 'Connection Error';
     throw new Error(dbConnectionError);

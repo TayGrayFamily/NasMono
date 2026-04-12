@@ -7,6 +7,8 @@
   "scripts": {
     "ready": "pnpm format && pnpm lint && pnpm check",
     "dev:home": "cd packages/home && pnpm run dev",
+    "dev:game": "cd packages/game-hub && pnpm run dev",
+    "dev:game-server": "cd packages/game-server && pnpm run dev",
     "check": "pnpm format:check && pnpm lint && pnpm -r build",
     "build": "pnpm -r run build",
     "bootstrap": "pnpm -w install",

@@ -1,0 +1,57 @@
+.loading-button {
+  position: relative;
+  transition: all 0.2s ease;
+  padding: 0.75rem 1.5rem;
+  border-radius: 8px;
+  border: none;
+  background: var(--primary-cyan);
+  color: white;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 600;
+  overflow: hidden;
+}
+
+.loading-button:hover:not(:disabled) {
+  background: var(--primary-blue);
+}
+
+.loading-button:disabled {
+  opacity: 0.7;
+  cursor: not-allowed;
+}
+
+.loading-button.is-loading .button-content {
+  visibility: hidden;
+  opacity: 0;
+}
+
+.loading-button.is-loading .spinner-border {
+  display: block;
+}
+
+.spinner-border {
+  display: none;
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 20px;
+  height: 20px;
+  border: 2px solid rgba(255, 255, 255, 0.3);
+  border-radius: 50%;
+  border-top-color: white;
+  animation: spin 0.8s linear infinite;
+  pointer-events: none;
+  box-sizing: border-box;
+}
+
+@keyframes spin {
+  from {
+    transform: translate(-50%, -50%) rotate(0deg);
+  }
+  to {
+    transform: translate(-50%, -50%) rotate(360deg);
+  }
+}

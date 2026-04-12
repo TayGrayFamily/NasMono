@@ -147,6 +147,7 @@ export async function createApp() {
 
   app.get('/debug', async (req, res) => {
     let lobbies: any[] = [];
+    let persistedUsers: any[] = [];
     const connectionDetails: any[] = [];
     let dbStatusError: string | null = null;
 
@@ -157,6 +158,13 @@ export async function createApp() {
         lobbies = result.rows;
       } catch (e) {
         console.error('Error fetching lobbies for debug:', e);
+      }
+
+      try {
+        const result = await client.query('SELECT * FROM users');
+        persistedUsers = result.rows;
+      } catch (e) {
+        console.error('Error fetching users for debug:', e);
       }
 
       for (const [socketId, socket] of io.sockets.sockets.entries()) {
@@ -199,6 +207,7 @@ export async function createApp() {
         },
         persistentState: {
           activeLobbies: lobbies,
+          persistedUsers: persistedUsers,
         },
       },
     });

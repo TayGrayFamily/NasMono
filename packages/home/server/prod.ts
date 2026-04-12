@@ -5,13 +5,7 @@ import { createApiApp } from './apiRouter.js';
 import dotenv from 'dotenv';
 
 // 1. Resilience: Validate critical environment variables
-const requiredEnvVars = [
-  'UNRAID_API_KEY',
-  'VITE_IMMICH_KEY',
-  'VITE_RADARR_API_KEY',
-  'VITE_SONARR_API_KEY',
-  'DATABASE_URL',
-];
+const requiredEnvVars = ['UNRAID_API_KEY', 'VITE_IMMICH_KEY', 'DATABASE_URL'];
 
 dotenv.config({ path: path.resolve(process.cwd(), '.env') });
 

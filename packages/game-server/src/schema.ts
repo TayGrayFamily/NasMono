@@ -9,6 +9,9 @@ export const users = pgTable('users', {
 export const lobbies = pgTable('lobbies', {
   id: uuid('id').primaryKey().defaultRandom(),
   name: varchar('name', { length: 255 }).notNull(),
+  hostId: uuid('host_id')
+    .references(() => users.id, { onDelete: 'cascade' })
+    .notNull(),
   createdAt: timestamp('created_at', { withTimezone: true }).defaultNow(),
 });
 

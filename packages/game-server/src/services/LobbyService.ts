@@ -4,9 +4,10 @@ export class LobbyService {
   async createLobby(name: string, userId: string) {
     const client = await getDbClient();
     try {
-      const lobby = await client.query('INSERT INTO lobbies (name) VALUES ($1) RETURNING id', [
-        name || 'New Lobby',
-      ]);
+      const lobby = await client.query(
+        'INSERT INTO lobbies (name, host_id) VALUES ($1, $2) RETURNING id',
+        [name || 'New Lobby', userId],
+      );
       await client.query('INSERT INTO lobby_players (lobby_id, user_id) VALUES ($1, $2)', [
         lobby.rows[0].id,
         userId,
@@ -21,7 +22,7 @@ export class LobbyService {
     const client = await getDbClient();
     try {
       const result = await client.query(
-        `SELECT l.id, l.name, COUNT(lp.user_id) as playerCount FROM lobbies l LEFT JOIN lobby_players lp ON l.id = lp.lobby_id GROUP BY l.id`,
+        `SELECT l.id, l.name, l.host_id as "hostId", COUNT(lp.user_id) as "playerCount" FROM lobbies l LEFT JOIN lobby_players lp ON l.id = lp.lobby_id GROUP BY l.id`,
       );
       return result.rows;
     } finally {
@@ -32,7 +33,10 @@ export class LobbyService {
   async getLobbyById(id: string) {
     const client = await getDbClient();
     try {
-      const lobby = await client.query('SELECT * FROM lobbies WHERE id = $1', [id]);
+      const lobby = await client.query(
+        'SELECT id, name, host_id as "hostId" FROM lobbies WHERE id = $1',
+        [id],
+      );
       const players = await client.query(
         'SELECT u.id, u.name FROM users u JOIN lobby_players lp ON u.id = lp.user_id WHERE lp.lobby_id = $1',
         [id],

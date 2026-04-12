@@ -215,13 +215,13 @@
               <tr>
                 <th>Name</th>
                 <th>ID</th>
+                <th>Host</th>
                 <th>Action</th>
               </tr>
             </thead>
             <tbody></tbody>
           </table>
         </div>
-
         <div class="card">
           <h2>Registered Users</h2>
           <table id="users-table">
@@ -277,13 +277,14 @@
 
           // Lobbies
           const lobbyTable = document.querySelector('#lobbies-table tbody');
-          lobbyTable.innerHTML = data.state.persistentState.activeLobbies
-            .map(
-              (l) => `
-                    <tr>
-                        <td><strong>${l.name}</strong></td>
-                        <td><code>${l.id.slice(0, 8)}...</code></td>
-                        <td><button class="danger" style="padding: 2px 8px; font-size: 0.7rem;" onclick="deleteItem('lobbies', '${l.id}')">Del</button></td>
+          lobbyTable.innerHTML = data.state.persistentState.activeLobbies.map(l => `
+              <tr>
+                  <td><strong>${l.name}</strong></td>
+                  <td><code>${l.id.slice(0,8)}...</code></td>
+                  <td><small>${l.hostId.slice(0,8)}...</small></td>
+                  <td><button class="danger" style="padding: 2px 8px; font-size: 0.7rem;" onclick="deleteItem('lobbies', '${l.id}')">Del</button></td>
+              </tr>
+          `).join('');
                     </tr>
                 `,
             )

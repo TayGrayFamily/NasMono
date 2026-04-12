@@ -80,6 +80,7 @@ async function setupDatabase() {
             CREATE TABLE IF NOT EXISTS lobbies (
                 id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
                 name VARCHAR(255) NOT NULL,
+                host_id UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE,
                 created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
             );
             CREATE TABLE IF NOT EXISTS lobby_players (

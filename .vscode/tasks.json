@@ -1,0 +1,38 @@
+{
+  "version": "2.0.0",
+  "tasks": [
+    {
+      "label": "Dev: Server",
+      "type": "shell",
+      "command": "pnpm run dev:game-server",
+      "problemMatcher": [],
+      "isBackground": true,
+      "presentation": {
+        "group": "dev",
+        "reveal": "always",
+        "panel": "dedicated"
+      }
+    },
+    {
+      "label": "Dev: Hub",
+      "type": "shell",
+      "command": "pnpm run dev:game",
+      "problemMatcher": [],
+      "isBackground": true,
+      "presentation": {
+        "group": "dev",
+        "reveal": "always",
+        "panel": "dedicated"
+      }
+    },
+    {
+      "label": "Dev: All",
+      "dependsOn": ["Dev: Server", "Dev: Hub"],
+      "problemMatcher": [],
+      "group": {
+        "kind": "build",
+        "isDefault": true
+      }
+    }
+  ]
+}

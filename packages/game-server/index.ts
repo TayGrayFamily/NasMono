@@ -30,6 +30,8 @@ export async function createApp() {
   const socketToUserMap = new Map<string, string>();
 
   io.on('connection', (socket) => {
+    console.log(`New socket connection attempt: ${socket.id} from ${socket.handshake.address}`);
+
     socket.on('set_user', (data: { userId: string }) => {
       if (data.userId) {
         userSocketMap.set(data.userId, socket.id);

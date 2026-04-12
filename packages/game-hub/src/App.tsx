@@ -38,20 +38,44 @@ function AppContent({
   const [isConnected, setIsConnected] = useState(socket.connected);
 
   useEffect(() => {
-    const onConnect = () => setIsConnected(true);
-    const onDisconnect = () => setIsConnected(false);
+    // Check initial state
+    if (socket.connected) {
+      console.log('Socket already connected on mount:', socket.id);
+      setIsConnected(true);
+    }
+
+    const onConnect = () => {
+      console.log('Socket connected event:', socket.id);
+      setIsConnected(true);
+    };
+    const onDisconnect = (reason: string) => {
+      console.warn('Socket disconnected event. Reason:', reason);
+      setIsConnected(false);
+    };
+    const onConnectError = (error: Error) => {
+      console.error('Socket connection error event:', error.message);
+    };
 
     socket.on('connect', onConnect);
     socket.on('disconnect', onDisconnect);
+    socket.on('connect_error', onConnectError);
+
+    // Debug: Log all incoming events
+    socket.onAny((eventName, ...args) => {
+      console.log(`[Socket Incoming] ${eventName}:`, args);
+    });
 
     // If we have a user, ensure they are registered on the server whenever we connect
     if (currentUser) {
+      console.log('Emitting set_user for:', currentUser.id);
       socket.emit('set_user', { userId: currentUser.id });
     }
 
     return () => {
       socket.off('connect', onConnect);
       socket.off('disconnect', onDisconnect);
+      socket.off('connect_error', onConnectError);
+      socket.offAny();
     };
   }, [socket, currentUser]);
 

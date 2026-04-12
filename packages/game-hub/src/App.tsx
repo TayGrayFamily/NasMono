@@ -1,8 +1,17 @@
 /// <reference types="vite/client" />
 import React, { useState, useEffect } from 'react';
+import {
+  BrowserRouter as Router,
+  Routes,
+  Route,
+  Navigate,
+  useNavigate,
+  useLocation,
+} from 'react-router-dom';
 import PlayerSetup from './components/PlayerSetup';
 import LobbyList from './components/LobbyList';
 import LobbyDetail from './components/LobbyDetail';
+import ManageUser from './components/ManageUser';
 import { SocketProvider, useSocket } from './components/SocketContext';
 import { Header } from './components/layout/Header';
 import './index.css';
@@ -12,33 +21,23 @@ interface User {
   name: string;
 }
 
-// Helper component to correctly call useSocket within the Provider's scope and handle conditional rendering
 function AppContent({
   currentUser,
-  setCurrentUser,
-  currentView,
-  setCurrentView,
-  selectedLobbyId,
-  setSelectedLobbyId,
-  handlePlayerCreated,
-  handleLobbySelect,
-  handleBackToLobbies,
+  onUserCreated,
+  onUserUpdated,
+  onSignOut,
 }: {
   currentUser: User | null;
-  setCurrentUser: React.Dispatch<React.SetStateAction<User | null>>;
-  currentView: 'playerSetup' | 'lobbyList' | 'lobbyDetail';
-  setCurrentView: React.Dispatch<React.SetStateAction<'playerSetup' | 'lobbyList' | 'lobbyDetail'>>;
-  selectedLobbyId: string | null;
-  setSelectedLobbyId: React.Dispatch<React.SetStateAction<string | null>>;
-  handlePlayerCreated: (user: User) => void;
-  handleLobbySelect: (lobbyId: string) => void;
-  handleBackToLobbies: () => void;
+  onUserCreated: (user: User) => void;
+  onUserUpdated: (user: User) => void;
+  onSignOut: () => void;
 }) {
   const socket = useSocket();
+  const navigate = useNavigate();
+  const location = useLocation();
   const [isConnected, setIsConnected] = useState(socket.connected);
 
   useEffect(() => {
-    // Check initial state
     if (socket.connected) {
       console.log('Socket already connected on mount:', socket.id);
       setIsConnected(true);
@@ -60,12 +59,10 @@ function AppContent({
     socket.on('disconnect', onDisconnect);
     socket.on('connect_error', onConnectError);
 
-    // Debug: Log all incoming events
     socket.onAny((eventName, ...args) => {
       console.log(`[Socket Incoming] ${eventName}:`, args);
     });
 
-    // If we have a user, ensure they are registered on the server whenever we connect
     if (currentUser) {
       console.log('Emitting set_user for:', currentUser.id);
       socket.emit('set_user', { userId: currentUser.id });
@@ -85,6 +82,15 @@ function AppContent({
     }
   }, [isConnected, currentUser, socket]);
 
+  // Handle protected routes
+  useEffect(() => {
+    if (!currentUser && location.pathname !== '/login') {
+      navigate('/login');
+    } else if (currentUser && location.pathname === '/login') {
+      navigate('/lobbies');
+    }
+  }, [currentUser, location.pathname, navigate]);
+
   return (
     <div className="app-container">
       <Header
@@ -92,25 +98,51 @@ function AppContent({
         subtitle="Join a lobby or start a game."
         currentUser={currentUser}
         isConnected={isConnected}
-        socketId={socket.id}
+        onSignOut={onSignOut}
+        onManageUser={() => navigate('/manage-profile')}
       />
 
       <main className="main-content">
-        {currentView === 'playerSetup' && (
-          <div className="panel">
-            <PlayerSetup onUserCreated={handlePlayerCreated} />
-          </div>
-        )}
-        {currentView === 'lobbyList' && currentUser && (
-          <LobbyList currentUserId={currentUser.id} onSelectLobby={handleLobbySelect} />
-        )}
-        {currentView === 'lobbyDetail' && selectedLobbyId && currentUser && (
-          <LobbyDetail
-            lobbyId={selectedLobbyId}
-            currentUserId={currentUser.id}
-            onBack={handleBackToLobbies}
+        <Routes>
+          <Route
+            path="/login"
+            element={
+              <div className="panel">
+                <PlayerSetup onUserCreated={onUserCreated} />
+              </div>
+            }
           />
-        )}
+
+          {currentUser && (
+            <>
+              <Route
+                path="/lobbies"
+                element={
+                  <LobbyList
+                    currentUserId={currentUser.id}
+                    onSelectLobby={(id) => navigate(`/lobbies/${id}`)}
+                  />
+                }
+              />
+              <Route
+                path="/lobbies/:lobbyId"
+                element={
+                  <LobbyDetail
+                    lobbyId={location.pathname.split('/').pop() || ''}
+                    currentUserId={currentUser.id}
+                    onBack={() => navigate('/lobbies')}
+                  />
+                }
+              />
+              <Route
+                path="/manage-profile"
+                element={<ManageUser currentUser={currentUser} onUserUpdated={onUserUpdated} />}
+              />
+            </>
+          )}
+
+          <Route path="*" element={<Navigate to={currentUser ? '/lobbies' : '/login'} replace />} />
+        </Routes>
       </main>
 
       <footer
@@ -132,48 +164,30 @@ function AppContent({
 
 function App() {
   const [currentUser, setCurrentUser] = useState<User | null>(null);
-  const [currentView, setCurrentView] = useState<'playerSetup' | 'lobbyList' | 'lobbyDetail'>(
-    'playerSetup',
-  );
-  const [selectedLobbyId, setSelectedLobbyId] = useState<string | null>(null);
 
-  // Handlers defined here to manage state
-  const handlePlayerCreated = (user: User) => {
+  const handleUserCreated = (user: User) => {
     setCurrentUser(user);
-    setCurrentView('lobbyList');
-    // Once user is set, ensure socket knows about this user
-    // Accessing socket via context provider is implicit in components,
-    // but here we need a way to emit from App.
-    // Let's modify AppContent or use a specialized component/hook for this.
   };
 
-  const handleLobbySelect = (lobbyId: string) => {
-    setSelectedLobbyId(lobbyId);
-    setCurrentView('lobbyDetail');
-    // Note: socket emission logic should ideally be within AppContent or a component
-    // that has direct access to the socket instance after it's confirmed available.
-    // For now, assuming handlers might be called after socket is available.
+  const handleUserUpdated = (user: User) => {
+    setCurrentUser(user);
   };
 
-  const handleBackToLobbies = () => {
-    setCurrentView('lobbyList');
-    setSelectedLobbyId(null);
+  const handleSignOut = () => {
+    setCurrentUser(null);
+    console.log('User signed out');
   };
 
   return (
-    // App renders SocketProvider, and passes state/handlers to AppContent
     <SocketProvider url="/">
-      <AppContent
-        currentUser={currentUser}
-        setCurrentUser={setCurrentUser}
-        currentView={currentView}
-        setCurrentView={setCurrentView}
-        selectedLobbyId={selectedLobbyId}
-        setSelectedLobbyId={setSelectedLobbyId}
-        handlePlayerCreated={handlePlayerCreated}
-        handleLobbySelect={handleLobbySelect}
-        handleBackToLobbies={handleBackToLobbies}
-      />
+      <Router>
+        <AppContent
+          currentUser={currentUser}
+          onUserCreated={handleUserCreated}
+          onUserUpdated={handleUserUpdated}
+          onSignOut={handleSignOut}
+        />
+      </Router>
     </SocketProvider>
   );
 }

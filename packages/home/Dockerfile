@@ -14,24 +14,21 @@ COPY packages/home ./packages/home
 RUN pnpm install --no-frozen-lockfile
 RUN pnpm --filter home build
 
+# Use pnpm deploy to isolate production dependencies for the home package.
+# This avoids needing to run pnpm install in the runtime stage.
+RUN pnpm --filter home --prod deploy /app/prod --legacy
+
 FROM node:24-alpine AS runtime
 WORKDIR /app
 ENV NODE_ENV=production
-# Copy lockfile and package.json for production dependency installation.
-# Ensure express and dockerode are installed.
-COPY pnpm-lock.yaml ./
-COPY package.json ./
-COPY packages/home/package.json ./packages/home/
 
-# Install production dependencies for the 'home' package using the lockfile.
-# --frozen-lockfile ensures consistency with the build stage.
-# --filter=home targets the specific package.
-# --ignore-scripts is kept as it was in the original.
-RUN corepack enable && pnpm install --prod --filter=home --frozen-lockfile --ignore-scripts
+# Copy the isolated production dependencies and package.json
+COPY --from=build /app/prod/node_modules ./node_modules
+COPY --from=build /app/prod/package.json ./package.json
 
+# Copy the build artifacts from the home package
 COPY --from=build /app/packages/home/dist ./dist
 COPY --from=build /app/packages/home/dist-server ./dist-server
-COPY --from=build /app/packages/home/package.json ./package.json
 
 EXPOSE 80
 CMD ["node", "dist-server/prod.js"]

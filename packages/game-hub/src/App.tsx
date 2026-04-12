@@ -3,13 +3,13 @@ import React, { useState, useEffect } from 'react';
 import PlayerSetup from './components/PlayerSetup';
 import LobbyList from './components/LobbyList';
 import LobbyDetail from './components/LobbyDetail';
-import { SocketProvider, useSocket } from './components/SocketContext'; // Import SocketProvider and useSocket
+import { SocketProvider, useSocket } from './components/SocketContext';
+import { Header } from './components/layout/Header';
 import './index.css';
 
 interface User {
   id: string;
   name: string;
-  is_temporary: boolean;
 }
 
 // Helper component to correctly call useSocket within the Provider's scope and handle conditional rendering
@@ -62,18 +62,21 @@ function AppContent({
   }, [isConnected, currentUser, socket]);
 
   return (
-    <div className="container">
-      <header className="main-header">
-        <div className="header-content">
-          <h1 className="header-title">Game Hub</h1>
-          <p className="header-subtitle">Welcome back. Join a lobby or start a game.</p>
-        </div>
-        <div className={`status-indicator ${isConnected ? 'connected' : 'disconnected'}`}>
-          {isConnected ? 'Online' : 'Offline'}
-        </div>
-      </header>
-      <main className="panel">
-        {currentView === 'playerSetup' && <PlayerSetup onUserCreated={handlePlayerCreated} />}
+    <div className="app-container">
+      <Header
+        title="Game Hub"
+        subtitle="Join a lobby or start a game."
+        currentUser={currentUser}
+        isConnected={isConnected}
+        socketId={socket.id}
+      />
+
+      <main className="main-content">
+        {currentView === 'playerSetup' && (
+          <div className="panel">
+            <PlayerSetup onUserCreated={handlePlayerCreated} />
+          </div>
+        )}
         {currentView === 'lobbyList' && currentUser && (
           <LobbyList currentUserId={currentUser.id} onSelectLobby={handleLobbySelect} />
         )}
@@ -85,21 +88,20 @@ function AppContent({
           />
         )}
       </main>
+
       <footer
         style={{
-          position: 'fixed',
-          bottom: '0',
-          left: '0',
-          width: '100%',
-          padding: '0.25rem 1rem',
-          fontSize: '0.65rem',
+          padding: '1.5rem',
+          fontSize: '0.875rem',
           textAlign: 'center',
-          backgroundColor: 'transparent',
-          color: '#888',
+          color: 'var(--text-muted)',
+          borderTop: '1px solid var(--border-color)',
+          marginTop: 'auto',
         }}
       >
-        v{__APP_VERSION__} | {isConnected ? `SID: ${socket.id}` : 'Disconnected'}
-      </footer>{' '}
+        v{import.meta.env.VITE_APP_VERSION || '0.0.0'} •{' '}
+        {isConnected ? 'Connected' : 'Disconnected'}
+      </footer>
     </div>
   );
 }

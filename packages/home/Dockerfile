@@ -20,6 +20,7 @@ ENV NODE_ENV=production
 # Copy lockfile and package.json for production dependency installation.
 # Ensure express and dockerode are installed.
 COPY pnpm-lock.yaml ./
+COPY package.json ./
 COPY packages/home/package.json ./packages/home/
 
 # Install production dependencies for the 'home' package using the lockfile.

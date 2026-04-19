@@ -94,7 +94,7 @@ export function createApiRouter(): Router {
   });
 
   // New endpoint for login/signup
-  r.post('/api/auth/login_or_signup', async (req: Request, res: Response, next: NextFunction) => {
+  r.post('/auth/login_or_signup', async (req: Request, res: Response, next: NextFunction) => {
     const { username } = req.body;
 
     if (!username || typeof username !== 'string' || username.trim() === '') {

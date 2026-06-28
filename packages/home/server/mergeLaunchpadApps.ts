@@ -9,6 +9,7 @@ export type LaunchPadApp = {
   state: ContainerDaemonState | 'unknown';
   statusText?: string;
   containerName?: string;
+  hostPort?: number;
 };
 
 export type LaunchPadResponse = {
@@ -71,6 +72,7 @@ export function mergeLaunchpadWithContainers(
       state: container?.state ?? 'unknown',
       statusText: container?.statusText,
       containerName: container?.name,
+      hostPort: container?.primaryPort?.hostPort,
     };
   });
 

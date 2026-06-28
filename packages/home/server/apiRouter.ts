@@ -8,6 +8,7 @@ import express, {
 import { createDockerSource } from './createDockerSource.js';
 import { loadMergedLaunchPadApps } from './launchpadConfig.js';
 import { mergeLaunchpadWithContainers } from './mergeLaunchpadApps.js';
+import { probeReachability } from './reachability.js';
 import type { DockerSource } from './types.js';
 
 // Assuming game-server db functions are available via import.
@@ -82,24 +83,15 @@ export function createApiRouter(): Router {
         return;
       }
 
-      const controller = new AbortController();
-      const timeout = setTimeout(() => controller.abort(), 8000);
-      try {
-        const resp = await fetch(u.href, {
-          method: 'GET',
-          redirect: 'follow',
-          signal: controller.signal,
-          headers: { 'User-Agent': 'NasMono-Reachability/1.0' },
-        });
-        clearTimeout(timeout);
-        const status = resp.status;
-        // Anything that completes TCP+HTTP without 5xx counts as "there" (incl. 401/403/404).
-        const ok = status > 0 && status < 500;
-        res.json({ ok, status });
-      } catch {
-        clearTimeout(timeout);
-        res.json({ ok: false, status: 0 });
-      }
+      const rawPort = req.query.hostPort;
+      const hostPortStr = Array.isArray(rawPort) ? rawPort[0] : rawPort;
+      const hostPort =
+        typeof hostPortStr === 'string' && hostPortStr.trim() !== ''
+          ? Number(hostPortStr)
+          : undefined;
+
+      const result = await probeReachability(u, Number.isFinite(hostPort) ? hostPort : undefined);
+      res.json(result);
     } catch (err) {
       next(err);
     }

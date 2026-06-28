@@ -16,6 +16,7 @@ function nasmonoApiPlugin(mode: string): Plugin {
         'UNRAID_API_KEY',
         'DOCKER_SOCKET_PATH',
         'LAUNCHPAD_CONFIG_PATH',
+        'REACHABILITY_GATEWAY',
       ] as const) {
         const v = env[key];
         if (v !== undefined && v !== '' && process.env[key] === undefined) {

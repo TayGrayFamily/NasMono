@@ -28,19 +28,20 @@ function stateColor(state: LaunchPadApp['state']): string {
 export function AppTile(props: AppTileProps): JSX.Element {
   const { app } = props;
   const showProbe = app.state === 'running';
+  const dimmed = app.state !== 'running';
 
   return (
-    <div className="container-card">
+    <a
+      href={app.url}
+      target="_blank"
+      rel="noopener noreferrer"
+      className="container-card container-card-link"
+      title={`Open ${app.displayName}`}
+      style={{ opacity: dimmed ? 0.65 : 1 }}
+    >
       <div className="card-header">
         <div className="card-icon-wrapper">
-          <a
-            href={app.url}
-            target="_blank"
-            rel="noopener noreferrer"
-            style={{ opacity: app.state === 'running' ? 1 : 0.45, display: 'block' }}
-          >
-            <img src={app.iconUrl} alt="" width={48} height={48} />
-          </a>
+          <img src={app.iconUrl} alt="" width={48} height={48} />
         </div>
 
         <div className="card-content">
@@ -49,21 +50,13 @@ export function AppTile(props: AppTileProps): JSX.Element {
             {app.state === 'unknown' ? 'no container' : app.state}
           </span>
         </div>
-
-        <a
-          href={app.url}
-          target="_blank"
-          rel="noopener noreferrer"
-          className="launch-button"
-          title="Open Web UI"
-        >
-          Launch
-        </a>
       </div>
 
-      <div className="card-footer">
-        {showProbe ? <ReachabilityProbe openUrl={app.url} /> : null}
-      </div>
-    </div>
+      {showProbe ? (
+        <div className="card-footer">
+          <ReachabilityProbe openUrl={app.url} hostPort={app.hostPort} />
+        </div>
+      ) : null}
+    </a>
   );
 }

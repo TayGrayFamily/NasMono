@@ -3,6 +3,15 @@ import { useEffect, useState, type JSX } from 'react';
 
 export type ReachabilityProbeProps = {
   openUrl: string;
+  hostPort?: number;
+};
+
+type ProbeResult = {
+  ok: boolean;
+  status: number;
+  error?: string;
+  detail?: string;
+  method?: string;
 };
 
 /**
@@ -10,44 +19,65 @@ export type ReachabilityProbeProps = {
  * browser, so homelab services that omit CORS headers still probe correctly.
  */
 export function ReachabilityProbe(props: ReachabilityProbeProps): JSX.Element {
-  const { openUrl } = props;
-  const [reachable, setReachable] = useState<boolean | null>(null);
+  const { openUrl, hostPort } = props;
+  const [result, setResult] = useState<ProbeResult | null>(null);
 
   useEffect(() => {
     let cancelled = false;
     const ac = new AbortController();
-    const q = `/api/reachability?target=${encodeURIComponent(openUrl)}`;
-    fetch(q, { signal: ac.signal })
+    const params = new URLSearchParams({ target: openUrl });
+    if (hostPort != null && hostPort > 0) {
+      params.set('hostPort', String(hostPort));
+    }
+    fetch(`/api/reachability?${params}`, { signal: ac.signal })
       .then(async (r) => {
-        const body = (await r.json().catch(() => ({}))) as { ok?: boolean };
-        if (!cancelled) setReachable(body.ok === true);
+        const body = (await r.json().catch(() => ({}))) as ProbeResult;
+        if (!cancelled) setResult(body);
       })
       .catch(() => {
-        if (!cancelled) setReachable(false);
+        if (!cancelled) {
+          setResult({
+            ok: false,
+            status: 0,
+            error: 'request_failed',
+            detail: 'Probe request failed',
+          });
+        }
       });
     return () => {
       cancelled = true;
       ac.abort();
     };
-  }, [openUrl]);
+  }, [openUrl, hostPort]);
 
-  if (reachable === null) {
+  if (result === null) {
     return (
       <Text fontSize="sm" color="fg.muted">
         Checking reachability…
       </Text>
     );
   }
-  if (reachable) {
+
+  if (result.ok) {
+    const via =
+      result.method === 'gateway'
+        ? 'via host gateway'
+        : result.method === 'host_port'
+          ? `via host port ${hostPort}`
+          : undefined;
     return (
       <Text fontSize="sm" color="green.solid">
-        Responding
+        Responding{result.status > 0 ? ` (HTTP ${result.status})` : ''}
+        {via ? ` · ${via}` : ''}
       </Text>
     );
   }
+
   return (
-    <Text fontSize="sm" color="red.solid">
+    <Text fontSize="sm" color="red.solid" title={result.detail}>
       Not responding
+      {result.error ? ` · ${result.error}` : ''}
+      {result.detail ? ` — ${result.detail}` : ''}
     </Text>
   );
 }

@@ -160,6 +160,12 @@ body {
   flex-direction: column;
 }
 
+.container-card-link {
+  text-decoration: none;
+  color: inherit;
+  cursor: pointer;
+}
+
 .card-header {
   display: flex;
   align-items: center;

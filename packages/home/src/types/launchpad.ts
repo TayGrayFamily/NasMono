@@ -8,6 +8,7 @@ export type LaunchPadApp = {
   state: ContainerRow['state'] | 'unknown';
   statusText?: string;
   containerName?: string;
+  hostPort?: number;
 };
 
 export type LaunchPadResponse = {

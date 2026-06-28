@@ -1,33 +1,36 @@
 services:
   nasmono-home:
-    image: '${IMAGE:-ghcr.io/taygrayfamily/nasmono-home:${IMAGE_TAG:-latest}}'
+    image: ghcr.io/taygrayfamily/nasmono-home:latest
     container_name: web_app
-    env_file: .env
-    environment:
-      - PORT=8888
-      - LAUNCHPAD_CONFIG_PATH=/config/apps.json
+    restart: unless-stopped
     ports:
       - '${HOME_BACKEND_PORT:-8888}:8888'
+    environment:
+      PORT: '8888'
+      LAUNCHPAD_CONFIG_PATH: /config/apps.json
+      REACHABILITY_GATEWAY: http://host.docker.internal
+      UNRAID_GRAPHQL_URL: http://tower:8080/graphql
+      UNRAID_API_KEY: ${UNRAID_API_KEY}
+    extra_hosts:
+      - 'host.docker.internal:host-gateway'
     volumes:
       - /mnt/user/appdata/nasmono-home:/config
-    restart: unless-stopped
     healthcheck:
       test: ['CMD', 'wget', '-qO-', 'http://localhost:8888/api/health']
       interval: 30s
       timeout: 5s
       retries: 3
-    # networks:
-    #   - game-network
     labels:
       - 'com.tailscale.description=NasMono Home app'
 
   game-server:
     image: ghcr.io/taygrayfamily/nasmono-game-server:latest
     container_name: game_server
-    env_file: .env
     restart: unless-stopped
     ports:
-      - '${GAME_SERVER_PORT:-3001}:3001'
+      - '3001:3001'
+    environment:
+      DATABASE_URL: postgresql://${POSTGRES_USER:-postgres}:${POSTGRES_PASSWORD}@db:5432/${POSTGRES_DB:-game_hub}
     networks:
       - game-network
     depends_on:
@@ -39,7 +42,7 @@ services:
     container_name: game_hub_ui
     restart: unless-stopped
     ports:
-      - '${GAME_HUB_PORT:-8000}:80'
+      - '8000:80'
     networks:
       - game-network
     healthcheck:
@@ -52,20 +55,19 @@ services:
     image: postgres:16-alpine
     container_name: game_hub_db
     restart: always
-    env_file: .env
     environment:
-      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_USER: ${POSTGRES_USER:-postgres}
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
-      POSTGRES_DB: ${POSTGRES_DB}
-      PGDATA: ${PGDATA:-/var/lib/postgresql/data}
+      POSTGRES_DB: ${POSTGRES_DB:-game_hub}
+      PGDATA: /var/lib/postgresql/data
     volumes:
       - /mnt/user/appdata/postgres-game-hub:/var/lib/postgresql/data
     ports:
-      - '${POSTGRES_PORT:-5432}:5432'
+      - '5432:5432'
     networks:
       - game-network
     healthcheck:
-      test: ['CMD-SHELL', 'pg_isready -U ${POSTGRES_USER} -d ${POSTGRES_DB}']
+      test: ['CMD-SHELL', 'pg_isready -U ${POSTGRES_USER:-postgres} -d ${POSTGRES_DB:-game_hub}']
       interval: 10s
       timeout: 5s
       retries: 5
@@ -75,10 +77,9 @@ services:
     container_name: game_tunnel
     networks:
       - game-network
-    # Force http2 protocol to avoid the "control stream" errors we saw earlier
     command: tunnel --protocol http2 --url http://game_hub_ui:80
     restart: unless-stopped
 
 networks:
-  game-network: # Must match the name above exactly
+  game-network:
     external: true

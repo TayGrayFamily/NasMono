@@ -11,7 +11,12 @@ function nasmonoApiPlugin(mode: string): Plugin {
     configureServer(server) {
       const envDir = path.resolve(__dirname, '../../');
       const env = loadEnv(mode, envDir, '');
-      for (const key of ['UNRAID_GRAPHQL_URL', 'UNRAID_API_KEY', 'DOCKER_SOCKET_PATH'] as const) {
+      for (const key of [
+        'UNRAID_GRAPHQL_URL',
+        'UNRAID_API_KEY',
+        'DOCKER_SOCKET_PATH',
+        'LAUNCHPAD_CONFIG_PATH',
+      ] as const) {
         const v = env[key];
         if (v !== undefined && v !== '' && process.env[key] === undefined) {
           process.env[key] = v;

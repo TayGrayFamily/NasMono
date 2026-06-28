@@ -1,0 +1,51 @@
+[
+  {
+    "id": "immich",
+    "displayName": "Immich",
+    "url": "http://immich.tower",
+    "iconUrl": "/static/immich_logo.svg",
+    "containerMatch": "^Immich$|immich-server"
+  },
+  {
+    "id": "jellyfin",
+    "displayName": "Jellyfin",
+    "url": "http://jellyfin.tower",
+    "iconUrl": "/static/jellyfin_logo.svg",
+    "containerMatch": "jellyfin"
+  },
+  {
+    "id": "immich-frame",
+    "displayName": "G&T Frame",
+    "url": "http://frame.tower/?duration=5&person=ad0b8aab-d39c-4acd-8e72-20abb697bda7&person=ba441761-42fa-41eb-af8e-128defd9614a&require_all_people=true&transition=fade&show_person_name=true&show_image_location=true&show_progress_bar=true",
+    "iconUrl": "/static/immich_kiosk_logo.svg",
+    "containerMatch": "frame|kiosk"
+  },
+  {
+    "id": "radarr",
+    "displayName": "Radarr",
+    "url": "http://radarr.tower",
+    "iconUrl": "/static/radarr_logo.svg",
+    "containerMatch": "radarr"
+  },
+  {
+    "id": "sonarr",
+    "displayName": "Sonarr",
+    "url": "http://sonarr.tower",
+    "iconUrl": "/static/sonarr_logo.svg",
+    "containerMatch": "sonarr"
+  },
+  {
+    "id": "qbittorrent",
+    "displayName": "qBittorrent",
+    "url": "http://torrent.tower",
+    "iconUrl": "/static/qbittorrent_logo.svg",
+    "containerMatch": "qbittorrent|qbit"
+  },
+  {
+    "id": "pihole",
+    "displayName": "Pihole",
+    "url": "http://pihole.tower/admin",
+    "iconUrl": "/static/pihole.webp",
+    "containerMatch": "binhex-official-pihole|pihole"
+  }
+]

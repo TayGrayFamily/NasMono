@@ -6,6 +6,8 @@ import express, {
   type NextFunction,
 } from 'express';
 import { createDockerSource } from './createDockerSource.js';
+import { loadMergedLaunchPadApps } from './launchpadConfig.js';
+import { mergeLaunchpadWithContainers } from './mergeLaunchpadApps.js';
 import type { DockerSource } from './types.js';
 
 // Assuming game-server db functions are available via import.
@@ -36,6 +38,16 @@ export function createApiRouter(): Router {
     try {
       const containers = await getSource().listContainers();
       res.json(containers);
+    } catch (err) {
+      next(err);
+    }
+  });
+
+  r.get('/launchpad', async (_req: Request, res: Response, next: NextFunction) => {
+    try {
+      const apps = loadMergedLaunchPadApps();
+      const containers = await getSource().listContainers();
+      res.json(mergeLaunchpadWithContainers(apps, containers));
     } catch (err) {
       next(err);
     }

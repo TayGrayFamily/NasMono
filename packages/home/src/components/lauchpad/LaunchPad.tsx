@@ -1,26 +1,27 @@
-import { useEffect, useState, type JSX, useMemo } from 'react';
-import type { ContainerRow } from '@/types/dockerContainer';
+import { useEffect, useState, type JSX } from 'react';
+import type { LaunchPadResponse } from '@/types/launchpad';
+import { AppTile } from './AppTile';
 import { ContainerTile } from './ContainerTile';
 import '../shell/Shell.css';
 
 export function LaunchPad(): JSX.Element {
-  const [containers, setContainers] = useState<ContainerRow[] | null>(null);
+  const [data, setData] = useState<LaunchPadResponse | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [isServicesOpen, setIsServicesOpen] = useState(false);
 
   useEffect(() => {
     let cancelled = false;
-    fetch('/api/containers')
+    fetch('/api/launchpad')
       .then(async (r) => {
         if (!r.ok) {
           const body = await r.json().catch(() => ({}));
           throw new Error((body as { error?: string }).error ?? r.statusText);
         }
-        return r.json() as Promise<ContainerRow[]>;
+        return r.json() as Promise<LaunchPadResponse>;
       })
-      .then((rows) => {
+      .then((response) => {
         if (!cancelled) {
-          setContainers(rows);
+          setData(response);
         }
       })
       .catch((e: unknown) => {
@@ -30,36 +31,6 @@ export function LaunchPad(): JSX.Element {
       cancelled = true;
     };
   }, []);
-
-  const { webApps, otherServices } = useMemo(() => {
-    if (!containers) return { webApps: [], otherServices: [] };
-
-    const apps: ContainerRow[] = [];
-    const others: ContainerRow[] = [];
-
-    // Known services that expose a port but don't have a browseable Web UI
-    const API_ONLY_SERVICES = /flaresolverr|database|postgres|redis|mongo|mysql|mariadb|api-only/i;
-
-    for (const c of containers) {
-      const isApiOnly = API_ONLY_SERVICES.test(c.name) || API_ONLY_SERVICES.test(c.image);
-      if (c.primaryPort && !isApiOnly) {
-        apps.push(c);
-      } else {
-        others.push(c);
-      }
-    }
-
-    const sortFn = (a: ContainerRow, b: ContainerRow) => {
-      if (a.state === 'running' && b.state !== 'running') return -1;
-      if (a.state !== 'running' && b.state === 'running') return 1;
-      return a.name.localeCompare(b.name);
-    };
-
-    return {
-      webApps: apps.sort(sortFn),
-      otherServices: others.sort(sortFn),
-    };
-  }, [containers]);
 
   if (error) {
     return (
@@ -72,13 +43,13 @@ export function LaunchPad(): JSX.Element {
           margin: '0 auto',
         }}
       >
-        <h2>Could not load containers</h2>
+        <h2>Could not load launchpad</h2>
         <p>{error}</p>
       </div>
     );
   }
 
-  if (containers === null) {
+  if (data === null) {
     return (
       <div
         style={{
@@ -97,13 +68,15 @@ export function LaunchPad(): JSX.Element {
     );
   }
 
+  const { apps, otherServices } = data;
+
   return (
     <div className="launchpad-container">
       <section>
         <h2 className="section-title">Web Applications</h2>
         <div className="container-grid">
-          {webApps.map((c) => (
-            <ContainerTile container={c} key={c.id} />
+          {apps.map((app) => (
+            <AppTile app={app} key={app.id} />
           ))}
         </div>
       </section>

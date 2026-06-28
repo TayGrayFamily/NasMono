@@ -4,17 +4,20 @@ services:
     container_name: web_app
     env_file: .env
     environment:
-      - PORT=80
+      - PORT=8888
+      - LAUNCHPAD_CONFIG_PATH=/config/apps.json
     ports:
-      - '${HOME_BACKEND_PORT:-8080}:80'
+      - '${HOME_BACKEND_PORT:-8888}:8888'
+    volumes:
+      - /mnt/user/appdata/nasmono-home:/config
     restart: unless-stopped
     healthcheck:
-      test: ['CMD', 'wget', '-qO-', 'http://localhost/api/health']
+      test: ['CMD', 'wget', '-qO-', 'http://localhost:8888/api/health']
       interval: 30s
       timeout: 5s
       retries: 3
-    networks:
-      - game-network
+    # networks:
+    #   - game-network
     labels:
       - 'com.tailscale.description=NasMono Home app'
 

@@ -29,6 +29,7 @@ COPY --from=build /app/prod/package.json ./package.json
 # Copy the build artifacts from the home package
 COPY --from=build /app/packages/home/dist ./dist
 COPY --from=build /app/packages/home/dist-server ./dist-server
+COPY --from=build /app/packages/home/config ./config
 
-EXPOSE 80
+EXPOSE 8888
 CMD ["node", "dist-server/prod.js"]

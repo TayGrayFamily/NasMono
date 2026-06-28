@@ -1,0 +1,13 @@
+[
+  {
+    "id": "jellyfin",
+    "url": "https://jellyfin.tower"
+  },
+  {
+    "id": "new-app",
+    "displayName": "Home Assistant",
+    "url": "https://ha.tower",
+    "iconUrl": "/static/logo.svg",
+    "containerMatch": "home-assistant"
+  }
+]

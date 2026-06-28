@@ -4,6 +4,8 @@ export const launchPadAppConfigSchema = z.object({
   id: z.string().min(1),
   displayName: z.string().min(1),
   url: z.string().url(),
+  /** Optional URL for reachability checks when the launch URL requires auth (e.g. Pi-hole /admin). */
+  probeUrl: z.string().url().optional(),
   iconUrl: z.string().min(1),
   containerMatch: z.string().min(1),
   enabled: z.boolean().optional(),

@@ -5,6 +5,7 @@ export type LaunchPadApp = {
   id: string;
   displayName: string;
   url: string;
+  probeUrl?: string;
   iconUrl: string;
   state: ContainerDaemonState | 'unknown';
   statusText?: string;
@@ -68,6 +69,7 @@ export function mergeLaunchpadWithContainers(
       id: app.id,
       displayName: app.displayName,
       url: app.url,
+      probeUrl: app.probeUrl,
       iconUrl: app.iconUrl,
       state: container?.state ?? 'unknown',
       statusText: container?.statusText,

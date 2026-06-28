@@ -45,6 +45,7 @@
     "id": "pihole",
     "displayName": "Pihole",
     "url": "http://pihole.tower/admin",
+    "probeUrl": "http://pihole.tower/api/docs/",
     "iconUrl": "/static/pihole.webp",
     "containerMatch": "binhex-official-pihole|pihole"
   }

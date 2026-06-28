@@ -4,6 +4,7 @@ export type LaunchPadApp = {
   id: string;
   displayName: string;
   url: string;
+  probeUrl?: string;
   iconUrl: string;
   state: ContainerRow['state'] | 'unknown';
   statusText?: string;

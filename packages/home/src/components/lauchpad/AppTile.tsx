@@ -54,7 +54,10 @@ export function AppTile(props: AppTileProps): JSX.Element {
 
       {showProbe ? (
         <div className="card-footer">
-          <ReachabilityProbe openUrl={app.url} hostPort={app.hostPort} />
+          <ReachabilityProbe
+            openUrl={app.probeUrl ?? app.url}
+            hostPort={app.probeUrl ? undefined : app.hostPort}
+          />
         </div>
       ) : null}
     </a>

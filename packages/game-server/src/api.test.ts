@@ -22,10 +22,11 @@ describe('API Integration Tests', () => {
   });
 
   describe('GET /api/health', () => {
-    it('returns ok', async () => {
+    it('returns ok when database is not required', async () => {
       const res = await request(app).get('/api/health');
       expect(res.status).toBe(200);
-      expect(res.body).toEqual(expect.objectContaining({ ok: true }));
+      expect(res.body).toMatchObject({ ok: true });
+      expect(res.body).toHaveProperty('db');
     });
   });
 

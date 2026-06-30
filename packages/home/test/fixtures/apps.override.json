@@ -1,0 +1,13 @@
+[
+  {
+    "id": "radarr",
+    "enabled": false
+  },
+  {
+    "id": "smoke-test-app",
+    "displayName": "Smoke Test Tile",
+    "url": "http://smoke-test.tower",
+    "iconUrl": "/static/smoke.svg",
+    "containerMatch": "smoke-test"
+  }
+]

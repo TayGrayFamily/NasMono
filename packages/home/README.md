@@ -87,6 +87,31 @@ Icons live in `public/static/`.
 
 See `config/launchpad.apps.example.json` for override examples.
 
+## Testing & smoke checks
+
+Predictable integration tests use fixture containers — no Unraid or Docker socket required.
+
+```bash
+# From repo root
+pnpm verify                            # full gate (what agents should run)
+pnpm smoke                             # home only: build + API + Playwright UI
+pnpm --filter home test:e2e            # UI only (needs prior build)
+
+# API-only slice of smoke (after build)
+node scripts/smoke-home.mjs --skip-build --api-only
+```
+
+**First-time setup:** `pnpm --filter home exec playwright install chromium`
+
+Playwright drives a real browser against the **prod server** (`dist-server/prod.js`) with fixture containers. `/api/reachability` is mocked in tests so probes succeed without homelab network access.
+
+```bash
+DOCKER_FIXTURE_PATH=packages/home/test/fixtures/containers.json \
+  UNRAID_API_KEY= UNRAID_GRAPHQL_URL= pnpm dev:home
+```
+
+CI runs the same Playwright tests in the official Playwright Docker image (no browser install step).
+
 ## Reachability
 
 Probes run **from the server**, not the browser (avoids CORS).

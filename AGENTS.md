@@ -71,13 +71,60 @@ Reachability from inside Docker: `*.tower` hostnames often fail DNS. Compose set
 
 ## Build & CI
 
+Three commands — pick by how much signal you need:
+
+| Command       | Speed | What it runs                                        |
+| ------------- | ----- | --------------------------------------------------- |
+| `pnpm check`  | Fast  | format + lint + build                               |
+| `pnpm test`   | Fast  | vitest in all packages                              |
+| `pnpm verify` | Full  | `check` + `test` + home smoke (API + Playwright UI) |
+
+**Agents: run `pnpm verify` before finishing LaunchPad work.**  
+Iterating on home only? `pnpm smoke` (build + API + UI smoke).
+
 ```bash
-pnpm --filter home build   # tsc + vite + tsc server
-pnpm check                 # format + lint + build all
+pnpm --filter home test:e2e   # UI smoke only (needs prior build)
 ```
 
-- CI: `.github/workflows/ci.yml` (lint, format, build, test)
+- CI: `.github/workflows/ci.yml` — `verify` locally; CI runs build/test + **Playwright in official Docker image** (no browser download) + Docker smoke
 - Release: `.github/workflows/release-on-merge.yml` → version bump, Docker push to GHCR on merge to `master`
+
+## Verifying LaunchPad changes (agents)
+
+Fixture-based tests — no Unraid or Docker socket required.
+
+| Command                       | Use when                                        |
+| ----------------------------- | ----------------------------------------------- |
+| `pnpm verify`                 | Default — full monorepo gate                    |
+| `pnpm smoke`                  | Home package only — build + API + Playwright UI |
+| `pnpm --filter home test:e2e` | UI only, after `pnpm --filter home build`       |
+
+**First-time locally:** `pnpm --filter home exec playwright install chromium`  
+CI uses `mcr.microsoft.com/playwright:v1.57.0-noble` — browsers preinstalled, no `install-deps` apt step.
+
+**Fixture env** (set automatically by vitest/playwright/smoke scripts):
+
+- `DOCKER_FIXTURE_PATH=packages/home/test/fixtures/containers.json`
+- Clears `UNRAID_API_KEY` / `UNRAID_GRAPHQL_URL` so tests never hit live NAS APIs
+
+**What smoke tests assert (app correctness):**
+
+- `GET /api/health` → `{ ok: true }`
+- `GET /api/launchpad` → curated apps joined to fixture containers; Immich matches **running** `immich-server`; unmatched containers in `otherServices`
+- Override merge via `test/fixtures/apps.override.json`
+- `GET /api/reachability` input validation + mocked HTTP probe
+- `config/launchpad.apps.json` strict validation
+- Playwright UI: tiles, status badges, launch links, reachability text, System Services section
+
+**Manual spot-check** (optional, after smoke passes):
+
+```bash
+DOCKER_FIXTURE_PATH=packages/home/test/fixtures/containers.json \
+  UNRAID_API_KEY= UNRAID_GRAPHQL_URL= pnpm dev:home
+# open http://localhost:8888 — tiles should reflect fixture container states
+```
+
+Unraid-specific checks (`*.tower` DNS, live GraphQL) stay **out of CI** — run on the NAS after deploy.
 
 ## Conventions
 
@@ -102,12 +149,12 @@ Standard commands live in `README.md` / root `package.json` / `packages/home/REA
 
 **Services** (run each from repo root; all use `rolldown-vite`):
 
-| Service     | Command                | Port | Notes                                               |
-| ----------- | ---------------------- | ---- | --------------------------------------------------- |
-| home        | `pnpm dev:home`        | 8888 | LaunchPad dashboard + Express API at `/api`         |
+| Service     | Command                | Port | Notes                                                  |
+| ----------- | ---------------------- | ---- | ------------------------------------------------------ |
+| home        | `pnpm dev:home`        | 8888 | LaunchPad dashboard + Express API at `/api`            |
 | game stack  | `pnpm dev:game`        | 3000 | Starts Postgres + game-server + game-hub (one command) |
-| game-hub    | `pnpm dev:game-hub`    | 3000 | UI only (server + DB must already be running)       |
-| game-server | `pnpm dev:game-server` | 3001 | API + Socket.IO only                                |
+| game-hub    | `pnpm dev:game-hub`    | 3000 | UI only (server + DB must already be running)          |
+| game-server | `pnpm dev:game-server` | 3001 | API + Socket.IO only                                   |
 
 **Node:** active runtime is Node 22; the project targets Node 24 (CI, `Dockerfile`, `.node-version`). Node 22 satisfies `rolldown-vite` and runs all dev/lint/build/test tasks fine. (`.nvmrc` says 20 and is stale.)
 

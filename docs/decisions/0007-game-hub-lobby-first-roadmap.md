@@ -6,13 +6,13 @@
 
 ## Product decisions (2026-06-30)
 
-| # | Question | Decision |
-|---|----------|----------|
-| 1 | Audience | Friends and family; **LAN-only for now**. May open publicly later. |
-| 2 | Public tunnel | **Remove** `public-tunnel` from compose for now (was exploratory). |
-| 3 | First game | **Just One** (cooperative word game). |
-| 4 | Mobile | **Desktop and mobile** from v1 (`useScreenMode` + responsive layouts). |
-| 5 | Max lobby size | Default cap **20 players**; admin setting may raise later. |
+| #   | Question       | Decision                                                               |
+| --- | -------------- | ---------------------------------------------------------------------- |
+| 1   | Audience       | Friends and family; **LAN-only for now**. May open publicly later.     |
+| 2   | Public tunnel  | **Remove** `public-tunnel` from compose for now (was exploratory).     |
+| 3   | First game     | **Just One** (cooperative word game).                                  |
+| 4   | Mobile         | **Desktop and mobile** from v1 (`useScreenMode` + responsive layouts). |
+| 5   | Max lobby size | Default cap **20 players**; admin setting may raise later.             |
 
 Remaining open questions: lobby join UX (#6), presence panel scope (#7), chat (#8), kick/private (#9), reconnect (#10), Postgres host bind (#11), auth model (#12), game persistence (#13), LaunchPad URL (#14). See [issue #32](https://github.com/TayGrayFamily/NasMono/issues/32).
 
@@ -28,14 +28,14 @@ The stack is deployed on Unraid alongside LaunchPad (`nasmono-home`). Access is 
 
 ### Current capability inventory
 
-| Area | Works today | Gaps |
-|------|-------------|------|
-| Identity | Find-or-create by unique display name | No passwords, no session tokens, refresh loses user |
-| Lobbies | Create, list, join, leave, host transfer | List not realtime; card "Join" only navigates |
-| Realtime | Socket room per lobby; disconnect cleanup | No connected-users broadcast; no lobby-list events |
-| Games | — | `just-one` stub uses wrong event (`join-lobby`); not routed in game-hub |
-| Ops | Docker images, compose stack, admin GUI (dev) | Schema not auto-applied on boot; admin missing from Docker image; no `/api/health` |
-| Discovery | LAN on port 8000 | No LaunchPad tile |
+| Area      | Works today                                   | Gaps                                                                               |
+| --------- | --------------------------------------------- | ---------------------------------------------------------------------------------- |
+| Identity  | Find-or-create by unique display name         | No passwords, no session tokens, refresh loses user                                |
+| Lobbies   | Create, list, join, leave, host transfer      | List not realtime; card "Join" only navigates                                      |
+| Realtime  | Socket room per lobby; disconnect cleanup     | No connected-users broadcast; no lobby-list events                                 |
+| Games     | —                                             | `just-one` stub uses wrong event (`join-lobby`); not routed in game-hub            |
+| Ops       | Docker images, compose stack, admin GUI (dev) | Schema not auto-applied on boot; admin missing from Docker image; no `/api/health` |
+| Discovery | LAN on port 8000                              | No LaunchPad tile                                                                  |
 
 ### UX friction observed (code review)
 
@@ -54,39 +54,39 @@ Adopt a **lobby-first, phased product roadmap**. Ship a trustworthy lobby experi
 
 **Goal:** A friend on the home network can open Game Hub, pick a name, create/join a lobby, and stay in sync.
 
-| Work item | Rationale |
-|-----------|-----------|
-| Client session persistence (localStorage + re-emit `set_user`) | Refresh should not feel like logout |
-| Unify API calls on relative `/api` (or env consistently) | One dev/prod story |
-| Auto-apply DB schema on game-server startup | First deploy must not require manual admin sync |
-| `/api/health` on game-server | Compose healthcheck parity with `nasmono-home` |
-| Protect `/debug` and `/api/admin/*` (env flag or basic auth) | LAN exposure; lock down before any public deploy |
-| Fix admin static files in game-server Docker image | Ops tooling works in prod |
-| Fix lobby card join flow (join on card click or rename to "View") | Reduce confusion |
-| Disconnect socket + leave lobby on sign out | Clean presence |
-| Enforce max lobby size (default 20; admin override later) | Product cap; Just One typically 4–7 but lobby may hold more |
+| Work item                                                         | Rationale                                                   |
+| ----------------------------------------------------------------- | ----------------------------------------------------------- |
+| Client session persistence (localStorage + re-emit `set_user`)    | Refresh should not feel like logout                         |
+| Unify API calls on relative `/api` (or env consistently)          | One dev/prod story                                          |
+| Auto-apply DB schema on game-server startup                       | First deploy must not require manual admin sync             |
+| `/api/health` on game-server                                      | Compose healthcheck parity with `nasmono-home`              |
+| Protect `/debug` and `/api/admin/*` (env flag or basic auth)      | LAN exposure; lock down before any public deploy            |
+| Fix admin static files in game-server Docker image                | Ops tooling works in prod                                   |
+| Fix lobby card join flow (join on card click or rename to "View") | Reduce confusion                                            |
+| Disconnect socket + leave lobby on sign out                       | Clean presence                                              |
+| Enforce max lobby size (default 20; admin override later)         | Product cap; Just One typically 4–7 but lobby may hold more |
 
 **Explicitly out of Phase 0:** JWT, Redis, first game, connected-users global panel.
 
 **Goal:** Lobby feels alive and multiplayer-ready.
 
-| Work item | Rationale |
-|-----------|-----------|
+| Work item                                                                   | Rationale                                         |
+| --------------------------------------------------------------------------- | ------------------------------------------------- |
 | Realtime lobby list (`lobby_created` / `lobby_updated` / notify-then-fetch) | Matches ARCHITECTURE.md notify-then-fetch pattern |
-| Per-player connection indicator (socket presence in lobby room) | Replace misleading "N Online" |
-| Ready-check before start (host sees all ready) | Standard party-game pattern |
-| Optional lobby chat (text only) | Social glue; validate namespace need |
-| LaunchPad tile for Game Hub | Discoverability from home dashboard |
+| Per-player connection indicator (socket presence in lobby room)             | Replace misleading "N Online"                     |
+| Ready-check before start (host sees all ready)                              | Standard party-game pattern                       |
+| Optional lobby chat (text only)                                             | Social glue; validate namespace need              |
+| LaunchPad tile for Game Hub                                                 | Discoverability from home dashboard               |
 
 ### Phase 2 — Platform contracts
 
 **Goal:** Safe to add games without breaking clients.
 
-| Work item | Rationale |
-|-----------|-----------|
-| `packages/shared-types` for REST + Socket.IO events | Single contract |
-| Zod validation on all inbound REST and socket events | Prevent malformed payloads |
-| Drizzle migrations (replace raw SQL + manual `setupDatabase`) | Schema evolution |
+| Work item                                                        | Rationale                                             |
+| ---------------------------------------------------------------- | ----------------------------------------------------- |
+| `packages/shared-types` for REST + Socket.IO events              | Single contract                                       |
+| Zod validation on all inbound REST and socket events             | Prevent malformed payloads                            |
+| Drizzle migrations (replace raw SQL + manual `setupDatabase`)    | Schema evolution                                      |
 | Game Hub Playwright smoke tests (mirror home smoke-test pattern) | CI confidence; after `integration-smoke-tests` merges |
 
 **Defer Redis** until running >1 `game-server` instance or cross-process presence is required.
@@ -95,11 +95,11 @@ Adopt a **lobby-first, phased product roadmap**. Ship a trustworthy lobby experi
 
 **Goal:** Host clicks "Start Game" and all lobby players enter a synchronized Just One session.
 
-| Work item | Rationale |
-|-----------|-----------|
-| Server-authoritative game state module in `game-server` | Cheat resistance; single source of truth |
-| Game route in `game-hub` (e.g. `/lobbies/:id/game`) | Lobby → game transition; responsive on mobile + desktop |
-| Socket namespace or event prefix for game traffic (`/game` or `game:*`) | Separate lobby signaling from tick updates |
+| Work item                                                                | Rationale                                                  |
+| ------------------------------------------------------------------------ | ---------------------------------------------------------- |
+| Server-authoritative game state module in `game-server`                  | Cheat resistance; single source of truth                   |
+| Game route in `game-hub` (e.g. `/lobbies/:id/game`)                      | Lobby → game transition; responsive on mobile + desktop    |
+| Socket namespace or event prefix for game traffic (`/game` or `game:*`)  | Separate lobby signaling from tick updates                 |
 | Rewrite `packages/just-one` to use shared contracts and game-hub routing | Current stub uses wrong socket event and is not integrated |
 
 **Just One constraints:** Typical play is 4–7 players; lobby may hold up to 20. Game start should validate player count fits Just One rules (TBD in game ADR).

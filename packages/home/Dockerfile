@@ -21,6 +21,7 @@ RUN pnpm --filter home --prod deploy /app/prod --legacy
 FROM node:24-alpine AS runtime
 WORKDIR /app
 ENV NODE_ENV=production
+ENV PORT=8888
 
 # Copy the isolated production dependencies and package.json
 COPY --from=build /app/prod/node_modules ./node_modules

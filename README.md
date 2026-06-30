@@ -24,8 +24,9 @@ pnpm dev:home          # LaunchPad dev server → http://localhost:8888
 pnpm dev:game          # Game stack: Postgres + server + hub → http://localhost:3000
 pnpm dev:game-hub      # Game Hub UI only
 pnpm dev:game-server   # Game server only
-pnpm check             # format + lint + build all packages
-pnpm test
+pnpm check             # format + lint + build (fast)
+pnpm test              # vitest in all packages
+pnpm verify            # check + test + home smoke — run before PRs
 ```
 
 ## Local dev (LaunchPad)

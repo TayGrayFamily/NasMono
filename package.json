@@ -9,6 +9,7 @@
     "dev:home": "cd packages/home && pnpm run dev",
     "dev:game": "cd packages/game-hub && pnpm run dev",
     "dev:game-server": "cd packages/game-server && pnpm run dev",
+    "start:postgres": "bash scripts/start-postgres-dev.sh",
     "check": "pnpm format:check && pnpm lint && pnpm -r build",
     "build": "pnpm -r run build",
     "bootstrap": "pnpm -w install",

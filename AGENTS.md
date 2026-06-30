@@ -114,7 +114,7 @@ Standard commands live in `README.md` / root `package.json` / `packages/home/REA
 
 **Game stack needs a local Postgres** (system dependency, not installed by `pnpm install`):
 
-- Start the cluster: `sudo pg_ctlcluster 16 main start` (it is NOT auto-started on VM boot).
+- Start the cluster: `pnpm start:postgres` (wraps `pg_ctlcluster 16 main start`; NOT auto-started on VM boot).
 - DB `game_hub` and role `postgres`/`postgres` already exist in the snapshot.
 - `.env.example` defaults `DATABASE_URL` to `localhost:5432` for local dev; compose overrides this with `@db:5432` inside the Docker network.
 - The schema is created **on demand**, not at startup: after game-server is up, run `curl -X POST http://localhost:3001/api/admin/actions/sync-db` once to create tables. Without this, login/lobby calls fail.

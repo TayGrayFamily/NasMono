@@ -4,7 +4,10 @@ import { SocketService } from './SocketService.js';
 function createMockIo() {
   const globalEmit = vi.fn();
   const roomEmit = vi.fn();
-  const sockets = new Map<string, { id: string; rooms: Set<string>; disconnect: ReturnType<typeof vi.fn> }>();
+  const sockets = new Map<
+    string,
+    { id: string; rooms: Set<string>; disconnect: ReturnType<typeof vi.fn> }
+  >();
 
   const io = {
     emit: globalEmit,
@@ -47,7 +50,7 @@ describe('SocketService', () => {
 
   describe('presence tracking', () => {
     it('tracks connected users per lobby via join_lobby_room handler', () => {
-      let connectionHandler: (socket: any) => void = () => {};
+      let connectionHandler: ((socket: any) => void) | undefined;
       mockIo.io.on.mockImplementation((_event: string, handler: (socket: any) => void) => {
         connectionHandler = handler;
       });
@@ -70,7 +73,7 @@ describe('SocketService', () => {
         }),
       };
 
-      connectionHandler(socket);
+      connectionHandler!(socket);
       socketHandlers.set_user({ userId: 'user-1' });
       socketHandlers.join_lobby_room({ lobbyId: 'lobby-1', userId: 'user-1' });
 
@@ -82,7 +85,7 @@ describe('SocketService', () => {
     });
 
     it('emits presence offline on leave_lobby_room', () => {
-      let connectionHandler: (socket: any) => void = () => {};
+      let connectionHandler: ((socket: any) => void) | undefined;
       mockIo.io.on.mockImplementation((_event: string, handler: (socket: any) => void) => {
         connectionHandler = handler;
       });
@@ -101,7 +104,7 @@ describe('SocketService', () => {
         }),
       };
 
-      connectionHandler(socket);
+      connectionHandler!(socket);
       socketHandlers.set_user({ userId: 'user-1' });
       socketHandlers.join_lobby_room({ lobbyId: 'lobby-1', userId: 'user-1' });
       mockIo.roomEmit.mockClear();

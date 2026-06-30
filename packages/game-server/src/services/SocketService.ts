@@ -178,7 +178,9 @@ export class SocketService {
   }
 
   private async handleHostSuccession(
-    client: { query: (sql: string, params?: unknown[]) => Promise<{ rows: { count?: string }[] }> },
+    client: {
+      query: (sql: string, params?: unknown[]) => Promise<{ rows: Record<string, string>[] }>;
+    },
     lobbyId: string,
     leavingUserId: string,
   ): Promise<boolean> {
@@ -205,10 +207,9 @@ export class SocketService {
       return true;
     }
 
-    const remaining = await client.query(
-      'SELECT COUNT(*) FROM lobby_players WHERE lobby_id = $1',
-      [lobbyId],
-    );
+    const remaining = await client.query('SELECT COUNT(*) FROM lobby_players WHERE lobby_id = $1', [
+      lobbyId,
+    ]);
     if (parseInt(remaining.rows[0].count ?? '0') === 0) {
       await client.query('DELETE FROM lobbies WHERE id = $1', [lobbyId]);
       console.log(`Lobby ${lobbyId} deleted because the last player ${leavingUserId} left.`);

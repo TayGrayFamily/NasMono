@@ -36,7 +36,7 @@ export function createLobbyRouter(lobbyService: LobbyService, socketService: Soc
       if (!lobby) return res.status(404).json({ error: 'Not found' });
 
       const connectedIds = new Set(socketService.getConnectedUserIdsInLobby(req.params.id));
-      const playersWithPresence = lobby.players.map((player) => ({
+      const playersWithPresence = lobby.players.map((player: { id: string; name: string }) => ({
         ...player,
         connected: connectedIds.has(player.id),
       }));

@@ -9,9 +9,20 @@
 // Additionally, you should also exclude this file from your linter and/or formatter to prevent it from being checked or modified.
 
 import { Route as rootRouteImport } from './routes/__root'
+import { Route as SystemRouteImport } from './routes/system'
 import { Route as LaunchpadRouteImport } from './routes/launchpad'
 import { Route as IndexRouteImport } from './routes/index'
+import { Route as SystemIndexRouteImport } from './routes/system.index'
+import { Route as SystemTemperatureRouteImport } from './routes/system.temperature'
+import { Route as SystemStorageRouteImport } from './routes/system.storage'
+import { Route as SystemResourcesRouteImport } from './routes/system.resources'
+import { Route as SystemDockerRouteImport } from './routes/system.docker'
 
+const SystemRoute = SystemRouteImport.update({
+  id: '/system',
+  path: '/system',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const LaunchpadRoute = LaunchpadRouteImport.update({
   id: '/launchpad',
   path: '/launchpad',
@@ -22,35 +33,109 @@ const IndexRoute = IndexRouteImport.update({
   path: '/',
   getParentRoute: () => rootRouteImport,
 } as any)
+const SystemIndexRoute = SystemIndexRouteImport.update({
+  id: '/',
+  path: '/',
+  getParentRoute: () => SystemRoute,
+} as any)
+const SystemTemperatureRoute = SystemTemperatureRouteImport.update({
+  id: '/temperature',
+  path: '/temperature',
+  getParentRoute: () => SystemRoute,
+} as any)
+const SystemStorageRoute = SystemStorageRouteImport.update({
+  id: '/storage',
+  path: '/storage',
+  getParentRoute: () => SystemRoute,
+} as any)
+const SystemResourcesRoute = SystemResourcesRouteImport.update({
+  id: '/resources',
+  path: '/resources',
+  getParentRoute: () => SystemRoute,
+} as any)
+const SystemDockerRoute = SystemDockerRouteImport.update({
+  id: '/docker',
+  path: '/docker',
+  getParentRoute: () => SystemRoute,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/launchpad': typeof LaunchpadRoute
+  '/system': typeof SystemRouteWithChildren
+  '/system/docker': typeof SystemDockerRoute
+  '/system/resources': typeof SystemResourcesRoute
+  '/system/storage': typeof SystemStorageRoute
+  '/system/temperature': typeof SystemTemperatureRoute
+  '/system/': typeof SystemIndexRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/launchpad': typeof LaunchpadRoute
+  '/system/docker': typeof SystemDockerRoute
+  '/system/resources': typeof SystemResourcesRoute
+  '/system/storage': typeof SystemStorageRoute
+  '/system/temperature': typeof SystemTemperatureRoute
+  '/system': typeof SystemIndexRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
   '/launchpad': typeof LaunchpadRoute
+  '/system': typeof SystemRouteWithChildren
+  '/system/docker': typeof SystemDockerRoute
+  '/system/resources': typeof SystemResourcesRoute
+  '/system/storage': typeof SystemStorageRoute
+  '/system/temperature': typeof SystemTemperatureRoute
+  '/system/': typeof SystemIndexRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/' | '/launchpad'
+  fullPaths:
+    | '/'
+    | '/launchpad'
+    | '/system'
+    | '/system/docker'
+    | '/system/resources'
+    | '/system/storage'
+    | '/system/temperature'
+    | '/system/'
   fileRoutesByTo: FileRoutesByTo
-  to: '/' | '/launchpad'
-  id: '__root__' | '/' | '/launchpad'
+  to:
+    | '/'
+    | '/launchpad'
+    | '/system/docker'
+    | '/system/resources'
+    | '/system/storage'
+    | '/system/temperature'
+    | '/system'
+  id:
+    | '__root__'
+    | '/'
+    | '/launchpad'
+    | '/system'
+    | '/system/docker'
+    | '/system/resources'
+    | '/system/storage'
+    | '/system/temperature'
+    | '/system/'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   LaunchpadRoute: typeof LaunchpadRoute
+  SystemRoute: typeof SystemRouteWithChildren
 }
 
 declare module '@tanstack/react-router' {
   interface FileRoutesByPath {
+    '/system': {
+      id: '/system'
+      path: '/system'
+      fullPath: '/system'
+      preLoaderRoute: typeof SystemRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/launchpad': {
       id: '/launchpad'
       path: '/launchpad'
@@ -65,12 +150,67 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof IndexRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/system/': {
+      id: '/system/'
+      path: '/'
+      fullPath: '/system/'
+      preLoaderRoute: typeof SystemIndexRouteImport
+      parentRoute: typeof SystemRoute
+    }
+    '/system/temperature': {
+      id: '/system/temperature'
+      path: '/temperature'
+      fullPath: '/system/temperature'
+      preLoaderRoute: typeof SystemTemperatureRouteImport
+      parentRoute: typeof SystemRoute
+    }
+    '/system/storage': {
+      id: '/system/storage'
+      path: '/storage'
+      fullPath: '/system/storage'
+      preLoaderRoute: typeof SystemStorageRouteImport
+      parentRoute: typeof SystemRoute
+    }
+    '/system/resources': {
+      id: '/system/resources'
+      path: '/resources'
+      fullPath: '/system/resources'
+      preLoaderRoute: typeof SystemResourcesRouteImport
+      parentRoute: typeof SystemRoute
+    }
+    '/system/docker': {
+      id: '/system/docker'
+      path: '/docker'
+      fullPath: '/system/docker'
+      preLoaderRoute: typeof SystemDockerRouteImport
+      parentRoute: typeof SystemRoute
+    }
   }
 }
+
+interface SystemRouteChildren {
+  SystemDockerRoute: typeof SystemDockerRoute
+  SystemResourcesRoute: typeof SystemResourcesRoute
+  SystemStorageRoute: typeof SystemStorageRoute
+  SystemTemperatureRoute: typeof SystemTemperatureRoute
+  SystemIndexRoute: typeof SystemIndexRoute
+}
+
+const SystemRouteChildren: SystemRouteChildren = {
+  SystemDockerRoute: SystemDockerRoute,
+  SystemResourcesRoute: SystemResourcesRoute,
+  SystemStorageRoute: SystemStorageRoute,
+  SystemTemperatureRoute: SystemTemperatureRoute,
+  SystemIndexRoute: SystemIndexRoute,
+}
+
+const SystemRouteWithChildren =
+  SystemRoute._addFileChildren(SystemRouteChildren)
 
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   LaunchpadRoute: LaunchpadRoute,
+  SystemRoute: SystemRouteWithChildren,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)

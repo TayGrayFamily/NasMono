@@ -1,0 +1,36 @@
+.donut-gauge {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  min-width: 100px;
+}
+
+.donut-gauge-label {
+  font-size: 0.7rem;
+  font-weight: 600;
+  color: var(--color-text-muted);
+  text-align: center;
+}
+
+.donut-gauge-chart {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.donut-gauge-track {
+  stroke: rgba(255, 255, 255, 0.1);
+}
+
+.donut-gauge-ring {
+  transition: stroke-dasharray 0.3s ease;
+}
+
+.donut-gauge-value {
+  position: absolute;
+  font-size: 1rem;
+  font-weight: 700;
+  line-height: 1;
+}

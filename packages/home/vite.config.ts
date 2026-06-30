@@ -16,6 +16,8 @@ function nasmonoApiPlugin(mode: string): Plugin {
         'UNRAID_API_KEY',
         'DOCKER_SOCKET_PATH',
         'LAUNCHPAD_CONFIG_PATH',
+        'TEMP_HISTORY_PATH',
+        'METRICS_HISTORY_PATH',
         'REACHABILITY_GATEWAY',
       ] as const) {
         const v = env[key];

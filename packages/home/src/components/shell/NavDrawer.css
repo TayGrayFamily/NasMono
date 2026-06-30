@@ -1,0 +1,65 @@
+.nav-menu-trigger {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 40px;
+  height: 40px;
+  padding: 0;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 8px;
+  background: rgba(255, 255, 255, 0.05);
+  color: var(--color-text);
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.nav-menu-trigger:hover {
+  background: rgba(255, 255, 255, 0.1);
+  border-color: var(--color-primary);
+  color: var(--color-primary);
+}
+
+.nav-drawer-content {
+  background: var(--bg-card) !important;
+  color: var(--color-text);
+}
+
+.nav-drawer-header {
+  border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+}
+
+.nav-drawer-body {
+  padding: 12px !important;
+}
+
+.nav-drawer-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.nav-drawer-link {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px 14px;
+  border-radius: 10px;
+  color: var(--color-text-muted);
+  text-decoration: none;
+  font-weight: 500;
+  font-size: 0.95rem;
+  transition: all 0.15s ease;
+}
+
+.nav-drawer-link:hover {
+  background: rgba(255, 255, 255, 0.06);
+  color: var(--color-text);
+}
+
+.nav-drawer-link--active {
+  background: rgba(0, 210, 255, 0.12);
+  color: var(--color-primary);
+}

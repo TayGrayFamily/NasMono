@@ -8,6 +8,12 @@ import express, {
 import { createDockerSource } from './createDockerSource.js';
 import { loadMergedLaunchPadApps } from './launchpadConfig.js';
 import { mergeLaunchpadWithContainers } from './mergeLaunchpadApps.js';
+import { fetchAdminOverview } from './adminOverview.js';
+import { buildTempAnalytics } from './tempAnalytics.js';
+import { buildMetricsAnalytics } from './metricsAnalytics.js';
+import { METRICS_WINDOW_MS, parseMetricsWindow } from './metricsHistory.js';
+import { TEMP_WINDOW_MS, parseTempWindow } from './tempHistory.js';
+import { startTempSampler } from './tempSampler.js';
 import { probeReachability } from './reachability.js';
 import type { DockerSource } from './types.js';
 
@@ -44,6 +50,37 @@ export function createApiRouter(): Router {
     try {
       const containers = await getSource().listContainers();
       res.json(containers);
+    } catch (err) {
+      next(err);
+    }
+  });
+
+  r.get('/admin/overview', async (_req: Request, res: Response, next: NextFunction) => {
+    try {
+      const overview = await fetchAdminOverview();
+      res.json(overview);
+    } catch (err) {
+      next(err);
+    }
+  });
+
+  r.get('/admin/temperature', async (req: Request, res: Response, next: NextFunction) => {
+    try {
+      const raw = req.query.window;
+      const windowKey = parseTempWindow(Array.isArray(raw) ? raw[0] : raw);
+      const windowMs = TEMP_WINDOW_MS[windowKey];
+      res.json(buildTempAnalytics(windowKey, windowMs));
+    } catch (err) {
+      next(err);
+    }
+  });
+
+  r.get('/admin/metrics', async (req: Request, res: Response, next: NextFunction) => {
+    try {
+      const raw = req.query.window;
+      const windowKey = parseMetricsWindow(Array.isArray(raw) ? raw[0] : raw);
+      const windowMs = METRICS_WINDOW_MS[windowKey];
+      res.json(buildMetricsAnalytics(windowKey, windowMs));
     } catch (err) {
       next(err);
     }
@@ -142,6 +179,7 @@ export function createApiRouter(): Router {
 
 /** Sub-app so Connect/Vite gets Express-patched `req`/`res` (`res.status`, `res.json`, …). */
 export function createApiApp(): Express {
+  startTempSampler();
   const app = express();
   // Add body parsing middleware to handle JSON request bodies
   app.use(express.json());

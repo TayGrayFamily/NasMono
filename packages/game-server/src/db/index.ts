@@ -159,6 +159,20 @@ async function findOrCreateUser(name: string) {
   }
 }
 
-export { setupDatabase, getDbClient, pool, db, dbStatus, dbConnectionError, findOrCreateUser };
+export function isDatabaseConfigured(): boolean {
+  return isValidConnectionString(process.env.DATABASE_URL);
+}
 
-// setupDatabase();
+export function isDatabaseReady(): boolean {
+  return dbStatus === 'Schema OK';
+}
+
+export {
+  setupDatabase,
+  getDbClient,
+  pool,
+  db,
+  dbStatus,
+  dbConnectionError,
+  findOrCreateUser,
+};

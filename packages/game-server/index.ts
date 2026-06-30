@@ -5,7 +5,14 @@ import { Server } from 'socket.io';
 import dotenv from 'dotenv';
 import path from 'path';
 import { fileURLToPath } from 'url';
-import { getDbClient } from './src/db/index.js';
+import {
+  getDbClient,
+  setupDatabase,
+  dbStatus,
+  dbConnectionError,
+  isDatabaseConfigured,
+  isDatabaseReady,
+} from './src/db/index.js';
 import { LobbyService } from './src/services/LobbyService.js';
 import { UserService } from './src/services/UserService.js';
 import { SocketService } from './src/services/SocketService.js';
@@ -17,10 +24,27 @@ const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 dotenv.config({ path: path.resolve(__dirname, '../../.env') });
 
+function logEvent(level: 'info' | 'warn' | 'error', msg: string, extra?: Record<string, unknown>) {
+  console.log(JSON.stringify({ level, service: 'game-server', msg, ...extra }));
+}
+
 export async function createApp() {
   const app = express();
   app.use(cors());
   app.use(express.json());
+
+  app.use((req, res, next) => {
+    const start = Date.now();
+    res.on('finish', () => {
+      logEvent('info', 'request', {
+        method: req.method,
+        path: req.path,
+        status: res.statusCode,
+        ms: Date.now() - start,
+      });
+    });
+    next();
+  });
 
   // --- Services ---
   const httpServer = createServer(app);
@@ -33,6 +57,16 @@ export async function createApp() {
   socketService.initialize();
 
   // --- Routes ---
+
+  app.get('/api/health', (_req, res) => {
+    const dbRequired = isDatabaseConfigured();
+    const ok = !dbRequired || isDatabaseReady();
+    res.status(ok ? 200 : 503).json({
+      ok,
+      db: dbStatus,
+      ...(dbConnectionError ? { error: dbConnectionError } : {}),
+    });
+  });
 
   // Static Admin GUI
   app.use('/admin', express.static(path.join(__dirname, 'admin')));
@@ -93,27 +127,44 @@ export async function createApp() {
 }
 
 export async function initializeServer() {
+  if (isDatabaseConfigured()) {
+    await setupDatabase();
+  }
+
+  if (process.env.NODE_ENV === 'production' && isDatabaseConfigured() && !isDatabaseReady()) {
+    logEvent('error', 'database not ready — exiting', {
+      db: dbStatus,
+      error: dbConnectionError,
+    });
+    process.exit(1);
+  }
+
   const { httpServer } = await createApp();
   const PORT = Number(process.env.GAME_SERVER_PORT || 3001);
   const HOST = process.env.SERVER_HOST || '0.0.0.0';
 
   httpServer
-    .listen(PORT, HOST, () => console.log(`Server running on http://${HOST}:${PORT}`))
+    .listen(PORT, HOST, () => {
+      logEvent('info', 'listening', { port: PORT, host: HOST, db: dbStatus });
+    })
     .on('error', (err: Error) => {
       if ('code' in err && (err as any).code === 'EADDRNOTAVAIL') {
-        console.warn(`Could not bind to ${HOST}, falling back to 0.0.0.0`);
-        httpServer.listen(PORT, '0.0.0.0', () =>
-          console.log(`Server running on http://0.0.0.0:${PORT}`),
-        );
+        logEvent('warn', 'bind failed, falling back to 0.0.0.0', { host: HOST });
+        httpServer.listen(PORT, '0.0.0.0', () => {
+          logEvent('info', 'listening', { port: PORT, host: '0.0.0.0', db: dbStatus });
+        });
       } else {
         throw err;
       }
     });
 
-  process.on('uncaughtException', (err) => console.error('Uncaught Exception:', err));
-  process.on('unhandledRejection', (err) => console.error('Unhandled Rejection:', err));
+  process.on('uncaughtException', (err) => logEvent('error', 'uncaughtException', { error: String(err) }));
+  process.on('unhandledRejection', (err) => logEvent('error', 'unhandledRejection', { error: String(err) }));
 }
 
 if (process.env.NODE_ENV !== 'test') {
-  initializeServer().catch(console.error);
+  initializeServer().catch((err) => {
+    logEvent('error', 'startup failed', { error: String(err) });
+    process.exit(1);
+  });
 }

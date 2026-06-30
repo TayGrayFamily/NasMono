@@ -22,6 +22,15 @@ describe('API Integration Tests', () => {
     httpServer.close();
   });
 
+  describe('GET /api/health', () => {
+    it('returns ok when database is not required', async () => {
+      const res = await request(app).get('/api/health');
+      expect(res.status).toBe(200);
+      expect(res.body).toMatchObject({ ok: true });
+      expect(res.body).toHaveProperty('db');
+    });
+  });
+
   describe('POST /api/login', () => {
     it('should create or find a user successfully', async () => {
       vi.spyOn(db, 'findOrCreateUser').mockResolvedValue({

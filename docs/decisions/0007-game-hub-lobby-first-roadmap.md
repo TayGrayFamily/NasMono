@@ -4,79 +4,89 @@
 - **Date:** 2026-06-30
 - **Scope:** game-hub, game-server, monorepo
 
-## Product decisions (2026-06-30)
+## Product decisions
 
 | # | Question | Decision |
 |---|----------|----------|
 | 1 | Audience | Friends and family; **LAN-only for now**. May open publicly later. |
-| 2 | Public tunnel | **Remove** `public-tunnel` from compose for now (was exploratory). |
+| 2 | Public tunnel | **Remove** `public-tunnel` from compose (was exploratory). |
 | 3 | First game | **Just One** (cooperative word game). |
 | 4 | Mobile | **Desktop and mobile** from v1 (`useScreenMode` + responsive layouts). |
 | 5 | Max lobby size | Default cap **20 players**; admin setting may raise later. |
-
-Remaining open questions: lobby join UX (#6), presence panel scope (#7), chat (#8), kick/private (#9), reconnect (#10), Postgres host bind (#11), auth model (#12), game persistence (#13), LaunchPad URL (#14). See [issue #32](https://github.com/TayGrayFamily/NasMono/issues/32).
+| 6 | Lobby card join | **Auto-join** on card click (one step to enter lobby). |
+| 7 | Presence UI | **Per-lobby only** — who is in *my* lobby with connection status. No global sidebar. |
+| 8 | Lobby chat | **Defer** — not in v1. |
+| 9 | Remove players | **Host and admin** can kick/remove players from a lobby. |
+| 10 | Session on refresh | **Persist session** (`localStorage`); restore user and rejoin last lobby when possible. |
+| 11 | Postgres host port | **Keep `5432` exposed** for now (external tools). See [Postgres exposure](#postgres-host-port-5432) for when to close. |
+| 12 | Auth | **Display name only** for now — no passwords, JWT, or OAuth. |
+| 13 | Game state | **Persist to Postgres** so games can resume after server crash. |
+| 14 | LaunchPad tile | **Yes** — URL `http://games.tower` (DNS on homelab reverse proxy). |
 
 ## Context
 
 The Game Hub stack (`packages/game-hub`, `packages/game-server`, `packages/just-one`) is deployed on Unraid alongside LaunchPad (`nasmono-home`). Today it is a **lobby MVP**: name-based identity, REST lobby CRUD, Socket.IO room updates (`player_joined`, `player_left`, `host_transferred`), and a dark-themed React UI. **No playable game exists** — the host "Start Game" button is a stub.
 
-`PLANNING.md` and `ARCHITECTURE.md` describe future infrastructure (Redis, shared types, Zod, JWT) but lack product decisions: who is the audience, what games ship first, how auth should feel for a friends-and-family homelab, and what "done" looks like for v1.
+Access is **LAN-only** via `http://games.tower` (and port 8000 on the NAS). The Cloudflare `public-tunnel` service has been removed from compose. Unauthenticated `/debug` and `/api/admin/*` are acceptable on LAN for now but must be locked down before any public deploy.
 
-The stack is deployed on Unraid alongside LaunchPad (`nasmono-home`). Access is **LAN-only** (port 8000); the Cloudflare `public-tunnel` service has been removed from compose. Unauthenticated `/debug` and `/api/admin/*` remain a concern on the local network.
-
-`cursor/integration-smoke-tests-ba73` (in flight) adds Playwright smoke tests for **LaunchPad/home only**. Game Hub has no E2E coverage and should follow a similar pattern once lobby UX stabilizes — not before, to avoid churn.
+`cursor/integration-smoke-tests-ba73` (in flight) adds Playwright smoke tests for **LaunchPad/home only**. Game Hub smoke tests follow once lobby UX stabilizes.
 
 ### Current capability inventory
 
 | Area | Works today | Gaps |
 |------|-------------|------|
-| Identity | Find-or-create by unique display name | No passwords, no session tokens, refresh loses user |
-| Lobbies | Create, list, join, leave, host transfer | List not realtime; card "Join" only navigates |
-| Realtime | Socket room per lobby; disconnect cleanup | No connected-users broadcast; no lobby-list events |
-| Games | — | `just-one` stub uses wrong event (`join-lobby`); not routed in game-hub |
-| Ops | Docker images, compose stack, admin GUI (dev) | Schema not auto-applied on boot; admin missing from Docker image; no `/api/health` |
-| Discovery | LAN on port 8000 | No LaunchPad tile |
+| Identity | Find-or-create by unique display name | No session persistence; refresh loses user |
+| Lobbies | Create, list, join, leave, host transfer | Card click does not auto-join; no kick |
+| Realtime | Socket room per lobby; disconnect cleanup | No per-player connection indicator |
+| Games | — | `just-one` stub not integrated; no Postgres game state |
+| Ops | Docker images, compose stack, admin GUI (dev) | Schema not auto-applied on boot; admin missing from Docker image |
+| Discovery | `games.tower` planned | No LaunchPad tile yet |
 
 ### UX friction observed (code review)
 
-1. **Session loss on refresh** — `currentUser` is React state only; no `localStorage`/cookie.
-2. **Split API base URLs** — login uses `VITE_BACKEND_URL`; lobby screens use relative `/api` (works via nginx proxy in prod, inconsistent in dev).
-3. **Misleading "Join" on lobby cards** — navigates to detail; user must click "Join Lobby" again.
-4. **"N Online" badge** — counts lobby members, not socket-connected players.
-5. **Sign out** — clears state but does not disconnect socket or leave lobby.
-6. **Version display** — `vite.config.ts` defines `__APP_VERSION__` but `App.tsx` reads `VITE_APP_VERSION` (always `0.0.0`).
+1. **Session loss on refresh** — `currentUser` is React state only.
+2. **Split API base URLs** — login uses `VITE_BACKEND_URL`; lobby screens use relative `/api`.
+3. **Lobby card "Join"** — navigates without joining.
+4. **"N Online" badge** — counts members, not socket-connected players.
+5. **Sign out** — does not disconnect socket or leave lobby.
+6. **Version display** — `__APP_VERSION__` vs `VITE_APP_VERSION` mismatch.
 
 ## Decision
 
-Adopt a **lobby-first, phased product roadmap**. Ship a trustworthy lobby experience before gameplay or horizontal scaling. Defer Redis and multi-instance Socket.IO until there is a second game-server replica or measurable need.
+Adopt a **lobby-first, phased product roadmap**. Ship a trustworthy lobby experience before gameplay or horizontal scaling. Defer Redis until multi-instance game-server is needed.
 
 ### Phase 0 — Trustworthy lobby (ship-safe)
 
-**Goal:** A friend on the home network can open Game Hub, pick a name, create/join a lobby, and stay in sync.
+**Goal:** A friend on the home network opens `http://games.tower`, picks a name, joins a lobby in one click, and stays in the lobby across refresh.
 
 | Work item | Rationale |
 |-----------|-----------|
-| Client session persistence (localStorage + re-emit `set_user`) | Refresh should not feel like logout |
-| Unify API calls on relative `/api` (or env consistently) | One dev/prod story |
+| Client session persistence (`localStorage` + re-emit `set_user`) | Refresh/reopen restores user (#10) |
+| Restore last lobby on load when user was a member | Rejoin without re-clicking join |
+| Unify API calls on relative `/api` | One dev/prod story |
 | Auto-apply DB schema on game-server startup | First deploy must not require manual admin sync |
 | `/api/health` on game-server | Compose healthcheck parity with `nasmono-home` |
-| Protect `/debug` and `/api/admin/*` (env flag or basic auth) | LAN exposure; lock down before any public deploy |
+| Protect `/debug` and `/api/admin/*` (env flag) | Lock down before public deploy |
 | Fix admin static files in game-server Docker image | Ops tooling works in prod |
-| Fix lobby card join flow (join on card click or rename to "View") | Reduce confusion |
+| **Auto-join on lobby card click** | Product decision #6 |
 | Disconnect socket + leave lobby on sign out | Clean presence |
-| Enforce max lobby size (default 20; admin override later) | Product cap; Just One typically 4–7 but lobby may hold more |
+| Enforce max lobby size (default 20) | Product decision #5 |
+| Host + admin **kick/remove player** API + UI | Product decision #9 |
 
-**Explicitly out of Phase 0:** JWT, Redis, first game, connected-users global panel.
+**Explicitly out of Phase 0:** JWT/password auth, Redis, first game, lobby chat, global online sidebar.
 
-**Goal:** Lobby feels alive and multiplayer-ready.
+### Phase 1 — Lobby UX polish
+
+**Goal:** Lobby feels alive; discoverable from LaunchPad.
 
 | Work item | Rationale |
 |-----------|-----------|
-| Realtime lobby list (`lobby_created` / `lobby_updated` / notify-then-fetch) | Matches ARCHITECTURE.md notify-then-fetch pattern |
-| Per-player connection indicator (socket presence in lobby room) | Replace misleading "N Online" |
-| Ready-check before start (host sees all ready) | Standard party-game pattern |
-| Optional lobby chat (text only) | Social glue; validate namespace need |
-| LaunchPad tile for Game Hub | Discoverability from home dashboard |
+| Realtime lobby list (notify-then-fetch) | Matches `ARCHITECTURE.md` |
+| **Per-lobby** connection indicator per player | Product decision #7 — not a global panel |
+| Ready-check before start | Host sees all ready before Just One |
+| LaunchPad tile → `http://games.tower` | Product decision #14 |
+
+**Deferred:** Lobby chat (#8).
 
 ### Phase 2 — Platform contracts
 
@@ -86,89 +96,74 @@ Adopt a **lobby-first, phased product roadmap**. Ship a trustworthy lobby experi
 |-----------|-----------|
 | `packages/shared-types` for REST + Socket.IO events | Single contract |
 | Zod validation on all inbound REST and socket events | Prevent malformed payloads |
-| Drizzle migrations (replace raw SQL + manual `setupDatabase`) | Schema evolution |
-| Game Hub Playwright smoke tests (mirror home smoke-test pattern) | CI confidence; after `integration-smoke-tests` merges |
+| Drizzle migrations (replace raw SQL bootstrap) | Schema evolution incl. game state tables |
+| Game Hub Playwright smoke tests | After home smoke tests merge |
 
-**Defer Redis** until running >1 `game-server` instance or cross-process presence is required.
+**Defer Redis** until running >1 `game-server` instance.
 
 ### Phase 3 — First game (Just One)
 
-**Goal:** Host clicks "Start Game" and all lobby players enter a synchronized Just One session.
+**Goal:** Host starts Just One; state survives server crash.
 
 | Work item | Rationale |
 |-----------|-----------|
-| Server-authoritative game state module in `game-server` | Cheat resistance; single source of truth |
-| Game route in `game-hub` (e.g. `/lobbies/:id/game`) | Lobby → game transition; responsive on mobile + desktop |
-| Socket namespace or event prefix for game traffic (`/game` or `game:*`) | Separate lobby signaling from tick updates |
-| Rewrite `packages/just-one` to use shared contracts and game-hub routing | Current stub uses wrong socket event and is not integrated |
+| Server-authoritative game state in `game-server` | Cheat resistance |
+| **Persist game state to Postgres**; resume on reconnect/crash | Product decision #13 |
+| Game route `/lobbies/:id/game` (mobile + desktop) | Lobby → game transition |
+| Socket namespace or `game:*` event prefix | Separate lobby vs gameplay traffic |
+| Rewrite `packages/just-one` with shared contracts | Current stub is broken |
 
-**Just One constraints:** Typical play is 4–7 players; lobby may hold up to 20. Game start should validate player count fits Just One rules (TBD in game ADR).
+**Just One constraints:** Typical play 4–7 players; lobby holds up to 20. Validate count at game start (game-specific ADR TBD).
 
-### Auth model (phased, not big-bang)
+### Auth model
 
-**Phase 0:** Keep display-name identity but bind actions to the socket-established user (reject `userId` in body if it does not match identified socket). Prevents casual impersonation without full login UX.
+**v1:** Display-name find-or-create only (#12). Bind REST/socket actions to the identified socket user to reduce casual spoofing on LAN.
 
-**Phase 1+:** Evaluate **invite-link tokens** (lobby URL with signed token) vs **password accounts** vs **OAuth (Discord/Google)** for friends-and-family use. Full JWT is planned in `PLANNING.md` but may be heavier than needed for a private homelab.
+**Before public deploy:** Revisit passwords, invite links, or OAuth. No JWT work until then.
+
+### Postgres host port 5432
+
+**Decision:** Keep published on the NAS host for now (#11) — useful for `psql`, backups, and admin tools from your workstation.
+
+**Why you might close it later:**
+
+- **Attack surface** — anything on the LAN (or internet, if the NAS is reachable) can attempt connections if it discovers the port.
+- **Unnecessary for the app** — `game-server` talks to `db` on the internal `game-network`; the host port mapping is only for *external* access.
+- **Mitigation without removing access** — bind to `127.0.0.1:5432:5432` and SSH tunnel, or restrict via Unraid firewall to admin IPs only.
 
 ## Alternatives considered
 
-- **Games first, fix lobby later** — Rejected. "Start Game" stub blocks any playtesting; security holes are worse once game state has value.
-- **Redis + shared-types before UX** — Rejected. Infrastructure without users adds complexity; single-instance homelab does not need Redis yet.
-- **Merge game into LaunchPad single app** — Rejected for now. Separate deployables allow independent release; Game Hub has different scaling and DB needs.
-- **Remove public tunnel; LAN-only** — **Accepted.** `public-tunnel` removed from `docker-compose.unraid.yml`. Re-add with Cloudflare Access if opened to the internet later.
+- **Games first, fix lobby later** — Rejected.
+- **Redis + shared-types before UX** — Rejected for homelab single instance.
+- **Merge game into LaunchPad** — Rejected; separate deployables.
+- **Remove public tunnel; LAN-only** — Accepted; tunnel removed from compose.
+- **Global connected-users sidebar** — Rejected for v1; per-lobby presence is enough (#7).
+- **Lobby chat in v1** — Rejected (#8).
 
 ## Consequences
 
 **Good:**
 
-- Clear sequencing: trust → UX → contracts → gameplay
-- Aligns with existing `ARCHITECTURE.md` patterns (notify-then-fetch, state snapshots for games)
-- Does not conflict with in-flight home smoke tests
-- Each phase is shippable independently
+- All product questions resolved; implementation can proceed phase by phase
+- Session + lobby rejoin matches friends-and-family casual use
+- Postgres game state enables crash recovery for Just One
 
 **Bad / tradeoffs:**
 
-- Display-name auth remains weak until Phase 1+ auth decision
-- Deferring Redis limits horizontal scale (acceptable for homelab)
-- `just-one` package stays dead weight until Phase 3
+- Display-name auth is weak if LAN is compromised or service goes public
+- Exposed Postgres port increases NAS risk slightly
+- Kick/remove without full auth relies on socket identity binding
 
 **Follow-ups:**
 
-- GitHub issues per phase (linked below)
-- Revisit auth model before any public deploy
 - Game-specific ADR for Just One rules and state machine
-- Update `PLANNING.md` when phases complete
-
-## Open questions (remaining)
-
-### UX & features
-
-6. **Lobby list join behavior:** One-click join from card, or view-then-confirm?
-7. **Connected users panel:** Global "who's online" sidebar, or per-lobby presence only?
-8. **Chat:** Required for v1, or defer?
-9. **Kick player / private lobbies / passwords:** Any needed before first game?
-10. **Rejoin after disconnect:** Auto-rejoin last lobby on reconnect, or return to lobby list?
-
-### Technical & ops
-
-11. **Postgres on host port 5432:** Intentional for external tools, or bind localhost only?
-12. **Auth approach:** Invite links, shared household password, per-user accounts, or OAuth?
-13. **Game state persistence:** Ephemeral (lobby lifetime) or save/resume games?
-14. **LaunchPad integration:** Tile URL — `http://tower:8000` or reverse-proxy hostname?
+- LaunchPad tile in `launchpad.apps.json` (issue #28)
+- P0 implementation (#25, #26)
 
 ## Links
 
 - `PLANNING.md`, `ARCHITECTURE.md`
 - `packages/game-hub/`, `packages/game-server/`, `packages/just-one/`
-- `docker-compose.unraid.yml` (game stack; `public-tunnel` removed 2026-06-30)
+- `docker-compose.unraid.yml`
 - ADR [0005](./0005-ghcr-image-names-web-prefix.md), [0006](./0006-minimal-unraid-compose-env.md)
-- In flight: `cursor/integration-smoke-tests-ba73` (home smoke tests — separate scope)
-- GitHub issues:
-  - [#25](https://github.com/TayGrayFamily/NasMono/issues/25) P0 UX quick wins
-  - [#26](https://github.com/TayGrayFamily/NasMono/issues/26) P0 security, ops, session
-  - [#27](https://github.com/TayGrayFamily/NasMono/issues/27) P1 realtime lobby + presence
-  - [#28](https://github.com/TayGrayFamily/NasMono/issues/28) P1 LaunchPad tile
-  - [#29](https://github.com/TayGrayFamily/NasMono/issues/29) P3 first game
-  - [#30](https://github.com/TayGrayFamily/NasMono/issues/30) P2 Playwright smoke tests
-  - [#31](https://github.com/TayGrayFamily/NasMono/issues/31) P2 shared types + Zod
-  - [#32](https://github.com/TayGrayFamily/NasMono/issues/32) Product decisions (open questions)
+- GitHub issues: [#25](https://github.com/TayGrayFamily/NasMono/issues/25)–[#32](https://github.com/TayGrayFamily/NasMono/issues/32)

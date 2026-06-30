@@ -4,74 +4,80 @@
 
 Track progress and planned features for the Game Hub (`packages/game-hub`, `packages/game-server`).
 
-**Product direction:** See [ADR-0007: Game Hub lobby-first roadmap](docs/decisions/0007-game-hub-lobby-first-roadmap.md) (**Accepted**).
+**Product direction:** [ADR-0007](docs/decisions/0007-game-hub-lobby-first-roadmap.md) (**Accepted** — all product questions resolved 2026-06-30).
 
-### Product decisions (2026-06-30)
+## Product decisions (summary)
 
-- **Audience:** Friends and family on the home LAN (may go public later)
-- **Access:** LAN-only — `public-tunnel` removed from compose
-- **First game:** Just One
-- **Platforms:** Desktop + mobile from v1
-- **Lobby size:** Default max 20 players; admin setting to raise later
+| Topic | Decision |
+|-------|----------|
+| Audience | Friends/family on LAN (`games.tower`); may go public later |
+| First game | Just One |
+| Platforms | Desktop + mobile |
+| Lobby size | Max 20 (admin may raise later) |
+| Join flow | Auto-join from lobby list card |
+| Presence | Per-lobby connection status only |
+| Chat | Deferred |
+| Kick players | Host + admin |
+| Session | Persist user + rejoin lobby on refresh |
+| Auth | Display name only |
+| Game state | Postgres persistence for crash resume |
+| LaunchPad | Tile → `http://games.tower` |
 
 ## Current state (2026-06-30)
 
-Lobby MVP is functional in development: name-based login, lobby CRUD, Socket.IO room updates, host transfer, disconnect cleanup. **No playable game** — "Start Game" is a stub. `packages/just-one` is not integrated.
+Lobby MVP works in dev: login, lobby CRUD, Socket.IO updates, host transfer. No playable game yet.
 
-## Phased roadmap (summary)
+## Phased roadmap
 
-### Phase 0 — Trustworthy lobby (in progress)
+### Phase 0 — Trustworthy lobby (next)
 
-- [ ] Client session persistence (`localStorage`)
-- [ ] Unify API URL strategy (`/api` proxy everywhere)
+- [ ] Session persistence + restore last lobby on refresh
+- [ ] Unify API URL strategy (`/api` everywhere)
 - [ ] Auto-apply DB schema on game-server startup
-- [ ] `/api/health` + compose healthcheck for game-server
-- [ ] Protect `/debug` and `/api/admin/*`
-- [ ] Fix admin static files in game-server Docker image
-- [ ] Fix lobby card join UX
+- [ ] `/api/health` + compose healthcheck
+- [ ] Protect `/debug` and `/api/admin/*` (env-gated)
+- [ ] Fix admin static files in Docker image
+- [ ] Auto-join on lobby card click
 - [ ] Sign-out: disconnect socket + leave lobby
-- [ ] Bind socket actions to identified user (anti-spoof)
-- [ ] Enforce max lobby size (default 20)
+- [ ] Bind socket actions to identified user
+- [ ] Max lobby size (20)
+- [ ] Kick/remove player (host + admin)
 
 ### Phase 1 — Lobby UX polish
 
-- [ ] Realtime lobby list (socket notify-then-fetch)
-- [ ] Per-player connection indicators in lobby
+- [ ] Realtime lobby list
+- [ ] Per-lobby player connection indicators
 - [ ] Ready-check before game start
-- [ ] Optional lobby chat
-- [ ] LaunchPad tile for Game Hub
+- [ ] LaunchPad tile (`http://games.tower`)
 
 ### Phase 2 — Platform contracts
 
-- [ ] `packages/shared-types` for REST + Socket.IO events
-- [ ] Zod validation on all inbound requests/events
-- [ ] Drizzle migrations (replace raw SQL bootstrap)
-- [ ] Game Hub Playwright smoke tests (after home smoke tests merge)
+- [ ] `packages/shared-types`
+- [ ] Zod validation
+- [ ] Drizzle migrations
+- [ ] Playwright smoke tests (after home smoke tests merge)
 
-### Phase 3 — First game (Just One)
+### Phase 3 — Just One
 
-- [ ] Server-authoritative game state in game-server
-- [ ] Game route in game-hub (`/lobbies/:id/game`)
-- [ ] Game socket namespace or event prefix
-- [ ] Integrate Just One (`packages/just-one` rewrite)
+- [ ] Server-authoritative game state
+- [ ] Postgres game state + crash resume
+- [ ] Game route `/lobbies/:id/game`
+- [ ] Rewrite `packages/just-one`
 
-## Deferred (not blocking v1)
+## Deferred
 
-- **Redis / Socket.IO adapter** — defer until multi-instance game-server is needed
-- **Full JWT/password auth** — evaluate after Phase 0 socket binding; see ADR-0007 auth section
-
-## Architecture reference
-
-Socket.IO design principles: [`ARCHITECTURE.md`](./ARCHITECTURE.md)
+- Lobby chat
+- Global "who's online" sidebar
+- Redis / multi-instance Socket.IO
+- JWT / password auth (revisit before public deploy)
 
 ## Completed
 
-- [x] Database: Drizzle ORM initialized; raw SQL for lobby operations
-- [x] Tooling: tsconfig build support
-- [x] Lobby REST + Socket.IO MVP (create, join, leave, host transfer)
-- [x] React UI: login, lobby list, lobby detail, profile rename
-- [x] Docker images + Unraid compose stack
+- [x] Drizzle ORM + lobby REST/Socket.IO MVP
+- [x] React UI (login, lobbies, profile)
+- [x] Docker + Unraid compose (LAN-only; tunnel removed)
+- [x] Product roadmap ADR-0007
 
 ---
 
-**Note:** Update this file when GitHub issues close or ADR-0007 phases ship.
+Update this file when issues close or phases ship.

@@ -99,7 +99,8 @@ Fixture-based tests — no Unraid or Docker socket required.
 | `pnpm smoke`                  | Home package only — build + API + Playwright UI |
 | `pnpm --filter home test:e2e` | UI only, after `pnpm --filter home build`       |
 
-**First-time:** `pnpm --filter home exec playwright install chromium`
+First-time locally: `pnpm --filter home exec playwright install chromium`  
+CI caches `~/.cache/ms-playwright` — first run downloads browsers; later runs only install OS deps (~seconds).
 
 **Fixture env** (set automatically by vitest/playwright/smoke scripts):
 

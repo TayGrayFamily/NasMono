@@ -40,13 +40,14 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v4
 
+      - name: Install pnpm
+        uses: pnpm/action-setup@v4
+
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
           node-version: '24'
-
-      - name: Install pnpm
-        uses: pnpm/action-setup@v4
+          cache: 'pnpm'
 
       - name: Install dependencies
         run: pnpm install --frozen-lockfile
@@ -57,8 +58,8 @@ jobs:
       - name: Run tests
         run: pnpm -r test
 
-      - name: Install Playwright Chromium
-        run: pnpm --filter home exec playwright install --with-deps chromium
+      - name: Setup Playwright Chromium
+        uses: ./.github/actions/setup-playwright-chromium
 
       - name: Home integration smoke (API + UI + prod server)
         run: node scripts/smoke-home.mjs --skip-build

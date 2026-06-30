@@ -1,4 +1,4 @@
-# ADR-0005: GHCR image names use `web-*` prefix
+# ADR-0005: GHCR image names use `{repo}-{package}` prefix
 
 - **Status:** Accepted
 - **Date:** 2026-06-28
@@ -10,25 +10,29 @@ GitHub Actions (`release-on-merge.yml`) builds and pushes images as:
 
 `ghcr.io/{owner}/{repo}-{package}:{tag}`
 
-For this repo that is `ghcr.io/taygrayfamily/web-home`, `web-game-server`, `web-game-hub`.
+The GitHub repository is **`NasMono`** (not the local folder name `web`). CI therefore publishes:
 
-Compose previously referenced `nasmono-home`, which did not match CI output and caused pull/deploy confusion.
+- `ghcr.io/taygrayfamily/nasmono-home`
+- `ghcr.io/taygrayfamily/nasmono-game-server`
+- `ghcr.io/taygrayfamily/nasmono-game-hub`
+
+Compose must match these names exactly.
 
 ## Decision
 
 **Compose and docs use CI-generated names:**
 
-| Package     | Image                                          |
-| ----------- | ---------------------------------------------- |
-| home        | `ghcr.io/taygrayfamily/web-home:latest`        |
-| game-server | `ghcr.io/taygrayfamily/web-game-server:latest` |
-| game-hub    | `ghcr.io/taygrayfamily/web-game-hub:latest`    |
+| Package     | Image                                              |
+| ----------- | -------------------------------------------------- |
+| home        | `ghcr.io/taygrayfamily/nasmono-home:latest`        |
+| game-server | `ghcr.io/taygrayfamily/nasmono-game-server:latest` |
+| game-hub    | `ghcr.io/taygrayfamily/nasmono-game-hub:latest`    |
 
-Do not hand-maintain alternate tags like `nasmono-*` unless CI is changed to match.
+Derive the prefix from **`github.repository` name** (lowercased), not the local workspace directory.
 
 ## Alternatives considered
 
-- **Rename CI to `nasmono-*`** — would require workflow change and GHCR package rename
+- **`web-*` prefix** — wrong; assumes local folder name matches GitHub repo name
 - **`IMAGE` env override in compose** — extra indirection; easy to drift from CI
 
 ## Consequences
@@ -40,9 +44,10 @@ Do not hand-maintain alternate tags like `nasmono-*` unless CI is changed to mat
 
 **Bad / tradeoffs:**
 
-- Image name tied to repo name (`web`); renaming repo changes image paths
+- Renaming the GitHub repo changes image paths (update compose + ADR)
 
 ## Links
 
 - `.github/workflows/release-on-merge.yml`
 - `docker-compose.unraid.yml`
+- Remote: `github.com/TayGrayFamily/NasMono`

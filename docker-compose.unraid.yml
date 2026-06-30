@@ -1,6 +1,6 @@
 services:
   nasmono-home:
-    image: ghcr.io/taygrayfamily/web-home:latest
+    image: ghcr.io/taygrayfamily/nasmono-home:latest
     container_name: web_app
     restart: unless-stopped
     ports:
@@ -24,7 +24,7 @@ services:
       - 'com.tailscale.description=NasMono Home app'
 
   game-server:
-    image: ghcr.io/taygrayfamily/web-game-server:latest
+    image: ghcr.io/taygrayfamily/nasmono-game-server:latest
     container_name: game_server
     restart: unless-stopped
     ports:
@@ -38,7 +38,7 @@ services:
         condition: service_healthy
 
   game-hub:
-    image: ghcr.io/taygrayfamily/web-game-hub:latest
+    image: ghcr.io/taygrayfamily/nasmono-game-hub:latest
     container_name: game_hub_ui
     restart: unless-stopped
     ports:

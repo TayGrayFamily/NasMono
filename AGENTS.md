@@ -53,7 +53,7 @@ pnpm dev:home          # http://localhost:8888
 ## Unraid deployment
 
 - Compose file: `docker-compose.unraid.yml`
-- Image: `ghcr.io/taygrayfamily/web-home:latest` (built by `release-on-merge.yml` as `{owner}/{repo}-home`)
+- Image: `ghcr.io/taygrayfamily/nasmono-home:latest` (built by `release-on-merge.yml` as `{owner}/{repo}-home`; repo is **NasMono**)
 - Container listens on **8888** inside; host maps `${HOME_BACKEND_PORT:-8888}:8888`
 - **Required secret in NAS `.env`:** `UNRAID_API_KEY`
 - Hardcoded in compose: `UNRAID_GRAPHQL_URL`, `REACHABILITY_GATEWAY`, `LAUNCHPAD_CONFIG_PATH`, volume mount
@@ -65,7 +65,7 @@ Reachability from inside Docker: `*.tower` hostnames often fail DNS. Compose set
 1. **Port mismatch** — compose must map to the same port the app binds (`PORT=8888`). Mismatch causes connection refused.
 2. **containerMatch too broad** — `immich` matches `immich-public-proxy` (exited). Use `^Immich$|immich-server` or rely on running-container preference.
 3. **Reachability 403** — still counts as OK (status &lt; 500). Use `probeUrl` for auth-gated UIs.
-4. **Image name** — CI publishes `web-home`, not `nasmono-home`. Compose must match CI output.
+4. **Image name** — CI publishes `nasmono-home` (from GitHub repo `NasMono`), not `web-home` from the local folder name. Compose must match CI output.
 5. **Don't use `env_file: .env` for nasmono-home** — injects dev vars; use explicit `environment` block.
 6. **Typo folder** — components live in `packages/home/src/components/lauchpad/` (missing **n** in launchpad).
 

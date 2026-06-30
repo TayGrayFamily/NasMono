@@ -117,7 +117,7 @@ After image updates:
 docker compose -f docker-compose.unraid.yml up -d --force-recreate nasmono-home
 ```
 
-Image: `ghcr.io/taygrayfamily/web-home:latest` (published by GitHub Actions on merge to `master`).
+Image: `ghcr.io/taygrayfamily/nasmono-home:latest` (published by GitHub Actions on merge to `master`).
 
 ## Troubleshooting
 

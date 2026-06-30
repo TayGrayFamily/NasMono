@@ -58,7 +58,7 @@ Non-obvious choices are recorded as ADRs in [`docs/decisions/`](docs/decisions/R
    docker compose -f docker-compose.unraid.yml up -d --force-recreate nasmono-home
    ```
 
-**Home app defaults:** host port **8888**, image `ghcr.io/taygrayfamily/web-home:latest`
+**Home app defaults:** host port **8888**, image `ghcr.io/taygrayfamily/nasmono-home:latest`
 
 Optional per-app overrides: edit `/mnt/user/appdata/nasmono-home/apps.json` (see home README).
 
@@ -69,7 +69,7 @@ Optional per-app overrides: edit `/mnt/user/appdata/nasmono-home/apps.json` (see
 | `.github/workflows/ci.yml`               | PR + push to `master` | Format, lint, build, test       |
 | `.github/workflows/release-on-merge.yml` | Push to `master`      | Semver bump, GHCR Docker images |
 
-Docker images: `ghcr.io/taygrayfamily/web-{home,game-server,game-hub}:latest`
+Docker images: `ghcr.io/taygrayfamily/nasmono-{home,game-server,game-hub}:latest`
 
 ## Adding a new package
 

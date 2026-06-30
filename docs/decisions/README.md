@@ -22,11 +22,11 @@ Skip ADRs for routine fixes, dependency bumps, and formatting.
 
 ## Index
 
-| ADR                                                | Title                                            | Status   | Scope         |
-| -------------------------------------------------- | ------------------------------------------------ | -------- | ------------- |
-| [0001](./0001-launchpad-hybrid-config.md)          | Hybrid LaunchPad config (repo + Unraid override) | Accepted | packages/home |
-| [0002](./0002-curated-tiles-not-auto-discovery.md) | Curated app tiles, not pure Docker discovery     | Accepted | packages/home |
-| [0003](./0003-reachability-via-host-gateway.md)    | Server-side reachability via host gateway        | Accepted | packages/home |
-| [0004](./0004-port-8888-home-app.md)               | Port 8888 for home app (dev and container)       | Accepted | packages/home |
-| [0005](./0005-ghcr-image-names-web-prefix.md)      | GHCR image names use `web-*` prefix              | Accepted | docker        |
-| [0006](./0006-minimal-unraid-compose-env.md)       | Minimal Unraid compose env (secrets only)        | Accepted | docker        |
+| ADR                                                | Title                                                      | Status   | Scope         |
+| -------------------------------------------------- | ---------------------------------------------------------- | -------- | ------------- |
+| [0001](./0001-launchpad-hybrid-config.md)          | Hybrid LaunchPad config (repo + Unraid override)           | Accepted | packages/home |
+| [0002](./0002-curated-tiles-not-auto-discovery.md) | Curated app tiles, not pure Docker discovery               | Accepted | packages/home |
+| [0003](./0003-reachability-via-host-gateway.md)    | Server-side reachability via host gateway                  | Accepted | packages/home |
+| [0004](./0004-port-8888-home-app.md)               | Port 8888 for home app (dev and container)                 | Accepted | packages/home |
+| [0005](./0005-ghcr-image-names-web-prefix.md)      | GHCR image names use `nasmono-*` prefix (GitHub repo name) | Accepted | docker        |
+| [0006](./0006-minimal-unraid-compose-env.md)       | Minimal Unraid compose env (secrets only)                  | Accepted | docker        |

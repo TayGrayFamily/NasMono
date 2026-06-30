@@ -23,6 +23,7 @@ ENV NODE_ENV=production
 
 # Copy only the necessary files
 COPY --from=build /app/packages/game-server/dist ./dist
+COPY --from=build /app/packages/game-server/admin ./dist/admin
 COPY --from=build /app/prod/node_modules ./node_modules
 COPY --from=build /app/prod/package.json ./package.json
 

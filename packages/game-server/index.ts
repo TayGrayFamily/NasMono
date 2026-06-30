@@ -5,13 +5,14 @@ import { Server } from 'socket.io';
 import dotenv from 'dotenv';
 import path from 'path';
 import { fileURLToPath } from 'url';
-import { getDbClient } from './src/db/index.js';
+import { getDbClient, dbStatus } from './src/db/index.js';
 import { LobbyService } from './src/services/LobbyService.js';
 import { UserService } from './src/services/UserService.js';
 import { SocketService } from './src/services/SocketService.js';
 import { createLobbyRouter } from './src/routes/lobbyRouter.js';
 import { createUserRouter } from './src/routes/userRouter.js';
 import { createAdminRouter } from './src/routes/adminRouter.js';
+import { isAdminEnabled, requireAdminEnabled } from './src/middleware/adminGuard.js';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -34,19 +35,26 @@ export async function createApp() {
 
   // --- Routes ---
 
-  // Static Admin GUI
-  app.use('/admin', express.static(path.join(__dirname, 'admin')));
+  // Static Admin GUI (env-gated)
+  if (isAdminEnabled()) {
+    app.use('/admin', requireAdminEnabled, express.static(path.join(__dirname, 'admin')));
+  } else {
+    app.use('/admin', (_req, res) => res.status(404).json({ error: 'Not found' }));
+  }
 
   // API Routers
   const apiRouter = express.Router();
+  apiRouter.get('/health', (_req, res) => {
+    res.json({ ok: true, db: dbStatus });
+  });
   apiRouter.use('/lobbies', createLobbyRouter(lobbyService, socketService));
-  apiRouter.use('/admin', createAdminRouter());
+  apiRouter.use('/admin', requireAdminEnabled, createAdminRouter());
   apiRouter.use('/', createUserRouter(userService)); // login and users/:id
 
   app.use('/api', apiRouter);
 
-  // --- Global Debug Endpoint ---
-  app.get('/debug', async (req, res) => {
+  // --- Global Debug Endpoint (env-gated) ---
+  app.get('/debug', requireAdminEnabled, async (_req, res) => {
     let lobbies: any[] = [];
     let persistedUsers: any[] = [];
     let dbStatusError: string | null = null;
@@ -89,10 +97,13 @@ export async function createApp() {
     });
   });
 
-  return { app, httpServer, io };
+  return { app, httpServer, io, socketService };
 }
 
 export async function initializeServer() {
+  const { setupDatabase } = await import('./src/db/index.js');
+  await setupDatabase();
+
   const { httpServer } = await createApp();
   const PORT = Number(process.env.GAME_SERVER_PORT || 3001);
   const HOST = process.env.SERVER_HOST || '0.0.0.0';

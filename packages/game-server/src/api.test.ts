@@ -4,7 +4,6 @@ import { createApp } from '../index.js';
 import * as db from './db/index.js';
 import { LobbyService } from './services/LobbyService.js';
 
-// Mock the dependencies
 vi.mock('./db/index.js');
 vi.mock('./services/LobbyService.js');
 
@@ -20,6 +19,21 @@ describe('API Integration Tests', () => {
 
   afterAll(() => {
     httpServer.close();
+  });
+
+  describe('GET /api/health', () => {
+    it('returns ok', async () => {
+      const res = await request(app).get('/api/health');
+      expect(res.status).toBe(200);
+      expect(res.body).toEqual(expect.objectContaining({ ok: true }));
+    });
+  });
+
+  describe('GET /debug', () => {
+    it('returns 404 when admin is disabled', async () => {
+      const res = await request(app).get('/debug');
+      expect(res.status).toBe(404);
+    });
   });
 
   describe('POST /api/login', () => {
@@ -46,6 +60,13 @@ describe('API Integration Tests', () => {
       expect(res.status).toBe(200);
       expect(Array.isArray(res.body)).toBe(true);
       expect(res.body[0].name).toBe('Test Lobby');
+    });
+  });
+
+  describe('POST /api/lobbies', () => {
+    it('rejects lobby creation without socket identification', async () => {
+      const res = await request(app).post('/api/lobbies').send({ name: 'Test', userId: 'u1' });
+      expect(res.status).toBe(401);
     });
   });
 });

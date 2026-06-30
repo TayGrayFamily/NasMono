@@ -29,8 +29,7 @@ function ManageUser({ currentUser, onUserUpdated }: ManageUserProps) {
     setIsUpdating(true);
 
     try {
-      const backendUrl = import.meta.env.VITE_BACKEND_URL || 'http://localhost:3001';
-      const response = await fetch(`${backendUrl}/api/users/${currentUser.id}`, {
+      const response = await fetch(`/api/users/${currentUser.id}`, {
         method: 'PATCH',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ name: newName }),

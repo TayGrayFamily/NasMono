@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useSocket } from './SocketContext';
 import { LoadingButton } from './ui/LoadingButton';
 import { useScreenMode } from '../hooks/useScreenMode';
+import { apiFetch } from '../lib/api';
 
 interface Player {
   id: string;
@@ -93,11 +94,15 @@ function LobbyDetail({ lobbyId, currentUserId, onBack }: LobbyDetailProps) {
   const handleJoinLobby = async () => {
     setIsJoining(true);
     try {
-      const response = await fetch(`/api/lobbies/${lobbyId}/join`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ userId: currentUserId }),
-      });
+      const response = await apiFetch(
+        `/api/lobbies/${lobbyId}/join`,
+        {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ userId: currentUserId }),
+        },
+        socket?.id,
+      );
 
       if (!response.ok) throw new Error('Failed to join lobby');
     } catch (err: unknown) {
@@ -112,11 +117,15 @@ function LobbyDetail({ lobbyId, currentUserId, onBack }: LobbyDetailProps) {
 
     setIsTransferring(newHostId);
     try {
-      const response = await fetch(`/api/lobbies/${lobbyId}/transfer-host`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ newHostId, currentUserId }),
-      });
+      const response = await apiFetch(
+        `/api/lobbies/${lobbyId}/transfer-host`,
+        {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ newHostId, currentUserId }),
+        },
+        socket?.id,
+      );
 
       if (!response.ok) {
         const text = await response.text();
@@ -134,11 +143,15 @@ function LobbyDetail({ lobbyId, currentUserId, onBack }: LobbyDetailProps) {
   const handleBack = async () => {
     if (isPlayerInLobby) {
       try {
-        await fetch(`/api/lobbies/${lobbyId}/leave`, {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ userId: currentUserId }),
-        });
+        await apiFetch(
+          `/api/lobbies/${lobbyId}/leave`,
+          {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ userId: currentUserId }),
+          },
+          socket?.id,
+        );
       } catch (err) {
         console.error('Error leaving lobby:', err);
       }

@@ -2,14 +2,18 @@ import express from 'express';
 import { LobbyService } from '../services/LobbyService.js';
 import { SocketService } from '../services/SocketService.js';
 import { getDbClient } from '../db/index.js';
+import { createRequireSocketUser } from '../middleware/requireSocketUser.js';
 
 export function createLobbyRouter(lobbyService: LobbyService, socketService: SocketService) {
   const router = express.Router();
   const io = socketService.getIo();
+  const requireSocketUser = createRequireSocketUser(socketService);
+  const requireSocketUserForTransfer = createRequireSocketUser(socketService, ['currentUserId']);
 
-  router.post('/', async (req, res) => {
+  router.post('/', requireSocketUser, async (req, res) => {
     try {
-      const lobby = await lobbyService.createLobby(req.body.name, req.body.userId);
+      const userId = req.identifiedUserId!;
+      const lobby = await lobbyService.createLobby(req.body.name, userId);
       res.status(201).json(lobby);
     } catch (err: unknown) {
       res.status(500).json({ error: err instanceof Error ? err.message : String(err) });
@@ -35,11 +39,13 @@ export function createLobbyRouter(lobbyService: LobbyService, socketService: Soc
     }
   });
 
-  router.post('/:lobbyId/join', async (req, res) => {
+  router.post('/:lobbyId/join', requireSocketUser, async (req, res) => {
     try {
-      const { userName } = await lobbyService.joinLobby(req.params.lobbyId, req.body.userId);
-      io.to(req.params.lobbyId).emit('player_joined', {
-        userId: req.body.userId,
+      const userId = req.identifiedUserId!;
+      const lobbyId = String(req.params.lobbyId);
+      const { userName } = await lobbyService.joinLobby(lobbyId, userId);
+      io.to(lobbyId).emit('player_joined', {
+        userId,
         name: userName,
       });
       res.status(200).json({ message: 'Joined' });
@@ -48,9 +54,9 @@ export function createLobbyRouter(lobbyService: LobbyService, socketService: Soc
     }
   });
 
-  router.post('/:lobbyId/leave', async (req, res) => {
-    const { lobbyId } = req.params;
-    const { userId } = req.body;
+  router.post('/:lobbyId/leave', requireSocketUser, async (req, res) => {
+    const lobbyId = String(req.params.lobbyId);
+    const userId = req.identifiedUserId!;
 
     try {
       const client = await getDbClient();
@@ -85,9 +91,10 @@ export function createLobbyRouter(lobbyService: LobbyService, socketService: Soc
     }
   });
 
-  router.post('/:lobbyId/transfer-host', async (req, res) => {
-    const { lobbyId } = req.params;
-    const { newHostId, currentUserId } = req.body;
+  router.post('/:lobbyId/transfer-host', requireSocketUserForTransfer, async (req, res) => {
+    const lobbyId = String(req.params.lobbyId);
+    const currentUserId = req.identifiedUserId!;
+    const { newHostId } = req.body;
 
     try {
       const lobby = await lobbyService.getLobbyById(lobbyId);

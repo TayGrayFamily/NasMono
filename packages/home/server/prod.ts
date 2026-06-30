@@ -4,16 +4,16 @@ import { fileURLToPath } from 'url';
 import { createApiApp } from './apiRouter.js';
 import dotenv from 'dotenv';
 
-// 1. Resilience: Validate critical environment variables
-const requiredEnvVars = ['UNRAID_API_KEY', 'VITE_IMMICH_KEY', 'DATABASE_URL'];
+// Optional env vars — warn when missing but app still starts with limited features.
+const optionalEnvVars = ['UNRAID_API_KEY', 'UNRAID_GRAPHQL_URL'];
 
 dotenv.config({ path: path.resolve(process.cwd(), '.env') });
 
-const missingVars = requiredEnvVars.filter((varName) => !process.env[varName]);
+const missingVars = optionalEnvVars.filter((varName) => !process.env[varName]);
 if (missingVars.length > 0) {
   console.warn('--- CONFIGURATION WARNING ---');
   console.warn(`The following environment variables are missing: ${missingVars.join(', ')}`);
-  console.warn('The application may function with limited capabilities.');
+  console.warn('Docker container status will be unavailable until Unraid GraphQL is configured.');
 }
 
 const __filename = fileURLToPath(import.meta.url);

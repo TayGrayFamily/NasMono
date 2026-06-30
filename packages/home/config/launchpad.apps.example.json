@@ -1,13 +1,21 @@
 [
   {
     "id": "jellyfin",
-    "url": "https://jellyfin.tower"
+    "url": "http://jellyfin.tower"
+  },
+  {
+    "id": "pihole",
+    "probeUrl": "http://pihole.tower/api/docs/"
   },
   {
     "id": "new-app",
     "displayName": "Home Assistant",
-    "url": "https://ha.tower",
+    "url": "http://ha.tower",
     "iconUrl": "/static/logo.svg",
     "containerMatch": "home-assistant"
+  },
+  {
+    "id": "old-app",
+    "enabled": false
   }
 ]

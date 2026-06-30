@@ -1,44 +1,144 @@
-# React + TypeScript + Vite
+# Home — NAS LaunchPad
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+Vite + React dashboard for homelab services. Shows curated app tiles with Docker container status (via Unraid GraphQL) and server-side HTTP reachability checks.
 
-Currently, two official plugins are available:
+## Quick start
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Babel](https://babeljs.io/) (or [oxc](https://oxc.rs) when used in [rolldown-vite](https://vite.dev/guide/rolldown)) for Fast Refresh
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/) for Fast Refresh
+From repo root:
 
-## React Compiler
+```bash
+cp .env.example .env
+# Set UNRAID_GRAPHQL_URL and UNRAID_API_KEY in .env
+pnpm install
+pnpm dev:home
+```
 
-The React Compiler is currently not compatible with SWC. See [this issue](https://github.com/vitejs/vite-plugin-react/issues/428) for tracking the progress.
+Open **http://localhost:8888**
 
-## Expanding the ESLint configuration
+## How it works
 
-If you are developing a production application, we recommend updating the configuration to enable type-aware lint rules:
+**Dev:** Vite serves the React app on port 8888 and mounts the Express API at `/api` (see `vite.config.ts`).
 
-```js
-export default defineConfig([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
+**Prod:** `node dist-server/prod.js` serves static `dist/` + `/api` (see `Dockerfile`).
 
-      // Remove tseslint.configs.recommended and replace with this
-      tseslint.configs.recommendedTypeChecked,
-      // Alternatively, use this for stricter rules
-      tseslint.configs.strictTypeChecked,
-      // Optionally, add this for stylistic rules
-      tseslint.configs.stylisticTypeChecked,
+### API endpoints
 
-      // Other configs...
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-]);
+| Route                                       | Description                                            |
+| ------------------------------------------- | ------------------------------------------------------ |
+| `GET /api/health`                           | Liveness                                               |
+| `GET /api/launchpad`                        | Merged app list + Docker status + unmatched containers |
+| `GET /api/containers`                       | Raw container list (debug)                             |
+| `GET /api/reachability?target=…&hostPort=…` | Server-side HTTP probe                                 |
+
+## LaunchPad app config
+
+**Defaults:** `config/launchpad.apps.json` (bundled in Docker image)
+
+**Optional override on Unraid:** `/mnt/user/appdata/nasmono-home/apps.json`  
+Set via `LAUNCHPAD_CONFIG_PATH=/config/apps.json` in compose.
+
+Overrides merge **by `id`** — partial entries patch defaults; new ids are appended.
+
+### Schema
+
+```json
+{
+  "id": "jellyfin",
+  "displayName": "Jellyfin",
+  "url": "http://jellyfin.tower",
+  "probeUrl": "http://jellyfin.tower/health",
+  "iconUrl": "/static/jellyfin_logo.svg",
+  "containerMatch": "jellyfin",
+  "enabled": true
+}
+```
+
+| Field            | Required | Notes                                                      |
+| ---------------- | -------- | ---------------------------------------------------------- |
+| `id`             | yes      | Stable key for merge                                       |
+| `displayName`    | yes      | Tile title                                                 |
+| `url`            | yes      | Full URL opened when tile is clicked                       |
+| `iconUrl`        | yes      | Path under `/static/` or absolute URL                      |
+| `containerMatch` | yes      | Regex (case-insensitive) on container name **or** image    |
+| `probeUrl`       | no       | Health-check URL when `url` needs auth (see Pi-hole below) |
+| `enabled`        | no       | Set `false` to hide without deleting                       |
+
+Icons live in `public/static/`.
+
+### Adding an app
+
+1. Add icon to `public/static/` if needed
+2. Add entry to `config/launchpad.apps.json`
+3. Set `containerMatch` to the Unraid container name or a unique substring of the image
+4. Use reverse-proxy URLs in `url` (e.g. `http://radarr.tower`)
+
+**Compose stacks:** many containers share a prefix. Use exact patterns:
+
+```json
+"containerMatch": "^Immich$|immich-server"
+```
+
+**Auth-gated UIs:** set `probeUrl` to a public endpoint:
+
+```json
+"url": "http://pihole.tower/admin",
+"probeUrl": "http://pihole.tower/api/docs/"
+```
+
+See `config/launchpad.apps.example.json` for override examples.
+
+## Reachability
+
+Probes run **from the server**, not the browser (avoids CORS).
+
+1. Direct fetch to `probeUrl` or `url`
+2. If that fails and `REACHABILITY_GATEWAY` is set → fetch gateway with `Host:` header (reverse proxy on Unraid host)
+3. If that fails → try container's published host port via gateway
+
+HTTP status **&lt; 500** counts as responding (401/403/404 still green — service is up).
+
+Failed probes show error detail (`dns`, `connection_refused`, etc.).
+
+## Deploy on Unraid
+
+Use `docker-compose.unraid.yml` in Compose Manager.
+
+**NAS `.env` (minimal):**
+
+```env
+UNRAID_API_KEY=your-key
+```
+
+**Optional:** `HOME_BACKEND_PORT=8888` to change host port.
+
+After image updates:
+
+```bash
+docker compose -f docker-compose.unraid.yml up -d --force-recreate nasmono-home
+```
+
+Image: `ghcr.io/taygrayfamily/web-home:latest` (published by GitHub Actions on merge to `master`).
+
+## Troubleshooting
+
+| Symptom                          | Likely cause                                                                                                   |
+| -------------------------------- | -------------------------------------------------------------------------------------------------------------- |
+| Connection refused on `:8888`    | Port mapping ≠ `PORT` env inside container — see [ADR-0004](../../docs/decisions/0004-port-8888-home-app.md)   |
+| Docker status wrong / exited     | `containerMatch` hits wrong container; tighten regex                                                           |
+| Responding locally, not deployed | Container can't resolve `*.tower` — see [ADR-0003](../../docs/decisions/0003-reachability-via-host-gateway.md) |
+| Admin URL shows HTTP 403 green   | Expected; add `probeUrl` to a public path                                                                      |
+| Empty LaunchPad                  | Missing/invalid `launchpad.apps.json` or Unraid GraphQL error — check logs                                     |
+
+Related decisions: [`docs/decisions/`](../../docs/decisions/README.md)
+
+## Project layout
+
+```
+packages/home/
+  config/launchpad.apps.json   # default tiles
+  public/static/               # icons
+  server/                      # Express API (compiled to dist-server/)
+  src/components/lauchpad/     # LaunchPad UI (note: lauchpad typo in path)
+  src/routes/                  # TanStack Router pages
+  Dockerfile                   # build from monorepo root
 ```

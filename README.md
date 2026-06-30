@@ -1,126 +1,88 @@
 # Home Web Apps Monorepo
 
-This repository is a pnpm workspace for web applications and utilities that run on my home Unraid NAS. It contains apps and tools for home automation, IoT, and monitoring.
+pnpm workspace for web apps running on an **Unraid** NAS. Primary app: **LaunchPad dashboard** (`packages/home`). Also includes **Game Hub** (`packages/game-hub`, `packages/game-server`).
 
-Purpose
+> **Agents:** read [`AGENTS.md`](AGENTS.md) first for architecture, pitfalls, and file map. Check [`docs/decisions/`](docs/decisions/) before changing LaunchPad, deploy, or reachability behavior.
 
-- Host frontend web apps and small tools that integrate with home automation systems (Home Assistant, Node-RED, MQTT, etc.).
-- Centralize shared dev scripts, dependency management, and CI for all web apps.
-- Make it easy to add new apps, reuse UI components, and run multiple dev servers locally.
+## Repository layout
 
-Repository layout
+```
+packages/
+  home/          # NAS LaunchPad (Vite + React + Express) — main app
+  game-hub/      # Game lobby UI
+  game-server/   # Game Socket.IO server
+docker-compose.unraid.yml
+.env.example
+docs/decisions/     # Architecture Decision Records (ADRs)
+```
 
-- `package.json` - workspace root package.json with workspace-level scripts.
-- `pnpm-workspace.yaml` - pnpm workspace globs (currently `packages/*`).
-- `.npmrc` - pnpm workspace config (shared lockfile, save-exact, etc.).
-- `packages/` - all workspace packages/apps live here.
-  - `packages/home` - existing Vite + React app used for the NAS dashboard or experiments.
-
-How to add a new app
-
-1. Create a new folder under `packages/`, e.g. `packages/device-manager`.
-2. Add a `package.json` with at least a `name`, `version`, `private: true` and scripts such as `dev` and `build`.
-3. Add your source files (e.g. `src/`, `public/`, config files) and any config (Vite, tsconfig, eslint).
-4. From the repo root run:
+## Scripts (from repo root)
 
 ```bash
 pnpm install
-pnpm --filter ./packages/device-manager dev
-# or run across all packages
-pnpm -w dev
+pnpm dev:home          # LaunchPad dev server → http://localhost:8888
+pnpm dev:game          # Game Hub UI
+pnpm dev:game-server   # Game server
+pnpm check             # format + lint + build all packages
+pnpm test
 ```
 
-Important workspace scripts (run from repo root)
+## Local dev (LaunchPad)
 
 ```bash
-# install dependencies and generate a single pnpm-lock.yaml
-pnpm install
-
-# run 'dev' in all workspace packages (recursive)
-pnpm -w dev
-
-# run a script only for a single package
-pnpm --filter ./packages/<name> dev
-pnpm --filter ./packages/<name> build
-pnpm --filter ./packages/<name> preview
-
-# run lint/tests across workspaces
-pnpm -w lint
-pnpm -w test
+cp .env.example .env
+# Add UNRAID_API_KEY and UNRAID_GRAPHQL_URL (see .env.example)
+pnpm dev:home
 ```
 
-Notes and best practices
+Details: [`packages/home/README.md`](packages/home/README.md)
 
-- Keep the root `package.json` `private: true` to avoid accidental publishes.
-- Prefer adding shared dependencies at the root (pnpm will hoist them) if multiple packages use the same library.
-- If a package will be published to npm, give it a globally unique `name` in its `package.json` and remove `private: true`.
-- The repo `.npmrc` has `shared-workspace-lockfile=true` so there will be a single `pnpm-lock.yaml` at the root.
-- If tools/IDEs have trouble resolving modules, try enabling hoisting in `.npmrc` by uncommenting the `public-hoist-pattern[]="*"` line.
+## Architecture decisions
 
-Vite-specific notes
+Non-obvious choices are recorded as ADRs in [`docs/decisions/`](docs/decisions/README.md) (LaunchPad config, reachability, ports, Docker images, etc.). Add a new ADR when introducing a decision future contributors might reverse without context.
 
-- Files placed in a package's `public/` directory are served at the root of that package's dev server. In this repo `packages/home/public/vite.svg` is referenced in code as `/vite.svg`.
-- If you change the package layout or move files, update `vite.config.ts` `base` or `root` options as needed.
+## Deploy on Unraid
 
-CI example (GitHub Actions)
+1. Add `docker-compose.unraid.yml` to **Compose Manager**
+2. Create a `.env` next to the compose file with:
 
-Create `.github/workflows/ci.yml` with something like this to build all workspace packages:
+   ```env
+   UNRAID_API_KEY=your-unraid-api-key
+   ```
 
-```yaml
-name: CI
-on: [push, pull_request]
+3. For the **game stack** only, also set `POSTGRES_PASSWORD`
+4. Create external network once (game stack): `docker network create game-network`
+5. Pull/recreate after releases:
 
-jobs:
-  build:
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
-      - name: Use Node
-        uses: actions/setup-node@v4
-        with:
-          node-version: 24
-      - name: Install pnpm
-        run: npm install -g pnpm
-      - name: Install dependencies
-        run: pnpm install
-      - name: Build all packages
-        run: pnpm -w -r build
-```
+   ```bash
+   docker compose -f docker-compose.unraid.yml up -d --force-recreate nasmono-home
+   ```
 
-Troubleshooting
+**Home app defaults:** host port **8888**, image `ghcr.io/taygrayfamily/web-home:latest`
 
-- "env: node: No such file or directory" — install Node (and pnpm) on the machine running the commands.
-- Peer dependency errors — inspect package.json `peerDependencies` and align versions across workspace packages or add the dependency at the root.
-- Port conflicts when running many dev servers — set package dev scripts to accept a PORT env var or run them individually.
+Optional per-app overrides: edit `/mnt/user/appdata/nasmono-home/apps.json` (see home README).
 
-## Hooks & Node PATH troubleshooting
+## CI & releases
 
-Git hooks run in non-login, non-interactive shells, so your usual shell init files (like `~/.zshrc`) may not be sourced by hooks and GUI Git clients. If you see `env: node: No such file or directory` when committing, try one of the following:
+| Workflow                                 | Trigger               | Purpose                         |
+| ---------------------------------------- | --------------------- | ------------------------------- |
+| `.github/workflows/ci.yml`               | PR + push to `master` | Format, lint, build, test       |
+| `.github/workflows/release-on-merge.yml` | Push to `master`      | Semver bump, GHCR Docker images |
 
-- Install Node so it's available system-wide (Homebrew on macOS):
+Docker images: `ghcr.io/taygrayfamily/web-{home,game-server,game-hub}:latest`
 
-```bash
-brew install node
-```
+## Adding a new package
 
-- If you use nvm (or asdf), make sure the version manager is initialized for non-interactive shells by adding initialization to `~/.zshenv` (zsh):
+1. Create `packages/my-app/` with `package.json` (`private: true`, `dev`/`build` scripts)
+2. `pnpm install` from root
+3. `pnpm --filter ./packages/my-app dev`
 
-```bash
-# ~/.zshenv
-export NVM_DIR="$HOME/.nvm"
-[ -s "$NVM_DIR/nvm.sh" ] && . "$NVM_DIR/nvm.sh"
-# Optionally add npm global bins
-export PATH="$HOME/.npm-global/bin:/opt/homebrew/bin:$PATH"
-```
+## Troubleshooting
 
-- Run the provided hooks normalization script if you add new hooks:
+- **Node not found in git hooks** — see Husky section below or run `pnpm run husky:normalize`
+- **Port conflicts** — LaunchPad uses 8888; game-server 3001; game-hub 8000
+- **LaunchPad deploy issues** — see [`packages/home/README.md`](packages/home/README.md#troubleshooting)
 
-```bash
-pnpm run husky:normalize
-```
+## Hooks & Node PATH
 
-This repository's top-level hook already tries to source common init scripts and adds typical Homebrew/npm bin paths. If issues persist, follow one of the system-wide fixes above.
-
-## CI Formatting & Linting (example)
-
-The repo includes a GitHub Actions example that runs formatting and build checks on PRs. See `.github/workflows/format-and-lint.yml` for details.
+Git hooks may not see `node` if installed via nvm. Add nvm init to `~/.zshenv`, or install Node system-wide (`brew install node`). Run `pnpm run husky:normalize` after adding hooks.

@@ -28,6 +28,11 @@ function getSource(): DockerSource {
   return source;
 }
 
+/** Clears cached Docker source (integration tests with different env). */
+export function resetDockerSourceCache(): void {
+  source = null;
+}
+
 export function createApiRouter(): Router {
   const r = Router();
 

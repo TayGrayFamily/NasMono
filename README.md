@@ -25,8 +25,9 @@ pnpm install
 pnpm dev:home          # LaunchPad dev server → http://localhost:8888
 pnpm dev:game          # Game Hub UI
 pnpm dev:game-server   # Game server
-pnpm check             # format + lint + build all packages
-pnpm test
+pnpm check             # format + lint + build (fast)
+pnpm test              # vitest in all packages
+pnpm verify            # check + test + home smoke — run before PRs
 ```
 
 ## Local dev (LaunchPad)

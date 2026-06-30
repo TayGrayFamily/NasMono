@@ -71,48 +71,49 @@ Reachability from inside Docker: `*.tower` hostnames often fail DNS. Compose set
 
 ## Build & CI
 
+Three commands — pick by how much signal you need:
+
+| Command       | Speed | What it runs                                        |
+| ------------- | ----- | --------------------------------------------------- |
+| `pnpm check`  | Fast  | format + lint + build                               |
+| `pnpm test`   | Fast  | vitest in all packages                              |
+| `pnpm verify` | Full  | `check` + `test` + home smoke (API + Playwright UI) |
+
+**Agents: run `pnpm verify` before finishing LaunchPad work.**  
+Iterating on home only? `pnpm smoke` (build + API + UI smoke).
+
 ```bash
-pnpm --filter home build   # tsc + vite + tsc server
-pnpm check                 # format + lint + build all
-pnpm verify                # check + tests + home smoke (use before finishing LaunchPad work)
-pnpm smoke:home            # build + API integration + Playwright UI smoke (prod server)
+pnpm --filter home test:e2e   # UI smoke only (needs prior build)
 ```
 
-- CI: `.github/workflows/ci.yml` (lint, format, build, test, home smoke, compose validate, Docker smoke)
+- CI: `.github/workflows/ci.yml` (same as `verify` + Docker smoke + compose validate)
 - Release: `.github/workflows/release-on-merge.yml` → version bump, Docker push to GHCR on merge to `master`
 
 ## Verifying LaunchPad changes (agents)
 
-Use **fixture-based integration tests** so behavior is predictable without Unraid or Docker socket access.
+Fixture-based tests — no Unraid or Docker socket required.
 
-| Command                               | What it checks                                                       |
-| ------------------------------------- | -------------------------------------------------------------------- |
-| `pnpm --filter home test:integration` | Fast API smoke via supertest + fixture containers                    |
-| `pnpm --filter home test:e2e`         | Playwright UI smoke (starts prod server with fixtures)               |
-| `pnpm smoke:home`                     | Full path: build → API integration → Playwright UI on prod server    |
-| `pnpm smoke:home --integration-only`  | API tests only (skip UI; needs prior build for `--skip-build` combo) |
-| `pnpm verify`                         | Format, lint, build, all package tests, home smoke                   |
+| Command                       | Use when                                        |
+| ----------------------------- | ----------------------------------------------- |
+| `pnpm verify`                 | Default — full monorepo gate                    |
+| `pnpm smoke`                  | Home package only — build + API + Playwright UI |
+| `pnpm --filter home test:e2e` | UI only, after `pnpm --filter home build`       |
 
-**Fixture env** (set automatically by vitest config and `scripts/smoke-home.mjs`):
+**First-time:** `pnpm --filter home exec playwright install chromium`
 
-- `DOCKER_FIXTURE_PATH=packages/home/test/fixtures/containers.json` — deterministic homelab containers (running `immich-server`, exited `immich-public-proxy`, etc.)
+**Fixture env** (set automatically by vitest/playwright/smoke scripts):
+
+- `DOCKER_FIXTURE_PATH=packages/home/test/fixtures/containers.json`
 - Clears `UNRAID_API_KEY` / `UNRAID_GRAPHQL_URL` so tests never hit live NAS APIs
 
-**What integration tests assert (app correctness):**
+**What smoke tests assert (app correctness):**
 
 - `GET /api/health` → `{ ok: true }`
-- `GET /api/launchpad` → curated apps joined to fixture containers; Immich matches **running** `immich-server` (not exited proxy); unmatched containers in `otherServices`
-- Override merge via `test/fixtures/apps.override.json` (`enabled: false`, new app id)
+- `GET /api/launchpad` → curated apps joined to fixture containers; Immich matches **running** `immich-server`; unmatched containers in `otherServices`
+- Override merge via `test/fixtures/apps.override.json`
 - `GET /api/reachability` input validation + mocked HTTP probe
-- `config/launchpad.apps.json` passes strict Zod + valid `containerMatch` regex
-
-**Playwright UI smoke** (`test/e2e/launchpad.ui.spec.ts`) runs against the **built prod server** with fixtures:
-
-- Renders curated app tiles (Immich, Jellyfin, Pihole)
-- Running vs `no container` status badges
-- Launch links (`href` to configured URLs)
-- Reachability probe UI (mocked `/api/reachability` responses)
-- System Services collapsible with unmatched `watchtower` container
+- `config/launchpad.apps.json` strict validation
+- Playwright UI: tiles, status badges, launch links, reachability text, System Services section
 
 **Manual spot-check** (optional, after smoke passes):
 

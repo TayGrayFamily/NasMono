@@ -60,7 +60,7 @@ function runPlaywrightE2E() {
 
 async function main() {
   const skipBuild = process.argv.includes('--skip-build');
-  const integrationOnly = process.argv.includes('--integration-only');
+  const integrationOnly = process.argv.includes('--api-only');
 
   if (!skipBuild && !integrationOnly) {
     log('building packages/home…');

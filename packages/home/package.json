@@ -9,9 +9,7 @@
     "start": "node dist-server/prod.js",
     "lint": "eslint .",
     "test": "vitest run",
-    "test:integration": "vitest run test/integration",
     "test:e2e": "playwright test",
-    "smoke": "node ../../scripts/smoke-home.mjs",
     "preview": "vite preview"
   },
   "dependencies": {

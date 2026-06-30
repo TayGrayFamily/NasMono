@@ -1,6 +1,6 @@
 # Architecture Decision Records (ADRs)
 
-Short, durable notes on **why** we made non-obvious choices. For **how things work today**, see [`AGENTS.md`](../../AGENTS.md) and package READMEs.
+Short, durable notes on **why** we made non-obvious choices. For **what we plan to build**, see [`docs/roadmap/`](../roadmap/README.md). For **how things work today**, see [`AGENTS.md`](../../AGENTS.md) and package READMEs.
 
 ## When to write an ADR
 
@@ -30,3 +30,4 @@ Skip ADRs for routine fixes, dependency bumps, and formatting.
 | [0004](./0004-port-8888-home-app.md)               | Port 8888 for home app (dev and container)                 | Accepted | packages/home |
 | [0005](./0005-ghcr-image-names-web-prefix.md)      | GHCR image names use `nasmono-*` prefix (GitHub repo name) | Accepted | docker        |
 | [0006](./0006-minimal-unraid-compose-env.md)       | Minimal Unraid compose env (secrets only)                  | Accepted | docker        |
+| [0007](./0007-game-hub-lobby-first-roadmap.md)     | Game Hub lobby-first roadmap and product direction         | Accepted | game-hub      |

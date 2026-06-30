@@ -72,13 +72,8 @@ services:
       timeout: 5s
       retries: 5
 
-  public-tunnel:
-    image: cloudflare/cloudflared:latest
-    container_name: game_tunnel
-    networks:
-      - game-network
-    command: tunnel --protocol http2 --url http://game_hub_ui:80
-    restart: unless-stopped
+  # public-tunnel removed 2026-06-30 (ADR-0007): LAN-only for friends/family.
+  # To re-enable external access, add cloudflared with Cloudflare Access — do not expose raw.
 
 networks:
   game-network:

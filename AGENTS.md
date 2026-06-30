@@ -139,9 +139,10 @@ Unraid-specific checks (`*.tower` DNS, live GraphQL) stay **out of CI** — run 
 
 - `README.md` — monorepo overview + Unraid deploy summary
 - `docs/decisions/` — **ADRs** (why we chose X); index in `docs/decisions/README.md`
+- `docs/roadmap/` — **roadmaps** (what/when); Game Hub in `docs/roadmap/game-hub.md`
+- `PLANNING.md` — pointer to `docs/roadmap/` (legacy entry point)
 - `packages/home/README.md` — LaunchPad dev, config schema, troubleshooting
-- `ARCHITECTURE.md` — Game Hub Socket.IO only
-- `PLANNING.md` — Game Hub roadmap (future work, not decided)
+- `ARCHITECTURE.md` — Game Hub Socket.IO patterns (how, not backlog)
 
 ## Cursor Cloud specific instructions
 
@@ -149,21 +150,21 @@ Standard commands live in `README.md` / root `package.json` / `packages/home/REA
 
 **Services** (run each from repo root; all use `rolldown-vite`):
 
-| Service     | Command                | Port | Notes                                               |
-| ----------- | ---------------------- | ---- | --------------------------------------------------- |
-| home        | `pnpm dev:home`        | 8888 | LaunchPad dashboard + Express API at `/api`         |
-| game-hub    | `pnpm dev:game`        | 3000 | Vite proxies `/api` + `/socket.io` to game-server   |
-| game-server | `pnpm dev:game-server` | 3001 | Socket.IO + Express; needs Postgres for persistence |
+| Service     | Command                | Port | Notes                                           |
+| ----------- | ---------------------- | ---- | ----------------------------------------------- |
+| home        | `pnpm dev:home`        | 8888 | LaunchPad dashboard + Express API at `/api`     |
+| game stack  | `pnpm dev:game`        | 3000 | Postgres + game-server + game-hub (one command) |
+| game-hub    | `pnpm dev:game-hub`    | 3000 | UI only (server + DB must already be running)   |
+| game-server | `pnpm dev:game-server` | 3001 | API + Socket.IO only                            |
 
 **Node:** active runtime is Node 22; the project targets Node 24 (CI, `Dockerfile`, `.node-version`). Node 22 satisfies `rolldown-vite` and runs all dev/lint/build/test tasks fine. (`.nvmrc` says 20 and is stale.)
 
 **`.env`:** gitignored; copy from `.env.example` for local dev (`cp -n .env.example .env`). `home` runs fine without it (no Unraid creds → tiles show "NO CONTAINER"; reachability still probes external URLs server-side).
 
-**Game stack needs a local Postgres** (system dependency, not installed by `pnpm install`):
+**Game stack (local dev):** `pnpm dev:game` starts Postgres, game-server, and game-hub. Use `pnpm dev:game-hub` or `pnpm dev:game-server` for one service only.
 
-- Start the cluster: `sudo pg_ctlcluster 16 main start` (it is NOT auto-started on VM boot).
-- DB `game_hub` and role `postgres`/`postgres` already exist in the snapshot.
-- `.env.example` defaults `DATABASE_URL` to `localhost:5432` for local dev; compose overrides this with `@db:5432` inside the Docker network.
-- The schema is created **on demand**, not at startup: after game-server is up, run `curl -X POST http://localhost:3001/api/admin/actions/sync-db` once to create tables. Without this, login/lobby calls fail.
+- Postgres: `pnpm start:postgres` if you only need the DB (also run automatically by `dev:game`).
+- DB `game_hub` and role `postgres`/`postgres` match `.env.example`.
+- Schema sync runs automatically when `dev:game` starts the server (admin `sync-db` until P0 startup bootstrap lands).
 
 **Game Hub login** (`PlayerSetup`) calls `VITE_BACKEND_URL` (default `http://localhost:3001`) directly, while Socket.IO connects via the Vite proxy — both must be reachable for the lobby flow to work.

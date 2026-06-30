@@ -2,47 +2,82 @@
 
 ## Purpose
 
-This file serves as a central point for tracking the progress and planned features of the Game Hub project.
+Track progress and planned features for the Game Hub (`packages/game-hub`, `packages/game-server`).
 
-## Production-Readiness Roadmap
+**Product direction:** [ADR-0007](docs/decisions/0007-game-hub-lobby-first-roadmap.md) (**Accepted** — all product questions resolved 2026-06-30).
 
-- **State Management:** Integrate **Redis** (via Socket.IO Redis adapter) to allow horizontal scaling.
-- **Database:** Migrated to **Drizzle ORM** for schema evolution.
-- **Type Safety:** Create a `packages/shared-types` workspace for API/Socket contracts.
-- **Validation:** Use **Zod** for request/event validation.
-- **Authentication:** Move from insecure name-based login to JWT/Session-based system.
+## Product decisions (summary)
 
-## In Progress / Next Steps
+| Topic        | Decision                                                   |
+| ------------ | ---------------------------------------------------------- |
+| Audience     | Friends/family on LAN (`games.tower`); may go public later |
+| First game   | Just One                                                   |
+| Platforms    | Desktop + mobile                                           |
+| Lobby size   | Max 20 (admin may raise later)                             |
+| Join flow    | Auto-join from lobby list card                             |
+| Presence     | Per-lobby connection status only                           |
+| Chat         | Deferred                                                   |
+| Kick players | Host + admin                                               |
+| Session      | Persist user + rejoin lobby on refresh                     |
+| Auth         | Display name only                                          |
+| Game state   | Postgres persistence for crash resume                      |
+| LaunchPad    | Tile → `http://games.tower`                                |
 
-### 1. Login Feature Implementation
+## Current state (2026-06-30)
 
-    *   **Objective:** Enable user authentication, socket connection, and display of connected users.
-    *   **Sub-tasks:**
-        *   **User Authentication (Server & Database):**
-            *   **[COMPLETED]** Design and implement database schema for user accounts (using Drizzle ORM).
-            *   Develop server-side API endpoints for user registration and login.
-            *   Securely store and retrieve user credentials (hashing passwords).
-        *   **Socket Connection Establishment:**
-            *   **[IN PROGRESS]** Integrate WebSocket/Socket.IO server (Refining presence tracking).
-            *   Establish a new socket connection for each authenticated user upon login.
-            *   Handle connection/disconnection events.
-        *   **Connected Users Panel:**
-            *   **Web UX:** Design a side panel to display a list of currently connected users.
-            *   **Mobile UX:** Design an adaptive UI for the connected users list.
+Lobby MVP works in dev: login, lobby CRUD, Socket.IO updates, host transfer. No playable game yet.
 
-### 2. Infrastructure & Scalability
+## Phased roadmap
 
-    *   **Objective:** Improve system reliability and extensibility.
-    *   **Sub-tasks:**
-        *   [ ] Integrate Redis for socket state management.
-        *   [ ] Set up `packages/shared-types` for API/Socket event definitions.
-        *   [ ] Implement Zod validation for all incoming requests and socket events.
+### Phase 0 — Trustworthy lobby (next)
 
-## Completed Tasks
+- [ ] Session persistence + restore last lobby on refresh
+- [ ] Unify API URL strategy (`/api` everywhere)
+- [ ] Auto-apply DB schema on game-server startup
+- [ ] `/api/health` + compose healthcheck
+- [ ] Protect `/debug` and `/api/admin/*` (env-gated)
+- [ ] Fix admin static files in Docker image
+- [ ] Auto-join on lobby card click
+- [ ] Sign-out: disconnect socket + leave lobby
+- [ ] Bind socket actions to identified user
+- [ ] Max lobby size (20)
+- [ ] Kick/remove player (host + admin)
 
-- [x] Database: Initialized Drizzle ORM and refactored manual SQL queries.
-- [x] Tooling: Updated `tsconfig` to support build and skip library checks.
+### Phase 1 — Lobby UX polish
+
+- [ ] Realtime lobby list
+- [ ] Per-lobby player connection indicators
+- [ ] Ready-check before game start
+- [ ] LaunchPad tile (`http://games.tower`)
+
+### Phase 2 — Platform contracts
+
+- [ ] `packages/shared-types`
+- [ ] Zod validation
+- [ ] Drizzle migrations
+- [ ] Playwright smoke tests (after home smoke tests merge)
+
+### Phase 3 — Just One
+
+- [ ] Server-authoritative game state
+- [ ] Postgres game state + crash resume
+- [ ] Game route `/lobbies/:id/game`
+- [ ] Rewrite `packages/just-one`
+
+## Deferred
+
+- Lobby chat
+- Global "who's online" sidebar
+- Redis / multi-instance Socket.IO
+- JWT / password auth (revisit before public deploy)
+
+## Completed
+
+- [x] Drizzle ORM + lobby REST/Socket.IO MVP
+- [x] React UI (login, lobbies, profile)
+- [x] Docker + Unraid compose (LAN-only; tunnel removed)
+- [x] Product roadmap ADR-0007
 
 ---
 
-**Note:** This file should be updated regularly to reflect the current state of the project.
+Update this file when issues close or phases ship.

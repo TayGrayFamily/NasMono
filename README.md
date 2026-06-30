@@ -13,7 +13,9 @@ packages/
   game-server/   # Game Socket.IO server
 docker-compose.unraid.yml
 .env.example
-docs/decisions/     # Architecture Decision Records (ADRs)
+docs/
+  decisions/     # Architecture Decision Records (why)
+  roadmap/       # Product roadmaps and phased plans (what/when)
 ```
 
 ## Scripts (from repo root)
@@ -37,9 +39,13 @@ pnpm dev:home
 
 Details: [`packages/home/README.md`](packages/home/README.md)
 
-## Architecture decisions
+## Architecture decisions & planning
 
-Non-obvious choices are recorded as ADRs in [`docs/decisions/`](docs/decisions/README.md) (LaunchPad config, reachability, ports, Docker images, etc.). Add a new ADR when introducing a decision future contributors might reverse without context.
+- **ADRs** — non-obvious technical choices: [`docs/decisions/`](docs/decisions/README.md)
+- **Roadmaps** — phased product plans and backlog narrative: [`docs/roadmap/`](docs/roadmap/README.md)
+- **Game Hub** — active roadmap: [`docs/roadmap/game-hub.md`](docs/roadmap/game-hub.md) · [ADR-0007](docs/decisions/0007-game-hub-lobby-first-roadmap.md)
+
+Add a new ADR when a decision might be reversed without context. Track implementation in GitHub Issues and the **Game Hub** Project.
 
 ## Deploy on Unraid
 

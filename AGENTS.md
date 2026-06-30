@@ -92,9 +92,10 @@ pnpm check                 # format + lint + build all
 
 - `README.md` — monorepo overview + Unraid deploy summary
 - `docs/decisions/` — **ADRs** (why we chose X); index in `docs/decisions/README.md`
+- `docs/roadmap/` — **roadmaps** (what/when); Game Hub in `docs/roadmap/game-hub.md`
+- `PLANNING.md` — pointer to `docs/roadmap/` (legacy entry point)
 - `packages/home/README.md` — LaunchPad dev, config schema, troubleshooting
-- `ARCHITECTURE.md` — Game Hub Socket.IO only
-- `PLANNING.md` — Game Hub roadmap (future work, not decided)
+- `ARCHITECTURE.md` — Game Hub Socket.IO patterns (how, not backlog)
 
 ## Cursor Cloud specific instructions
 

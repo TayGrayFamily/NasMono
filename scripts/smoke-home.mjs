@@ -22,7 +22,7 @@ function log(message) {
 
 function runVitestIntegration() {
   return new Promise((resolve, reject) => {
-    const child = spawn('pnpm', ['--filter', 'home', 'exec', 'vitest', 'run', 'test/integration'], {
+    const child = spawn('pnpm', ['--filter', 'home', 'test'], {
       cwd: repoRoot,
       stdio: 'inherit',
       env: {
@@ -60,9 +60,11 @@ function runPlaywrightE2E() {
 
 async function main() {
   const skipBuild = process.argv.includes('--skip-build');
-  const integrationOnly = process.argv.includes('--api-only');
+  const apiOnly = process.argv.includes('--api-only');
+  // verify runs `pnpm test` before smoke — skip duplicate API slice
+  const skipApi = skipBuild && !apiOnly;
 
-  if (!skipBuild && !integrationOnly) {
+  if (!skipBuild && !apiOnly) {
     log('building packages/home…');
     await new Promise((resolve, reject) => {
       const child = spawn('pnpm', ['--filter', 'home', 'build'], {
@@ -73,10 +75,12 @@ async function main() {
     });
   }
 
-  log('running API integration tests…');
-  await runVitestIntegration();
+  if (!skipApi) {
+    log('running API integration tests…');
+    await runVitestIntegration();
+  }
 
-  if (!integrationOnly) {
+  if (!apiOnly) {
     if (!fs.existsSync(distServer)) {
       fail(`missing ${distServer} — run pnpm --filter home build first`);
     }

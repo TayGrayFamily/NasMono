@@ -110,7 +110,7 @@ DOCKER_FIXTURE_PATH=packages/home/test/fixtures/containers.json \
   UNRAID_API_KEY= UNRAID_GRAPHQL_URL= pnpm dev:home
 ```
 
-CI runs the same smoke path plus a Docker image build with the fixture volume-mounted.
+CI runs the same Playwright tests in the official Playwright Docker image (no browser install step).
 
 ## Reachability
 

@@ -86,7 +86,7 @@ Iterating on home only? `pnpm smoke` (build + API + UI smoke).
 pnpm --filter home test:e2e   # UI smoke only (needs prior build)
 ```
 
-- CI: `.github/workflows/ci.yml` (same as `verify` + Docker smoke + compose validate)
+- CI: `.github/workflows/ci.yml` — `verify` locally; CI runs build/test + **Playwright in official Docker image** (no browser download) + Docker smoke
 - Release: `.github/workflows/release-on-merge.yml` → version bump, Docker push to GHCR on merge to `master`
 
 ## Verifying LaunchPad changes (agents)
@@ -99,8 +99,8 @@ Fixture-based tests — no Unraid or Docker socket required.
 | `pnpm smoke`                  | Home package only — build + API + Playwright UI |
 | `pnpm --filter home test:e2e` | UI only, after `pnpm --filter home build`       |
 
-First-time locally: `pnpm --filter home exec playwright install chromium`  
-CI caches `~/.cache/ms-playwright` — first run downloads browsers; later runs only install OS deps (~seconds).
+**First-time locally:** `pnpm --filter home exec playwright install chromium`  
+CI uses `mcr.microsoft.com/playwright:v1.57.0-noble` — browsers preinstalled, no `install-deps` apt step.
 
 **Fixture env** (set automatically by vitest/playwright/smoke scripts):
 

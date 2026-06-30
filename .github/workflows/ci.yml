@@ -6,23 +6,29 @@ on:
   push:
     branches: [master]
 
+concurrency:
+  group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+
 permissions:
   contents: read
 
 jobs:
   lint-and-format:
     runs-on: ubuntu-latest
+    timeout-minutes: 10
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
+
+      - name: Install pnpm
+        uses: pnpm/action-setup@v4
 
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
           node-version: '24'
-
-      - name: Install pnpm
-        uses: pnpm/action-setup@v4
+          cache: 'pnpm'
 
       - name: Install dependencies
         run: pnpm install --frozen-lockfile
@@ -36,7 +42,7 @@ jobs:
   build-and-verify:
     name: Build and Verify Artifacts
     runs-on: ubuntu-latest
-    timeout-minutes: 20
+    timeout-minutes: 15
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
@@ -59,16 +65,6 @@ jobs:
       - name: Run tests
         run: pnpm -r test
 
-      - name: Setup Playwright Chromium
-        uses: ./.github/actions/setup-playwright-chromium
-
-      - name: Home integration smoke (API + UI + prod server)
-        run: timeout 10m node scripts/smoke-home.mjs --skip-build
-        env:
-          SMOKE_PORT: 19888
-          SMOKE_TIMEOUT_MS: 600000
-          CI: true
-
       - name: Validate docker-compose.unraid.yml
         run: |
           UNRAID_API_KEY=ci-dummy POSTGRES_PASSWORD=ci-dummy \
@@ -86,6 +82,38 @@ jobs:
             exit 1
           fi
           echo "Build artifacts verified successfully."
+
+  home-e2e:
+    name: Home E2E (Playwright)
+    runs-on: ubuntu-latest
+    needs: build-and-verify
+    timeout-minutes: 10
+    container:
+      image: mcr.microsoft.com/playwright:v1.57.0-noble
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Install pnpm
+        uses: pnpm/action-setup@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+          cache: 'pnpm'
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Build home package
+        run: pnpm --filter home build
+
+      - name: Run Playwright UI smoke
+        run: timeout 8m pnpm --filter home exec playwright test
+        env:
+          SMOKE_PORT: 19888
+          CI: true
 
   docker-smoke:
     name: Docker build smoke (home)
@@ -114,9 +142,11 @@ jobs:
               echo ""
               curl -sf http://127.0.0.1:19889/api/launchpad | head -c 200
               echo ""
+              docker rm -f nasmono-home-smoke
               exit 0
             fi
             sleep 1
           done
           docker logs nasmono-home-smoke
+          docker rm -f nasmono-home-smoke
           exit 1

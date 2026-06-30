@@ -1,0 +1,133 @@
+.unraid-system-card {
+  background: var(--bg-card);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 16px;
+  padding: 20px 24px;
+}
+
+.unraid-system-card-header {
+  margin-bottom: 20px;
+}
+
+.unraid-system-card-title-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 8px;
+}
+
+.unraid-system-card-icon {
+  font-size: 1.25rem;
+  color: var(--color-text-muted);
+}
+
+.unraid-system-card-title {
+  margin: 0;
+  font-size: 1rem;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--color-text);
+}
+
+.unraid-system-card-memory-line,
+.unraid-system-card-cpu-line {
+  margin: 4px 0 0;
+  font-size: 0.85rem;
+  color: var(--color-text-muted);
+}
+
+.unraid-system-card-body {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 24px;
+  align-items: flex-start;
+  justify-content: space-between;
+}
+
+.unraid-system-card-stats {
+  flex: 1 1 220px;
+  min-width: 200px;
+}
+
+.unraid-system-card-dl {
+  margin: 0 0 20px;
+  display: grid;
+  gap: 8px;
+}
+
+.unraid-system-card-dl > div {
+  display: grid;
+  grid-template-columns: 120px 1fr;
+  font-size: 0.875rem;
+}
+
+.unraid-system-card-dl dt {
+  margin: 0;
+  color: var(--color-text-muted);
+}
+
+.unraid-system-card-dl dd {
+  margin: 0;
+  font-weight: 500;
+}
+
+.unraid-system-card-legend-title {
+  margin: 0 0 8px;
+  font-size: 0.7rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--color-text-muted);
+}
+
+.unraid-system-card-legend ul {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.unraid-system-card-legend li {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 0.85rem;
+  color: var(--color-text);
+}
+
+.unraid-system-card-legend li span:last-child {
+  margin-left: auto;
+  color: var(--color-text-muted);
+}
+
+.unraid-system-card-legend-note {
+  font-size: 0.75rem;
+  color: var(--color-text-muted);
+  font-style: italic;
+  padding-left: 18px;
+}
+
+.legend-dot {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+
+.unraid-system-card-gauges {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 20px;
+  justify-content: flex-end;
+  flex: 1 1 320px;
+}
+
+@media (max-width: 768px) {
+  .unraid-system-card-gauges {
+    justify-content: center;
+    width: 100%;
+  }
+}

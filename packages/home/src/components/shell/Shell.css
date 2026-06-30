@@ -52,6 +52,18 @@ body {
   letter-spacing: -0.02em;
 }
 
+.top-menu-start {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+
+.top-menu-link {
+  text-decoration: none;
+  display: inline-flex;
+  align-items: center;
+}
+
 .top-menu-spacer {
   flex: 1;
 }

@@ -1,6 +1,7 @@
 import type { ContainerRow, DockerSource, PublicPortMapping } from './types.js';
 import { mapUnraidState } from './mapDockerState.js';
 import { pickPrimaryPortWithDefaults, primaryIsLoopbackOnly } from './pickPrimaryPort.js';
+import { unraidQuery } from './unraidGraphql.js';
 
 const CONTAINER_QUERY = `
 query NasMonoContainers {
@@ -39,12 +40,9 @@ type GqlContainer = {
 };
 
 type GqlResponse = {
-  data?: {
-    docker: {
-      containers: GqlContainer[];
-    };
+  docker: {
+    containers: GqlContainer[];
   };
-  errors?: { message: string }[];
 };
 
 function stripLeadingSlash(name: string): string {
@@ -52,34 +50,9 @@ function stripLeadingSlash(name: string): string {
 }
 
 export class UnraidDockerSource implements DockerSource {
-  private readonly graphqlUrl: string;
-  private readonly apiKey: string;
-
-  constructor(graphqlUrl: string, apiKey: string) {
-    this.graphqlUrl = graphqlUrl;
-    this.apiKey = apiKey;
-  }
-
   async listContainers(): Promise<ContainerRow[]> {
-    const res = await fetch(this.graphqlUrl, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'x-api-key': this.apiKey,
-      },
-      body: JSON.stringify({ query: CONTAINER_QUERY }),
-    });
-
-    if (!res.ok) {
-      throw new Error(`Unraid GraphQL HTTP ${res.status}: ${await res.text()}`);
-    }
-
-    const body = (await res.json()) as GqlResponse;
-    if (body.errors?.length) {
-      throw new Error(body.errors.map((e) => e.message).join('; '));
-    }
-
-    const containers = body.data?.docker?.containers ?? [];
+    const { data } = await unraidQuery<GqlResponse>(CONTAINER_QUERY);
+    const containers = data.docker?.containers ?? [];
 
     return containers.map((c) => {
       const publicPorts: PublicPortMapping[] = (c.ports ?? [])

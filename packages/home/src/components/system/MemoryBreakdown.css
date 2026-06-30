@@ -1,0 +1,71 @@
+.memory-accounting {
+  margin-bottom: 10px;
+}
+
+.memory-accounting-totals {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 8px;
+  margin: 0 0 8px;
+}
+
+.memory-accounting-totals div {
+  padding: 8px 10px;
+  border-radius: 8px;
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid rgba(255, 255, 255, 0.06);
+}
+
+.memory-accounting-totals dt {
+  margin: 0 0 2px;
+  font-size: 0.62rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--color-text-muted);
+}
+
+.memory-accounting-totals dd {
+  margin: 0;
+  font-size: 0.95rem;
+  font-weight: 700;
+  color: var(--color-text);
+  font-variant-numeric: tabular-nums;
+}
+
+.memory-accounting-bar {
+  display: flex;
+  height: 8px;
+  border-radius: 999px;
+  overflow: hidden;
+  background: rgba(255, 255, 255, 0.06);
+  margin-bottom: 8px;
+}
+
+.memory-accounting-bar-inuse {
+  background: var(--status-yellow);
+  min-width: 2px;
+}
+
+.memory-accounting-bar-avail {
+  background: var(--status-green);
+  min-width: 2px;
+}
+
+.memory-accounting-note {
+  margin: 0;
+  font-size: 0.72rem;
+  line-height: 1.45;
+  color: var(--color-text-muted);
+}
+
+.memory-accounting-note strong {
+  font-weight: 600;
+  color: var(--color-text);
+}
+
+@media (max-width: 520px) {
+  .memory-accounting-totals {
+    grid-template-columns: 1fr;
+  }
+}

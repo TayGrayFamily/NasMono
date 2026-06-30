@@ -57,6 +57,16 @@ jobs:
       - name: Run tests
         run: pnpm -r test
 
+      - name: Home integration smoke (API + prod server)
+        run: node scripts/smoke-home.mjs --skip-build
+        env:
+          SMOKE_PORT: 19888
+
+      - name: Validate docker-compose.unraid.yml
+        run: |
+          UNRAID_API_KEY=ci-dummy POSTGRES_PASSWORD=ci-dummy \
+            docker compose -f docker-compose.unraid.yml config --quiet
+
       - name: Verify Release Artifacts (packages/home)
         run: |
           echo "Verifying build output for packages/home..."
@@ -69,3 +79,35 @@ jobs:
             exit 1
           fi
           echo "Build artifacts verified successfully."
+
+  docker-smoke:
+    name: Docker build smoke (home)
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Build home Docker image
+        run: docker build -f packages/home/Dockerfile -t nasmono-home-ci .
+
+      - name: Run container health smoke
+        run: |
+          docker run -d --name nasmono-home-smoke \
+            -p 19889:8888 \
+            -v "$PWD/packages/home/test/fixtures:/app/test-fixtures:ro" \
+            -e DOCKER_FIXTURE_PATH=/app/test-fixtures/containers.json \
+            -e UNRAID_API_KEY= \
+            -e UNRAID_GRAPHQL_URL= \
+            -e DOCKER_SOCKET_PATH=null \
+            nasmono-home-ci
+          for i in $(seq 1 30); do
+            if curl -sf http://127.0.0.1:19889/api/health; then
+              echo ""
+              curl -sf http://127.0.0.1:19889/api/launchpad | head -c 200
+              echo ""
+              exit 0
+            fi
+            sleep 1
+          done
+          docker logs nasmono-home-smoke
+          exit 1

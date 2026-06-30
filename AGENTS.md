@@ -74,10 +74,46 @@ Reachability from inside Docker: `*.tower` hostnames often fail DNS. Compose set
 ```bash
 pnpm --filter home build   # tsc + vite + tsc server
 pnpm check                 # format + lint + build all
+pnpm verify                # check + tests + home smoke (use before finishing LaunchPad work)
+pnpm smoke:home            # build + API integration + prod server smoke
 ```
 
-- CI: `.github/workflows/ci.yml` (lint, format, build, test)
+- CI: `.github/workflows/ci.yml` (lint, format, build, test, home smoke, compose validate, Docker smoke)
 - Release: `.github/workflows/release-on-merge.yml` → version bump, Docker push to GHCR on merge to `master`
+
+## Verifying LaunchPad changes (agents)
+
+Use **fixture-based integration tests** so behavior is predictable without Unraid or Docker socket access.
+
+| Command                               | What it checks                                                                |
+| ------------------------------------- | ----------------------------------------------------------------------------- |
+| `pnpm --filter home test:integration` | Fast API smoke via supertest + fixture containers                             |
+| `pnpm smoke:home`                     | Full path: build → integration tests → prod `dist-server` + static HTML       |
+| `pnpm smoke:home --integration-only`  | API tests only (skip prod server; needs prior build for `--skip-build` combo) |
+| `pnpm verify`                         | Format, lint, build, all package tests, home smoke                            |
+
+**Fixture env** (set automatically by vitest config and `scripts/smoke-home.mjs`):
+
+- `DOCKER_FIXTURE_PATH=packages/home/test/fixtures/containers.json` — deterministic homelab containers (running `immich-server`, exited `immich-public-proxy`, etc.)
+- Clears `UNRAID_API_KEY` / `UNRAID_GRAPHQL_URL` so tests never hit live NAS APIs
+
+**What integration tests assert (app correctness):**
+
+- `GET /api/health` → `{ ok: true }`
+- `GET /api/launchpad` → curated apps joined to fixture containers; Immich matches **running** `immich-server` (not exited proxy); unmatched containers in `otherServices`
+- Override merge via `test/fixtures/apps.override.json` (`enabled: false`, new app id)
+- `GET /api/reachability` input validation + mocked HTTP probe
+- `config/launchpad.apps.json` passes strict Zod + valid `containerMatch` regex
+
+**Manual spot-check** (optional, after smoke passes):
+
+```bash
+DOCKER_FIXTURE_PATH=packages/home/test/fixtures/containers.json \
+  UNRAID_API_KEY= UNRAID_GRAPHQL_URL= pnpm dev:home
+# open http://localhost:8888 — tiles should reflect fixture container states
+```
+
+Unraid-specific checks (`*.tower` DNS, live GraphQL) stay **out of CI** — run on the NAS after deploy.
 
 ## Conventions
 

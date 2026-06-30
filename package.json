@@ -10,6 +10,8 @@
     "dev:game": "cd packages/game-hub && pnpm run dev",
     "dev:game-server": "cd packages/game-server && pnpm run dev",
     "check": "pnpm format:check && pnpm lint && pnpm -r build",
+    "verify": "pnpm format:check && pnpm lint && pnpm -r build && pnpm -r test && node scripts/smoke-home.mjs --skip-build",
+    "smoke:home": "node scripts/smoke-home.mjs",
     "build": "pnpm -r run build",
     "bootstrap": "pnpm -w install",
     "lint": "pnpm -r run lint",

@@ -87,6 +87,28 @@ Icons live in `public/static/`.
 
 See `config/launchpad.apps.example.json` for override examples.
 
+## Testing & smoke checks
+
+Predictable integration tests use fixture containers — no Unraid or Docker socket required.
+
+```bash
+# From repo root
+pnpm smoke:home                    # build + API tests + prod server smoke
+pnpm --filter home test:integration   # fast API-only checks
+
+# From packages/home after build
+pnpm smoke -- --integration-only
+```
+
+Fixtures live in `test/fixtures/containers.json` (homelab-like stack with running `immich-server`, exited `immich-public-proxy`, etc.). Set `DOCKER_FIXTURE_PATH` to that file to get deterministic LaunchPad tiles in dev:
+
+```bash
+DOCKER_FIXTURE_PATH=packages/home/test/fixtures/containers.json \
+  UNRAID_API_KEY= UNRAID_GRAPHQL_URL= pnpm dev:home
+```
+
+CI runs the same smoke path plus a Docker image build with the fixture volume-mounted.
+
 ## Reachability
 
 Probes run **from the server**, not the browser (avoids CORS).

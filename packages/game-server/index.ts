@@ -162,8 +162,12 @@ export async function initializeServer() {
       }
     });
 
-  process.on('uncaughtException', (err) => logEvent('error', 'uncaughtException', { error: String(err) }));
-  process.on('unhandledRejection', (err) => logEvent('error', 'unhandledRejection', { error: String(err) }));
+  process.on('uncaughtException', (err) =>
+    logEvent('error', 'uncaughtException', { error: String(err) }),
+  );
+  process.on('unhandledRejection', (err) =>
+    logEvent('error', 'unhandledRejection', { error: String(err) }),
+  );
 }
 
 if (process.env.NODE_ENV !== 'test') {

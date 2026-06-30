@@ -167,12 +167,4 @@ export function isDatabaseReady(): boolean {
   return dbStatus === 'Schema OK';
 }
 
-export {
-  setupDatabase,
-  getDbClient,
-  pool,
-  db,
-  dbStatus,
-  dbConnectionError,
-  findOrCreateUser,
-};
+export { setupDatabase, getDbClient, pool, db, dbStatus, dbConnectionError, findOrCreateUser };

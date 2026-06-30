@@ -8,20 +8,20 @@ Track progress and planned features for the Game Hub (`packages/game-hub`, `pack
 
 ## Product decisions (summary)
 
-| Topic | Decision |
-|-------|----------|
-| Audience | Friends/family on LAN (`games.tower`); may go public later |
-| First game | Just One |
-| Platforms | Desktop + mobile |
-| Lobby size | Max 20 (admin may raise later) |
-| Join flow | Auto-join from lobby list card |
-| Presence | Per-lobby connection status only |
-| Chat | Deferred |
-| Kick players | Host + admin |
-| Session | Persist user + rejoin lobby on refresh |
-| Auth | Display name only |
-| Game state | Postgres persistence for crash resume |
-| LaunchPad | Tile → `http://games.tower` |
+| Topic        | Decision                                                   |
+| ------------ | ---------------------------------------------------------- |
+| Audience     | Friends/family on LAN (`games.tower`); may go public later |
+| First game   | Just One                                                   |
+| Platforms    | Desktop + mobile                                           |
+| Lobby size   | Max 20 (admin may raise later)                             |
+| Join flow    | Auto-join from lobby list card                             |
+| Presence     | Per-lobby connection status only                           |
+| Chat         | Deferred                                                   |
+| Kick players | Host + admin                                               |
+| Session      | Persist user + rejoin lobby on refresh                     |
+| Auth         | Display name only                                          |
+| Game state   | Postgres persistence for crash resume                      |
+| LaunchPad    | Tile → `http://games.tower`                                |
 
 ## Current state (2026-06-30)
 

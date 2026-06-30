@@ -16,9 +16,23 @@ import { SocketProvider, useSocket } from './components/SocketContext';
 import { Header } from './components/layout/Header';
 import './index.css';
 
+const USER_STORAGE_KEY = 'game-hub-user';
+
 interface User {
   id: string;
   name: string;
+}
+
+function loadStoredUser(): User | null {
+  try {
+    const raw = localStorage.getItem(USER_STORAGE_KEY);
+    if (!raw) return null;
+    const parsed = JSON.parse(raw) as User;
+    if (parsed?.id && parsed?.name) return parsed;
+  } catch {
+    // ignore corrupt storage
+  }
+  return null;
 }
 
 function AppContent({
@@ -150,15 +164,22 @@ function AppContent({
           marginTop: 'auto',
         }}
       >
-        v{import.meta.env.VITE_APP_VERSION || '0.0.0'} •{' '}
-        {isConnected ? 'Connected' : 'Disconnected'}
+        v{__APP_VERSION__} • {isConnected ? 'Connected' : 'Disconnected'}
       </footer>
     </div>
   );
 }
 
 function App() {
-  const [currentUser, setCurrentUser] = useState<User | null>(null);
+  const [currentUser, setCurrentUser] = useState<User | null>(() => loadStoredUser());
+
+  useEffect(() => {
+    if (currentUser) {
+      localStorage.setItem(USER_STORAGE_KEY, JSON.stringify(currentUser));
+    } else {
+      localStorage.removeItem(USER_STORAGE_KEY);
+    }
+  }, [currentUser]);
 
   const handleUserCreated = (user: User) => {
     setCurrentUser(user);

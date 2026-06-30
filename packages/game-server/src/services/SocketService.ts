@@ -23,11 +23,19 @@ export class SocketService {
       });
 
       socket.on('join_lobby_room', (data: { lobbyId: string; userId: string }) => {
-        if (data.lobbyId && data.userId) {
-          socket.join(data.lobbyId);
-          this.handleUserIdentification(socket, data.userId);
-          console.log(`User ${data.userId} joined lobby room ${data.lobbyId}`);
+        if (!data.lobbyId || !data.userId) return;
+
+        const identifiedUserId = this.socketToUserMap.get(socket.id);
+        if (identifiedUserId && identifiedUserId !== data.userId) {
+          console.warn(
+            `Rejected join_lobby_room: socket ${socket.id} is identified as ${identifiedUserId}, not ${data.userId}`,
+          );
+          return;
         }
+
+        socket.join(data.lobbyId);
+        this.handleUserIdentification(socket, data.userId);
+        console.log(`User ${data.userId} joined lobby room ${data.lobbyId}`);
       });
 
       socket.on('disconnect', (reason) => {
@@ -144,6 +152,10 @@ export class SocketService {
       connectedUsers: Array.from(this.userSocketMap.keys()),
       connectionDetails,
     };
+  }
+
+  getUserIdForSocket(socketId: string): string | undefined {
+    return this.socketToUserMap.get(socketId);
   }
 
   getIo() {

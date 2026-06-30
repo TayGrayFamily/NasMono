@@ -23,9 +23,7 @@ function PlayerSetup({ onUserCreated }: PlayerSetupProps) {
     setError(null);
     setIsLoading(true);
 
-    const backendUrl = import.meta.env.VITE_BACKEND_URL || 'http://localhost:3001';
-
-    fetch(`${backendUrl}/api/login`, {
+    fetch('/api/login', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ name: userName }),

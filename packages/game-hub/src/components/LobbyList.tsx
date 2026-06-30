@@ -2,6 +2,8 @@ import React, { useState } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { LoadingButton } from './ui/LoadingButton';
 import { useScreenMode } from '../hooks/useScreenMode';
+import { useSocket } from './SocketContext';
+import { apiFetch } from '../lib/api';
 
 interface Lobby {
   id: string;
@@ -15,6 +17,7 @@ interface LobbyListProps {
 }
 
 function LobbyList({ currentUserId, onSelectLobby }: LobbyListProps) {
+  const socket = useSocket();
   const [newLobbyName, setNewLobbyName] = useState('');
   const [error, setError] = useState<string | null>(null);
   const queryClient = useQueryClient();
@@ -35,11 +38,15 @@ function LobbyList({ currentUserId, onSelectLobby }: LobbyListProps) {
 
   const createLobbyMutation = useMutation({
     mutationFn: async (name: string) => {
-      const res = await fetch('/api/lobbies', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ name, userId: currentUserId }),
-      });
+      const res = await apiFetch(
+        '/api/lobbies',
+        {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ name, userId: currentUserId }),
+        },
+        socket.id,
+      );
       if (!res.ok) throw new Error('Failed to create lobby');
       return res.json();
     },

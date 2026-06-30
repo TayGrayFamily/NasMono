@@ -7,8 +7,10 @@
   "scripts": {
     "ready": "pnpm format && pnpm lint && pnpm verify",
     "dev:home": "cd packages/home && pnpm run dev",
-    "dev:game": "cd packages/game-hub && pnpm run dev",
-    "dev:game-server": "cd packages/game-server && pnpm run dev",
+    "dev:game": "bash scripts/dev-game.sh",
+    "dev:game-hub": "pnpm --filter game-hub dev",
+    "dev:game-server": "pnpm --filter game-server dev",
+    "start:postgres": "bash scripts/start-postgres-dev.sh",
     "check": "pnpm format:check && pnpm lint && pnpm -r build",
     "test": "pnpm -r run test",
     "verify": "pnpm check && pnpm test && node scripts/smoke-home.mjs --skip-build",

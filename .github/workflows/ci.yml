@@ -57,10 +57,14 @@ jobs:
       - name: Run tests
         run: pnpm -r test
 
-      - name: Home integration smoke (API + prod server)
+      - name: Install Playwright Chromium
+        run: pnpm --filter home exec playwright install --with-deps chromium
+
+      - name: Home integration smoke (API + UI + prod server)
         run: node scripts/smoke-home.mjs --skip-build
         env:
           SMOKE_PORT: 19888
+          CI: true
 
       - name: Validate docker-compose.unraid.yml
         run: |
@@ -95,6 +99,7 @@ jobs:
           docker run -d --name nasmono-home-smoke \
             -p 19889:8888 \
             -v "$PWD/packages/home/test/fixtures:/app/test-fixtures:ro" \
+            -e PORT=8888 \
             -e DOCKER_FIXTURE_PATH=/app/test-fixtures/containers.json \
             -e UNRAID_API_KEY= \
             -e UNRAID_GRAPHQL_URL= \

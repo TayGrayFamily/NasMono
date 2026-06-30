@@ -75,7 +75,7 @@ Reachability from inside Docker: `*.tower` hostnames often fail DNS. Compose set
 pnpm --filter home build   # tsc + vite + tsc server
 pnpm check                 # format + lint + build all
 pnpm verify                # check + tests + home smoke (use before finishing LaunchPad work)
-pnpm smoke:home            # build + API integration + prod server smoke
+pnpm smoke:home            # build + API integration + Playwright UI smoke (prod server)
 ```
 
 - CI: `.github/workflows/ci.yml` (lint, format, build, test, home smoke, compose validate, Docker smoke)
@@ -85,12 +85,13 @@ pnpm smoke:home            # build + API integration + prod server smoke
 
 Use **fixture-based integration tests** so behavior is predictable without Unraid or Docker socket access.
 
-| Command                               | What it checks                                                                |
-| ------------------------------------- | ----------------------------------------------------------------------------- |
-| `pnpm --filter home test:integration` | Fast API smoke via supertest + fixture containers                             |
-| `pnpm smoke:home`                     | Full path: build → integration tests → prod `dist-server` + static HTML       |
-| `pnpm smoke:home --integration-only`  | API tests only (skip prod server; needs prior build for `--skip-build` combo) |
-| `pnpm verify`                         | Format, lint, build, all package tests, home smoke                            |
+| Command                               | What it checks                                                       |
+| ------------------------------------- | -------------------------------------------------------------------- |
+| `pnpm --filter home test:integration` | Fast API smoke via supertest + fixture containers                    |
+| `pnpm --filter home test:e2e`         | Playwright UI smoke (starts prod server with fixtures)               |
+| `pnpm smoke:home`                     | Full path: build → API integration → Playwright UI on prod server    |
+| `pnpm smoke:home --integration-only`  | API tests only (skip UI; needs prior build for `--skip-build` combo) |
+| `pnpm verify`                         | Format, lint, build, all package tests, home smoke                   |
 
 **Fixture env** (set automatically by vitest config and `scripts/smoke-home.mjs`):
 
@@ -104,6 +105,14 @@ Use **fixture-based integration tests** so behavior is predictable without Unrai
 - Override merge via `test/fixtures/apps.override.json` (`enabled: false`, new app id)
 - `GET /api/reachability` input validation + mocked HTTP probe
 - `config/launchpad.apps.json` passes strict Zod + valid `containerMatch` regex
+
+**Playwright UI smoke** (`test/e2e/launchpad.ui.spec.ts`) runs against the **built prod server** with fixtures:
+
+- Renders curated app tiles (Immich, Jellyfin, Pihole)
+- Running vs `no container` status badges
+- Launch links (`href` to configured URLs)
+- Reachability probe UI (mocked `/api/reachability` responses)
+- System Services collapsible with unmatched `watchtower` container
 
 **Manual spot-check** (optional, after smoke passes):
 

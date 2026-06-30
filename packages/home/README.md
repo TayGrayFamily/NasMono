@@ -93,14 +93,19 @@ Predictable integration tests use fixture containers — no Unraid or Docker soc
 
 ```bash
 # From repo root
-pnpm smoke:home                    # build + API tests + prod server smoke
-pnpm --filter home test:integration   # fast API-only checks
+pnpm smoke:home                         # build + API tests + Playwright UI smoke
+pnpm --filter home test:integration     # fast API-only checks
+pnpm --filter home test:e2e             # Playwright UI only (needs prior build)
 
 # From packages/home after build
 pnpm smoke -- --integration-only
 ```
 
+Playwright drives a real browser against the **prod server** (`dist-server/prod.js`) with fixture containers. `/api/reachability` is mocked in tests so probes succeed without homelab network access.
+
 Fixtures live in `test/fixtures/containers.json` (homelab-like stack with running `immich-server`, exited `immich-public-proxy`, etc.). Set `DOCKER_FIXTURE_PATH` to that file to get deterministic LaunchPad tiles in dev:
+
+**First-time setup:** `pnpm --filter home exec playwright install chromium` (CI installs via `--with-deps`).
 
 ```bash
 DOCKER_FIXTURE_PATH=packages/home/test/fixtures/containers.json \

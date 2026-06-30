@@ -48,7 +48,7 @@ export async function createApp() {
     res.json({ ok: true, db: dbStatus });
   });
   apiRouter.use('/lobbies', createLobbyRouter(lobbyService, socketService));
-  apiRouter.use('/admin', requireAdminEnabled, createAdminRouter());
+  apiRouter.use('/admin', requireAdminEnabled, createAdminRouter(socketService));
   apiRouter.use('/', createUserRouter(userService)); // login and users/:id
 
   app.use('/api', apiRouter);

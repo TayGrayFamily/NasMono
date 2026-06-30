@@ -95,3 +95,28 @@ pnpm check                 # format + lint + build all
 - `packages/home/README.md` — LaunchPad dev, config schema, troubleshooting
 - `ARCHITECTURE.md` — Game Hub Socket.IO only
 - `PLANNING.md` — Game Hub roadmap (future work, not decided)
+
+## Cursor Cloud specific instructions
+
+Standard commands live in `README.md` / root `package.json` / `packages/home/README.md`; only the non-obvious caveats are below. `pnpm install` is the only startup dependency step (run automatically).
+
+**Services** (run each from repo root; all use `rolldown-vite`):
+
+| Service     | Command                | Port | Notes                                               |
+| ----------- | ---------------------- | ---- | --------------------------------------------------- |
+| home        | `pnpm dev:home`        | 8888 | LaunchPad dashboard + Express API at `/api`         |
+| game-hub    | `pnpm dev:game`        | 3000 | Vite proxies `/api` + `/socket.io` to game-server   |
+| game-server | `pnpm dev:game-server` | 3001 | Socket.IO + Express; needs Postgres for persistence |
+
+**Node:** active runtime is Node 22; the project targets Node 24 (CI, `Dockerfile`, `.node-version`). Node 22 satisfies `rolldown-vite` and runs all dev/lint/build/test tasks fine. (`.nvmrc` says 20 and is stale.)
+
+**`.env`:** gitignored; copy from `.env.example` for local dev (`cp -n .env.example .env`). `home` runs fine without it (no Unraid creds → tiles show "NO CONTAINER"; reachability still probes external URLs server-side).
+
+**Game stack needs a local Postgres** (system dependency, not installed by `pnpm install`):
+
+- Start the cluster: `sudo pg_ctlcluster 16 main start` (it is NOT auto-started on VM boot).
+- DB `game_hub` and role `postgres`/`postgres` already exist in the snapshot.
+- In `.env`, set `DATABASE_URL=postgresql://postgres:postgres@localhost:5432/game_hub` — the `.env.example` default points at host `db:5432`, which only resolves inside the compose network, not in local dev.
+- The schema is created **on demand**, not at startup: after game-server is up, run `curl -X POST http://localhost:3001/api/admin/actions/sync-db` once to create tables. Without this, login/lobby calls fail.
+
+**Game Hub login** (`PlayerSetup`) calls `VITE_BACKEND_URL` (default `http://localhost:3001`) directly, while Socket.IO connects via the Vite proxy — both must be reachable for the lobby flow to work.

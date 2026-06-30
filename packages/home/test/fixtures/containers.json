@@ -1,0 +1,88 @@
+[
+  {
+    "id": "fixture-immich-proxy",
+    "name": "immich-public-proxy",
+    "state": "exited",
+    "statusText": "Exited (0) 2 days ago",
+    "image": "ghcr.io/immich-app/immich-server:release",
+    "publicPorts": [],
+    "primaryPort": null,
+    "primaryPortLoopbackOnly": false
+  },
+  {
+    "id": "fixture-immich-server",
+    "name": "immich-server",
+    "state": "running",
+    "statusText": "Up 3 days",
+    "image": "ghcr.io/immich-app/immich-server:release",
+    "publicPorts": [
+      {
+        "hostPort": 2283,
+        "containerPort": 2283,
+        "protocol": "tcp",
+        "hostIp": "0.0.0.0"
+      }
+    ],
+    "primaryPort": {
+      "hostPort": 2283,
+      "containerPort": 2283,
+      "protocol": "tcp",
+      "hostIp": "0.0.0.0"
+    },
+    "primaryPortLoopbackOnly": false
+  },
+  {
+    "id": "fixture-jellyfin",
+    "name": "jellyfin",
+    "state": "running",
+    "statusText": "Up 1 week",
+    "image": "jellyfin/jellyfin:latest",
+    "publicPorts": [
+      {
+        "hostPort": 8096,
+        "containerPort": 8096,
+        "protocol": "tcp",
+        "hostIp": "0.0.0.0"
+      }
+    ],
+    "primaryPort": {
+      "hostPort": 8096,
+      "containerPort": 8096,
+      "protocol": "tcp",
+      "hostIp": "0.0.0.0"
+    },
+    "primaryPortLoopbackOnly": false
+  },
+  {
+    "id": "fixture-pihole",
+    "name": "binhex-official-pihole",
+    "state": "running",
+    "statusText": "Up 5 days (healthy)",
+    "image": "binhex/arch-pihole:latest",
+    "publicPorts": [
+      {
+        "hostPort": 5380,
+        "containerPort": 80,
+        "protocol": "tcp",
+        "hostIp": "0.0.0.0"
+      }
+    ],
+    "primaryPort": {
+      "hostPort": 5380,
+      "containerPort": 80,
+      "protocol": "tcp",
+      "hostIp": "0.0.0.0"
+    },
+    "primaryPortLoopbackOnly": false
+  },
+  {
+    "id": "fixture-watchtower",
+    "name": "watchtower",
+    "state": "running",
+    "statusText": "Up 2 days",
+    "image": "containrrr/watchtower:latest",
+    "publicPorts": [],
+    "primaryPort": null,
+    "primaryPortLoopbackOnly": false
+  }
+]

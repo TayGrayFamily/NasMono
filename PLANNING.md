@@ -4,7 +4,15 @@
 
 Track progress and planned features for the Game Hub (`packages/game-hub`, `packages/game-server`).
 
-**Product direction:** See [ADR-0007: Game Hub lobby-first roadmap](docs/decisions/0007-game-hub-lobby-first-roadmap.md) for phased delivery, open questions, and GitHub issue breakdown.
+**Product direction:** See [ADR-0007: Game Hub lobby-first roadmap](docs/decisions/0007-game-hub-lobby-first-roadmap.md) (**Accepted**).
+
+### Product decisions (2026-06-30)
+
+- **Audience:** Friends and family on the home LAN (may go public later)
+- **Access:** LAN-only — `public-tunnel` removed from compose
+- **First game:** Just One
+- **Platforms:** Desktop + mobile from v1
+- **Lobby size:** Default max 20 players; admin setting to raise later
 
 ## Current state (2026-06-30)
 
@@ -23,6 +31,7 @@ Lobby MVP is functional in development: name-based login, lobby CRUD, Socket.IO 
 - [ ] Fix lobby card join UX
 - [ ] Sign-out: disconnect socket + leave lobby
 - [ ] Bind socket actions to identified user (anti-spoof)
+- [ ] Enforce max lobby size (default 20)
 
 ### Phase 1 — Lobby UX polish
 
@@ -39,12 +48,12 @@ Lobby MVP is functional in development: name-based login, lobby CRUD, Socket.IO 
 - [ ] Drizzle migrations (replace raw SQL bootstrap)
 - [ ] Game Hub Playwright smoke tests (after home smoke tests merge)
 
-### Phase 3 — First game
+### Phase 3 — First game (Just One)
 
 - [ ] Server-authoritative game state in game-server
 - [ ] Game route in game-hub (`/lobbies/:id/game`)
 - [ ] Game socket namespace or event prefix
-- [ ] Integrate or replace `packages/just-one`
+- [ ] Integrate Just One (`packages/just-one` rewrite)
 
 ## Deferred (not blocking v1)
 

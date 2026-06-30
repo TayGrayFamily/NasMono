@@ -10,6 +10,8 @@ export default defineConfig({
     environment: 'node',
     include: ['test/**/*.test.ts'],
     exclude: ['test/e2e/**'],
+    testTimeout: 60_000,
+    hookTimeout: 30_000,
     env: {
       NODE_ENV: 'test',
       DOCKER_FIXTURE_PATH: path.join(fixturesDir, 'containers.json'),

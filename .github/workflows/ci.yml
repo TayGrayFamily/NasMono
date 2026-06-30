@@ -36,6 +36,7 @@ jobs:
   build-and-verify:
     name: Build and Verify Artifacts
     runs-on: ubuntu-latest
+    timeout-minutes: 20
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
@@ -62,9 +63,10 @@ jobs:
         uses: ./.github/actions/setup-playwright-chromium
 
       - name: Home integration smoke (API + UI + prod server)
-        run: node scripts/smoke-home.mjs --skip-build
+        run: timeout 10m node scripts/smoke-home.mjs --skip-build
         env:
           SMOKE_PORT: 19888
+          SMOKE_TIMEOUT_MS: 600000
           CI: true
 
       - name: Validate docker-compose.unraid.yml
@@ -88,6 +90,7 @@ jobs:
   docker-smoke:
     name: Docker build smoke (home)
     runs-on: ubuntu-latest
+    timeout-minutes: 10
     steps:
       - name: Checkout code
         uses: actions/checkout@v4

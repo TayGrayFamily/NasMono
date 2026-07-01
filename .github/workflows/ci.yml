@@ -156,7 +156,7 @@ jobs:
         run: timeout 12m node scripts/smoke-game.mjs
         env:
           CI: true
-          DATABASE_URL: postgresql://postgres:postgres@localhost:5432/game_hub
+          DATABASE_URL: postgresql://postgres:postgres@postgres:5432/game_hub
           SMOKE_GAME_SERVER_PORT: 30901
           SMOKE_GAME_HUB_PORT: 30900
 

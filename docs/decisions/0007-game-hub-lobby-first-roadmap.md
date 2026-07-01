@@ -33,23 +33,27 @@ Access is **LAN-only** via `http://games.tower` (and port 8000 on the NAS). The 
 
 ### Current capability inventory
 
-| Area      | Works today                                   | Gaps                                                             |
-| --------- | --------------------------------------------- | ---------------------------------------------------------------- |
-| Identity  | Find-or-create by unique display name         | No session persistence; refresh loses user                       |
-| Lobbies   | Create, list, join, leave, host transfer      | Card click does not auto-join; no kick                           |
-| Realtime  | Socket room per lobby; disconnect cleanup     | No per-player connection indicator                               |
-| Games     | —                                             | `just-one` stub not integrated; no Postgres game state           |
-| Ops       | Docker images, compose stack, admin GUI (dev) | Schema not auto-applied on boot; admin missing from Docker image |
-| Discovery | `games.tower` planned                         | No LaunchPad tile yet                                            |
+| Area      | Works today                                                                          | Gaps                                                                                    |
+| --------- | ------------------------------------------------------------------------------------ | --------------------------------------------------------------------------------------- |
+| Identity  | Find-or-create by unique display name; `localStorage` session restore                | —                                                                                       |
+| Lobbies   | Create, list, auto-join from card, join, leave, host transfer; leader+count on cards | Kick/remove deferred per [ADR-0009](./0009-game-hub-lobby-ux.md); max size not enforced |
+| Realtime  | Socket room per lobby; **soft disconnect** (presence, no DB leave on drop)           | Realtime lobby list (P1)                                                                |
+| Games     | —                                                                                    | `just-one` stub not integrated; no Postgres game state                                  |
+| Ops       | Docker images, compose stack, admin GUI (dev), `/api/health`                         | Admin static files in Docker image (verify on deploy)                                   |
+| Discovery | `games.tower` planned                                                                | No LaunchPad tile yet                                                                   |
+
+See [ADR-0009](./0009-game-hub-lobby-ux.md) for lobby UX and presence model (2026-07-01).
 
 ### UX friction observed (code review)
 
-1. **Session loss on refresh** — `currentUser` is React state only.
-2. **Split API base URLs** — login uses `VITE_BACKEND_URL`; lobby screens use relative `/api`.
-3. **Lobby card "Join"** — navigates without joining.
-4. **"N Online" badge** — counts members, not socket-connected players.
-5. **Sign out** — does not disconnect socket or leave lobby.
-6. **Version display** — `__APP_VERSION__` vs `VITE_APP_VERSION` mismatch.
+_Resolved in ADR-0009 / P0 implementation — kept for history:_
+
+1. ~~**Session loss on refresh**~~ — user persisted in `localStorage`; lobby restore via `game-hub-last-lobby`.
+2. ~~**Split API base URLs**~~ — relative `/api` throughout.
+3. ~~**Lobby card "Join"**~~ — auto-join on card click.
+4. ~~**"N Online" badge**~~ — presence dots + honest player counts.
+5. ~~**Sign out**~~ — leaves lobby, disconnects socket.
+6. ~~**Disconnect removes membership**~~ — soft disconnect; explicit leave only.
 
 ## Decision
 
@@ -166,5 +170,5 @@ Adopt a **lobby-first, phased product roadmap**. Ship a trustworthy lobby experi
 - `PLANNING.md`, `ARCHITECTURE.md`
 - `packages/game-hub/`, `packages/game-server/`, `packages/just-one/`
 - `docker-compose.unraid.yml`
-- ADR [0005](./0005-ghcr-image-names-web-prefix.md), [0006](./0006-minimal-unraid-compose-env.md)
+- ADR [0005](./0005-ghcr-image-names-web-prefix.md), [0006](./0006-minimal-unraid-compose-env.md), [0009](./0009-game-hub-lobby-ux.md)
 - GitHub issues: [#25](https://github.com/TayGrayFamily/NasMono/issues/25)–[#32](https://github.com/TayGrayFamily/NasMono/issues/32)

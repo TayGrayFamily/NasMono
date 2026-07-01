@@ -1,0 +1,23 @@
+:root {
+  --bp-mobile: 768px;
+  --space-page: 1.5rem;
+  --space-page-mobile: 1rem;
+  --touch-min: 44px;
+  --safe-bottom: env(safe-area-inset-bottom, 0px);
+}
+
+@media (max-width: 768px) {
+  :root {
+    --space-page: var(--space-page-mobile);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}

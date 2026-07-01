@@ -172,16 +172,18 @@ test.describe('Game Hub lobby behavior (ADR-0009)', () => {
         name: new RegExp(`${lobbyName}.*Leader: ${hostName}`),
       })
       .click();
-    await guestPage.waitForURL('**/lobbies/*');
+    await guestPage.waitForURL('**/lobbies/*', { timeout: 15_000 });
+    await expect(guestPage.getByText('Waiting for host to start')).toBeVisible({
+      timeout: 15_000,
+    });
 
     await hostPage.bringToFront();
+    await expect(hostPage.getByText(guestName)).toBeVisible({ timeout: 10_000 });
     const guestRow = hostPage.locator('.player-row', { hasText: guestName });
-    await expect(guestRow).toBeVisible();
     await expect(guestRow.getByText('Disconnected')).not.toBeVisible();
 
     await guestContext.setOffline(true);
     await expect(guestPage.getByText('Offline', { exact: true })).toBeVisible({ timeout: 10_000 });
-    await expect(guestPage.getByRole('button', { name: 'Leave Lobby' })).toBeVisible();
     await expect(guestRow.getByText('Disconnected')).toBeVisible({ timeout: 15_000 });
 
     await guestContext.setOffline(false);

@@ -1,0 +1,10 @@
+192.168.1.50 frame.tower
+192.168.1.50 games.tower
+192.168.1.50 home.tower
+192.168.1.50 immich.tower
+192.168.1.50 jellyfin.tower
+192.168.1.50 pihole.tower
+192.168.1.50 radarr.tower
+192.168.1.50 sonarr.tower
+192.168.1.50 torrent.tower
+192.168.1.50 unraid.tower

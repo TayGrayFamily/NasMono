@@ -8,30 +8,74 @@
 
 Homelab services are reachable at friendly `*.tower` hostnames via **Caddy** on Unraid. Nginx/NPM is being retired. The Caddyfile lives in Unraid **appdata**; operators today edit it through the container console or a host editor. LaunchPad tiles (`launchpad.apps.json`) use the same hostnames for launch URLs but remain **curated** (ADR-0002) — we want drift visibility, not auto-provisioning.
 
-We need a **Domains** page under System (`/system/domains`) that lists hostnames, lets an admin edit mappings, writes the Caddyfile back to appdata on save, and reloads Caddy.
+We need a **Domains** page under System (`/system/domains`) with a **structured editor** — not raw Caddyfile editing. Each row maps a hostname (`home.tower`) to a host port (`8888`). A single **upstream IP** field (NAS LAN address) applies to all routes; the app generates the Caddyfile and DNS entries internally on save.
 
 ## Decision
 
-| Topic           | Choice                                                                                                                        |
-| --------------- | ----------------------------------------------------------------------------------------------------------------------------- |
-| Reverse proxy   | **Caddy only** — Nginx/NPM removed                                                                                            |
-| Config location | **Appdata** on Unraid, mounted read/write into `nasmono-home`                                                                 |
-| Read/write      | App reads and writes the Caddyfile; **restarts Caddy container** on save (v1)                                                 |
-| Placement       | **`packages/home`** — `/system/domains` alongside Control panel, Docker, Storage                                              |
-| LaunchPad       | Cross-reference / drift only; tiles stay curated (ADR-0002)                                                                   |
-| Admin API       | **Not used in v1** — file + restart                                                                                           |
-| Security        | LAN-only for v1; no auth gate yet                                                                                             |
-| Env vars        | `CADDYFILE_PATH`, `CADDY_CONTAINER_NAME` (hardcoded in compose per ADR-0006; secrets stay in NAS `.env` only if needed later) |
+| Topic           | Choice                                                                                                                       |
+| --------------- | ---------------------------------------------------------------------------------------------------------------------------- |
+| Reverse proxy   | **Caddy only** — Nginx/NPM removed                                                                                           |
+| Editor model    | **Hostname + port rows** + **one shared upstream IP** — Caddyfile generated internally                                       |
+| DNS             | **Pi-hole custom entries** generated on save, same upstream IP pattern — format confirmed from owner DNS file in P1          |
+| Config location | **Appdata** on Unraid: generated Caddyfile + DNS file + canonical `domains.json`                                             |
+| Read/write      | App reads/writes generated files; **restarts Caddy** (and reloads Pi-hole DNS if needed) on save                             |
+| Placement       | **`packages/home`** — `/system/domains` alongside Control panel, Docker, Storage                                             |
+| LaunchPad       | Cross-reference / drift only; tiles stay curated (ADR-0002)                                                                  |
+| Admin API       | **Not used in v1** — file + restart                                                                                          |
+| Security        | LAN-only for v1; no auth gate yet                                                                                            |
+| Env vars        | `CADDYFILE_PATH`, `CADDY_CONTAINER_NAME`, `DOMAINS_CONFIG_PATH`, `PIHOLE_DNS_PATH` (paths hardcoded in compose per ADR-0006) |
+
+### P1 editor UX (owner requirements)
+
+```
+┌─────────────────────────────────────────────────────────┐
+│ Upstream IP (LAN)   [ 192.168.1.50          ]           │
+├──────────────────────┬──────────┬───────────────────────┤
+│ Hostname             │ Port     │                       │
+│ home.tower           │ 8888     │  [Edit] [Remove]      │
+│ jellyfin.tower       │ 8096     │  [Edit] [Remove]      │
+│ …                    │          │                       │
+├──────────────────────┴──────────┴───────────────────────┤
+│ [+ Add route]                        [Save]             │
+└─────────────────────────────────────────────────────────┘
+```
+
+**Save flow (internal — not exposed in UI):**
+
+1. Validate rows (`domains.json` / Zod schema)
+2. `generateCaddyfile()` → write `CADDYFILE_PATH`
+3. `generateDnsEntries()` → write `PIHOLE_DNS_PATH` (format TBD from owner file)
+4. Restart Caddy container; reload Pi-hole DNS if required
+
+**Generated Caddy block (example):**
+
+```caddyfile
+http://home.tower {
+	reverse_proxy 192.168.1.50:8888
+}
+```
+
+**Generated DNS line (proposed — confirm against owner file):**
+
+```
+192.168.1.50 home.tower
+```
+
+Canonical model: `packages/home/server/domainRoutesSchema.ts` + `domainRoutes.ts`. Fixture: `test/fixtures/domains.routes.json`.
 
 ### P0 spike — NAS paths and compose (proposed; verify on tower)
 
-| Item                 | Proposed value                                          | Verify on NAS                                                                           |
-| -------------------- | ------------------------------------------------------- | --------------------------------------------------------------------------------------- |
-| Host Caddyfile       | `/mnt/user/appdata/caddy/Caddyfile`                     | Confirm file exists (not a directory mount mistake)                                     |
-| `nasmono-home` mount | `/mnt/user/appdata/caddy/Caddyfile:/caddy/Caddyfile:rw` | Match actual Caddy container host path                                                  |
-| `CADDYFILE_PATH`     | `/caddy/Caddyfile`                                      | Inside `nasmono-home` container                                                         |
-| Caddy container name | `caddy`                                                 | Docker tab → exact **Container name** (Unraid templates vary: `Caddy`, `caddyv2`, etc.) |
-| Caddy internal path  | `/etc/caddy/Caddyfile`                                  | Caddy container template mapping                                                        |
+| Item                  | Proposed value                                          | Verify on NAS                                                                           |
+| --------------------- | ------------------------------------------------------- | --------------------------------------------------------------------------------------- |
+| Host Caddyfile        | `/mnt/user/appdata/caddy/Caddyfile`                     | Confirm file exists (not a directory mount mistake)                                     |
+| Domains config        | `/mnt/user/appdata/nasmono-home/domains.json`           | Canonical editor state (hostname + port + upstream IP)                                  |
+| Pi-hole DNS file      | **TBD** — owner to share existing DNS file              | Likely `custom.list` or `local.list` under Pi-hole appdata                              |
+| `nasmono-home` mount  | `/mnt/user/appdata/caddy/Caddyfile:/caddy/Caddyfile:rw` | Match actual Caddy container host path                                                  |
+| `CADDYFILE_PATH`      | `/caddy/Caddyfile`                                      | Generated output inside `nasmono-home` container                                        |
+| `DOMAINS_CONFIG_PATH` | `/config/domains.json`                                  | RW via existing `/config` volume                                                        |
+| `PIHOLE_DNS_PATH`     | TBD after owner shares file                             | Generated DNS output                                                                    |
+| Caddy container name  | `caddy`                                                 | Docker tab → exact **Container name** (Unraid templates vary: `Caddy`, `caddyv2`, etc.) |
+| Caddy internal path   | `/etc/caddy/Caddyfile`                                  | Caddy container template mapping                                                        |
 
 Proposed `docker-compose.unraid.yml` additions for `nasmono-home` (P1 — not applied in P0):
 
@@ -39,9 +83,12 @@ Proposed `docker-compose.unraid.yml` additions for `nasmono-home` (P1 — not ap
 environment:
   CADDYFILE_PATH: /caddy/Caddyfile
   CADDY_CONTAINER_NAME: caddy
+  DOMAINS_CONFIG_PATH: /config/domains.json
+  PIHOLE_DNS_PATH: /pihole-dns/custom.list # TBD — confirm path after owner shares DNS file
   DOCKER_SOCKET_PATH: /var/run/docker.sock
 volumes:
   - /mnt/user/appdata/caddy/Caddyfile:/caddy/Caddyfile
+  - /mnt/user/appdata/binhex-official-pihole/etc-pihole/custom.list:/pihole-dns/custom.list # TBD
   - /var/run/docker.sock:/var/run/docker.sock
 ```
 
@@ -94,13 +141,13 @@ Mirror `DOCKER_FIXTURE_PATH` pattern:
 
 **Follow-ups:**
 
-- P1: `/system/domains` editor + save + restart
-- P2: backup-before-write, `caddy validate` gate, drift column vs LaunchPad
-- Owner: confirm `CADDY_CONTAINER_NAME` and host Caddyfile path on tower
+- P1: `/system/domains` structured editor + save + Caddy/DNS generation + restart
+- P2: backup-before-write, `caddy validate` gate, drift column vs LaunchPad, optional raw Caddyfile mode
+- Owner: share existing **Caddyfile** and **Pi-hole DNS file** so we match exact format; confirm `CADDY_CONTAINER_NAME` and paths on tower
 
 ## Links
 
 - Roadmap: [`docs/roadmap/caddy-domains.md`](../roadmap/caddy-domains.md)
-- Fixture: `packages/home/test/fixtures/Caddyfile`
+- Fixture: `packages/home/test/fixtures/domains.routes.json`, `domains.dns`, `Caddyfile`
 - Drift snapshot: `packages/home/test/fixtures/caddy.launchpad-drift.json`
 - ADR-0002 (curated tiles), ADR-0006 (compose env)

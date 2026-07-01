@@ -4,7 +4,7 @@
 **Package:** `packages/home` only  
 **ADR:** [ADR-0008](../decisions/0008-caddy-domains-in-home.md)
 
-Homelab services use Caddy on Unraid for `*.tower` reverse-proxy routes. The Domains page lists every registered hostname, lets an admin edit upstream mappings, writes the Caddyfile back to appdata on save, and restarts the Caddy container.
+Homelab services use Caddy on Unraid for `*.tower` reverse-proxy routes. The Domains page is a **structured editor**: each row is a hostname (`home.tower`) and port (`8888`), plus one **upstream IP** field shared by all routes. On save, the app generates the Caddyfile and Pi-hole DNS entries internally — operators never edit raw Caddy syntax in v1.
 
 ## Phases
 
@@ -21,11 +21,19 @@ Homelab services use Caddy on Unraid for `*.tower` reverse-proxy routes. The Dom
 | Validation strategy                 | ✅                     | `caddy validate` via `caddy:2-alpine` (P1/P2)                        |
 | CI approach                         | ✅                     | Fixture path + mock restart env; `caddyfileHosts.test.ts`            |
 
-**Owner action before P1:** SSH or Unraid terminal:
+**Owner action before P1:** Share your existing files so we match your patterns exactly:
+
+1. **Caddyfile** — confirms upstream IP:port style
+2. **Pi-hole DNS custom entries** — confirms line format (`IP hostname` vs `address=/host/IP`, etc.)
+
+Then verify on tower:
 
 ```bash
 # Confirm Caddyfile host path
 ls -la /mnt/user/appdata/caddy/Caddyfile
+
+# Pi-hole DNS file (path varies by template — share yours)
+# e.g. ls -la /mnt/user/appdata/binhex-official-pihole/etc-pihole/custom.list
 
 # Container name (exact string for CADDY_CONTAINER_NAME)
 docker ps --format '{{.Names}}' | grep -i caddy
@@ -33,9 +41,28 @@ docker ps --format '{{.Names}}' | grep -i caddy
 
 ### P1 — Domains editor (v1)
 
-**Done when:** `/system/domains` lists hostnames and upstreams; admin can add/edit/remove; Save writes appdata and restarts Caddy; errors if restart fails. Works on LAN.
+**Done when:** `/system/domains` shows upstream IP + route table; admin can add/edit/remove rows; Save writes `domains.json`, regenerates Caddyfile + DNS, restarts Caddy; errors if restart fails. Works on LAN.
 
-_File separate GitHub issue when P0 merges._
+**UI fields (only these are user-facing):**
+
+| Field       | Example        | Notes                                                    |
+| ----------- | -------------- | -------------------------------------------------------- |
+| Upstream IP | `192.168.1.50` | NAS LAN IP — used for every `reverse_proxy` and DNS line |
+| Hostname    | `home.tower`   | Must end in `.tower` (or match existing pattern)         |
+| Port        | `8888`         | Published host port for the service                      |
+
+**Internal on save** (not shown in UI):
+
+- `domains.json` ← canonical state (`domainRoutesSchema.ts`)
+- `Caddyfile` ← `generateCaddyfile()`
+- Pi-hole DNS file ← `generateDnsEntries()` (format from owner file)
+- Caddy container restart via dockerode
+
+Implementation modules (spike landed in P0 PR):
+
+- `packages/home/server/domainRoutesSchema.ts`
+- `packages/home/server/domainRoutes.ts`
+- Fixtures: `test/fixtures/domains.routes.json`, `domains.dns`, `Caddyfile`
 
 ### P2 — Safety and polish
 
@@ -67,5 +94,5 @@ Based on `packages/home/test/fixtures/Caddyfile` and `config/launchpad.apps.json
 | Auto-provision LaunchPad tiles from Caddy | ADR-0002 — opt-in only if ever     |
 | Caddy Admin API / reload without restart  | File + restart is v1               |
 | TLS / ACME management                     | Homelab may use HTTP-only `.tower` |
-| DNS (Pi-hole) record creation             | Separate concern                   |
+| Raw Caddyfile editor                      | P2 optional escape hatch           |
 | Auth gate on Domains page                 | LAN-only for now                   |

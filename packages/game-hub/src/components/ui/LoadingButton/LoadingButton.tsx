@@ -5,10 +5,16 @@ interface LoadingButtonProps extends React.ButtonHTMLAttributes<HTMLButtonElemen
   isLoading?: boolean;
 }
 
-export function LoadingButton({ isLoading, children, disabled, ...props }: LoadingButtonProps) {
+export function LoadingButton({
+  isLoading,
+  children,
+  disabled,
+  className = '',
+  ...props
+}: LoadingButtonProps) {
   return (
     <button
-      className={`loading-button ${isLoading ? 'is-loading' : ''}`}
+      className={`loading-button ${isLoading ? 'is-loading' : ''} ${className}`.trim()}
       disabled={disabled || isLoading}
       {...props}
     >

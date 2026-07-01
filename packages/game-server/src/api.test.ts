@@ -54,13 +54,17 @@ describe('API Integration Tests', () => {
   describe('GET /api/lobbies', () => {
     it('should fetch list of lobbies', async () => {
       vi.spyOn(LobbyService.prototype, 'getAllLobbies').mockResolvedValue([
-        { id: '1', name: 'Test Lobby', playercount: 1 },
+        { id: '1', name: 'Test Lobby', hostName: 'Alex', playerCount: 1 },
       ]);
 
       const res = await request(app).get('/api/lobbies');
       expect(res.status).toBe(200);
       expect(Array.isArray(res.body)).toBe(true);
-      expect(res.body[0].name).toBe('Test Lobby');
+      expect(res.body[0]).toMatchObject({
+        name: 'Test Lobby',
+        hostName: 'Alex',
+        playerCount: 1,
+      });
     });
   });
 

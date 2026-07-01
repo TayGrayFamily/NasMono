@@ -1,13 +1,9 @@
 import { Server, Socket } from 'socket.io';
-import { getDbClient } from '../db/index.js';
 
 export class SocketService {
   private io: Server;
-  // Map userId -> socketId (for easy lookup)
   private userSocketMap = new Map<string, string>();
-  // Map socketId -> userId (for disconnects)
   private socketToUserMap = new Map<string, string>();
-  // Map lobbyId -> Set of userIds with an active socket in that lobby room
   private lobbyPresenceMap = new Map<string, Set<string>>();
 
   constructor(io: Server) {
@@ -59,7 +55,6 @@ export class SocketService {
   }
 
   private handleUserIdentification(socket: Socket, userId: string) {
-    // Cleanup any old socket this user might have had (prevent ghost connections)
     const oldSocketId = this.userSocketMap.get(userId);
     if (oldSocketId && oldSocketId !== socket.id) {
       this.clearPresenceForSocket(oldSocketId);
@@ -126,97 +121,22 @@ export class SocketService {
     return Array.from(this.lobbyPresenceMap.get(lobbyId) ?? []);
   }
 
-  private async handleDisconnect(socket: Socket, reason: string) {
+  isUserConnected(userId: string): boolean {
+    return this.userSocketMap.has(userId);
+  }
+
+  private handleDisconnect(socket: Socket, reason: string) {
     console.log(`Socket disconnected: ${socket.id}. Reason: ${reason}`);
+
     const userId = this.socketToUserMap.get(socket.id);
 
+    // Presence only — do not remove lobby_players rows (ADR-0009 soft disconnect).
     this.clearPresenceForSocket(socket.id);
 
-    // Remove from maps
     this.socketToUserMap.delete(socket.id);
-    if (userId) {
-      if (this.userSocketMap.get(userId) === socket.id) {
-        this.userSocketMap.delete(userId);
-      }
+    if (userId && this.userSocketMap.get(userId) === socket.id) {
+      this.userSocketMap.delete(userId);
     }
-
-    // Database cleanup for lobbies
-    if (userId) {
-      await this.cleanupUserLobbies(userId);
-    }
-  }
-
-  private async cleanupUserLobbies(userId: string) {
-    try {
-      const client = await getDbClient();
-      // Find if this player was in any lobby
-      const res = await client.query('SELECT lobby_id FROM lobby_players WHERE user_id = $1', [
-        userId,
-      ]);
-
-      if (res.rows.length > 0) {
-        const lobbyId = res.rows[0].lobby_id;
-        // Delete player from lobby
-        await client.query('DELETE FROM lobby_players WHERE user_id = $1', [userId]);
-
-        // Reassign host if needed
-        const lobbyDeleted = await this.handleHostSuccession(client, lobbyId, userId);
-
-        // Notify other players
-        this.io.to(lobbyId).emit('player_left', { userId });
-        if (lobbyDeleted) {
-          this.emitLobbyDeleted(lobbyId);
-        } else {
-          this.emitLobbyUpdated(lobbyId);
-        }
-        console.log(`Cleaned up user ${userId} from lobby ${lobbyId} on disconnect`);
-      }
-      client.release();
-    } catch (e) {
-      console.error('Error cleaning up lobby on disconnect:', e);
-    }
-  }
-
-  private async handleHostSuccession(
-    client: {
-      query: (sql: string, params?: unknown[]) => Promise<{ rows: Record<string, string>[] }>;
-    },
-    lobbyId: string,
-    leavingUserId: string,
-  ): Promise<boolean> {
-    const lobbyCheck = await client.query('SELECT host_id FROM lobbies WHERE id = $1', [lobbyId]);
-
-    if (lobbyCheck.rows.length > 0 && lobbyCheck.rows[0].host_id === leavingUserId) {
-      const nextPlayer = await client.query(
-        'SELECT user_id FROM lobby_players WHERE lobby_id = $1 ORDER BY joined_at ASC LIMIT 1',
-        [lobbyId],
-      );
-
-      if (nextPlayer.rows.length > 0) {
-        const newHostId = nextPlayer.rows[0].user_id;
-        await client.query('UPDATE lobbies SET host_id = $1 WHERE id = $2', [newHostId, lobbyId]);
-        this.io.to(lobbyId).emit('host_transferred', { newHostId });
-        console.log(`Host transferred from ${leavingUserId} to ${newHostId} in lobby ${lobbyId}`);
-        return false;
-      }
-
-      await client.query('DELETE FROM lobbies WHERE id = $1', [lobbyId]);
-      console.log(
-        `Lobby ${lobbyId} deleted because the host (and last player) ${leavingUserId} left.`,
-      );
-      return true;
-    }
-
-    const remaining = await client.query('SELECT COUNT(*) FROM lobby_players WHERE lobby_id = $1', [
-      lobbyId,
-    ]);
-    if (parseInt(remaining.rows[0].count ?? '0') === 0) {
-      await client.query('DELETE FROM lobbies WHERE id = $1', [lobbyId]);
-      console.log(`Lobby ${lobbyId} deleted because the last player ${leavingUserId} left.`);
-      return true;
-    }
-
-    return false;
   }
 
   getDebugState() {

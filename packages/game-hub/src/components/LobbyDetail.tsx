@@ -7,6 +7,7 @@ import { apiFetch } from '../lib/api';
 interface Player {
   id: string;
   name: string;
+  connected?: boolean;
 }
 
 interface LobbyDetailData {
@@ -58,7 +59,10 @@ function LobbyDetail({ lobbyId, currentUserId, onBack }: LobbyDetailProps) {
     const handlePlayerJoined = (data: { userId: string; name: string }) => {
       setLobby((current) => {
         if (!current || current.players.some((p) => p.id === data.userId)) return current;
-        return { ...current, players: [...current.players, { id: data.userId, name: data.name }] };
+        return {
+          ...current,
+          players: [...current.players, { id: data.userId, name: data.name, connected: false }],
+        };
       });
     };
 
@@ -76,20 +80,48 @@ function LobbyDetail({ lobbyId, currentUserId, onBack }: LobbyDetailProps) {
       });
     };
 
+    const handlePlayerPresence = (data: { userId: string; connected: boolean }) => {
+      setLobby((current) => {
+        if (!current) return null;
+        return {
+          ...current,
+          players: current.players.map((p) =>
+            p.id === data.userId ? { ...p, connected: data.connected } : p,
+          ),
+        };
+      });
+    };
+
+    const handleLobbyDeleted = (data: { lobbyId: string }) => {
+      if (data.lobbyId === lobbyId) {
+        setError('This lobby was closed.');
+        setTimeout(() => onBack(), 1500);
+      }
+    };
+
     if (socket) {
       socket.emit('join_lobby_room', { lobbyId, userId: currentUserId });
       socket.on('player_joined', handlePlayerJoined);
       socket.on('player_left', handlePlayerLeft);
       socket.on('host_transferred', handleHostTransferred);
+      socket.on('player_presence', handlePlayerPresence);
+      socket.on('lobby_deleted', handleLobbyDeleted);
 
       return () => {
         mounted = false;
+        socket.emit('leave_lobby_room', { lobbyId, userId: currentUserId });
         socket.off('player_joined', handlePlayerJoined);
         socket.off('player_left', handlePlayerLeft);
         socket.off('host_transferred', handleHostTransferred);
+        socket.off('player_presence', handlePlayerPresence);
+        socket.off('lobby_deleted', handleLobbyDeleted);
       };
     }
-  }, [lobbyId, socket, currentUserId]);
+
+    return () => {
+      mounted = false;
+    };
+  }, [lobbyId, socket, currentUserId, onBack]);
 
   const handleJoinLobby = async () => {
     setIsJoining(true);
@@ -139,6 +171,7 @@ function LobbyDetail({ lobbyId, currentUserId, onBack }: LobbyDetailProps) {
   };
 
   const isPlayerInLobby = lobby?.players.some((p) => p.id === currentUserId) || false;
+  const connectedCount = lobby?.players.filter((p) => p.connected).length ?? 0;
 
   const handleBack = async () => {
     if (isPlayerInLobby) {
@@ -203,7 +236,7 @@ function LobbyDetail({ lobbyId, currentUserId, onBack }: LobbyDetailProps) {
         >
           Players
           <span className="status-badge online" style={{ fontSize: '0.7rem' }}>
-            {lobby.players.length} Online
+            {connectedCount} Connected
           </span>
         </h3>
 
@@ -230,20 +263,35 @@ function LobbyDetail({ lobbyId, currentUserId, onBack }: LobbyDetailProps) {
               }}
             >
               <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
-                <div
-                  style={{
-                    width: '32px',
-                    height: '32px',
-                    borderRadius: '50%',
-                    backgroundColor: 'var(--primary-cyan)',
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                    fontSize: '0.875rem',
-                    fontWeight: 700,
-                  }}
-                >
-                  {p.name.charAt(0).toUpperCase()}
+                <div style={{ position: 'relative' }}>
+                  <div
+                    style={{
+                      width: '32px',
+                      height: '32px',
+                      borderRadius: '50%',
+                      backgroundColor: 'var(--primary-cyan)',
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      fontSize: '0.875rem',
+                      fontWeight: 700,
+                    }}
+                  >
+                    {p.name.charAt(0).toUpperCase()}
+                  </div>
+                  <span
+                    title={p.connected ? 'Connected' : 'Disconnected'}
+                    style={{
+                      position: 'absolute',
+                      bottom: 0,
+                      right: 0,
+                      width: 10,
+                      height: 10,
+                      borderRadius: '50%',
+                      backgroundColor: p.connected ? 'var(--primary-green)' : 'var(--text-muted)',
+                      border: '2px solid var(--bg-color)',
+                    }}
+                  />
                 </div>
                 <div style={{ display: 'flex', flexDirection: 'column' }}>
                   <span style={{ fontWeight: 500 }}>
@@ -254,6 +302,11 @@ function LobbyDetail({ lobbyId, currentUserId, onBack }: LobbyDetailProps) {
                       style={{ fontSize: '0.7rem', color: 'var(--primary-cyan)', fontWeight: 700 }}
                     >
                       👑 HOST
+                    </span>
+                  )}
+                  {!p.connected && (
+                    <span style={{ fontSize: '0.65rem', color: 'var(--text-muted)' }}>
+                      Disconnected
                     </span>
                   )}
                 </div>

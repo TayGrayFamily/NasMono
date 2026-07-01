@@ -14,6 +14,7 @@ export function createLobbyRouter(lobbyService: LobbyService, socketService: Soc
     try {
       const userId = req.identifiedUserId!;
       const lobby = await lobbyService.createLobby(req.body.name, userId);
+      socketService.emitLobbyCreated(lobby.lobbyId);
       res.status(201).json(lobby);
     } catch (err: unknown) {
       res.status(500).json({ error: err instanceof Error ? err.message : String(err) });
@@ -33,7 +34,14 @@ export function createLobbyRouter(lobbyService: LobbyService, socketService: Soc
     try {
       const lobby = await lobbyService.getLobbyById(req.params.id);
       if (!lobby) return res.status(404).json({ error: 'Not found' });
-      res.json(lobby);
+
+      const connectedIds = new Set(socketService.getConnectedUserIdsInLobby(req.params.id));
+      const playersWithPresence = lobby.players.map((player: { id: string; name: string }) => ({
+        ...player,
+        connected: connectedIds.has(player.id),
+      }));
+
+      res.json({ ...lobby, players: playersWithPresence });
     } catch (err: unknown) {
       res.status(500).json({ error: err instanceof Error ? err.message : String(err) });
     }
@@ -48,6 +56,7 @@ export function createLobbyRouter(lobbyService: LobbyService, socketService: Soc
         userId,
         name: userName,
       });
+      socketService.emitLobbyUpdated(lobbyId);
       res.status(200).json({ message: 'Joined' });
     } catch (err: unknown) {
       res.status(500).json({ error: err instanceof Error ? err.message : String(err) });
@@ -72,6 +81,7 @@ export function createLobbyRouter(lobbyService: LobbyService, socketService: Soc
 
       if (remaining.rows.length === 0) {
         await client.query('DELETE FROM lobbies WHERE id = $1', [lobbyId]);
+        socketService.emitLobbyDeleted(lobbyId);
       } else {
         const lobbyCheck = await client.query('SELECT host_id FROM lobbies WHERE id = $1', [
           lobbyId,
@@ -82,6 +92,7 @@ export function createLobbyRouter(lobbyService: LobbyService, socketService: Soc
           io.to(lobbyId).emit('host_transferred', { newHostId });
         }
         io.to(lobbyId).emit('player_left', { userId });
+        socketService.emitLobbyUpdated(lobbyId);
       }
 
       client.release();
@@ -109,6 +120,7 @@ export function createLobbyRouter(lobbyService: LobbyService, socketService: Soc
       client.release();
 
       io.to(lobbyId).emit('host_transferred', { newHostId });
+      socketService.emitLobbyUpdated(lobbyId);
       res.json({ message: 'Host transferred' });
     } catch (err: unknown) {
       res.status(500).json({ error: err instanceof Error ? err.message : String(err) });

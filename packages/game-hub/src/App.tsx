@@ -1,5 +1,6 @@
 /// <reference types="vite/client" />
 import React, { useState, useEffect } from 'react';
+import { useQueryClient } from '@tanstack/react-query';
 import {
   BrowserRouter as Router,
   Routes,
@@ -47,9 +48,26 @@ function AppContent({
   onSignOut: () => void;
 }) {
   const socket = useSocket();
+  const queryClient = useQueryClient();
   const navigate = useNavigate();
   const location = useLocation();
   const [isConnected, setIsConnected] = useState(socket.connected);
+
+  useEffect(() => {
+    const invalidateLobbies = () => {
+      queryClient.invalidateQueries({ queryKey: ['lobbies'] });
+    };
+
+    socket.on('lobby_created', invalidateLobbies);
+    socket.on('lobby_updated', invalidateLobbies);
+    socket.on('lobby_deleted', invalidateLobbies);
+
+    return () => {
+      socket.off('lobby_created', invalidateLobbies);
+      socket.off('lobby_updated', invalidateLobbies);
+      socket.off('lobby_deleted', invalidateLobbies);
+    };
+  }, [socket, queryClient]);
 
   useEffect(() => {
     const onConnect = () => {

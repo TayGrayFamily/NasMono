@@ -78,7 +78,7 @@ export async function createApp() {
     });
   });
   apiRouter.use('/lobbies', createLobbyRouter(lobbyService, socketService));
-  apiRouter.use('/admin', requireAdminEnabled, createAdminRouter());
+  apiRouter.use('/admin', requireAdminEnabled, createAdminRouter(socketService));
   apiRouter.use('/', createUserRouter(userService)); // login and users/:id
 
   app.use('/api', apiRouter);

@@ -149,6 +149,53 @@ test.describe('Game Hub lobby behavior (ADR-0009)', () => {
     await guestContext.close();
   });
 
+  test('guest soft disconnect shows disconnected on host while membership persists', async ({
+    browser,
+  }) => {
+    const id = suffix();
+    const lobbyName = `Presence Lobby ${id}`;
+    const guestName = `PresenceGuest-${id}`;
+    const hostName = `PresenceHost-${id}`;
+
+    const hostContext = await browser.newContext();
+    const hostPage = await hostContext.newPage();
+    await login(hostPage, hostName);
+    await hostPage.getByPlaceholder('Enter lobby name...').fill(lobbyName);
+    await hostPage.getByRole('button', { name: 'Create Lobby' }).click();
+    await hostPage.waitForURL('**/lobbies/*');
+
+    const guestContext = await browser.newContext();
+    const guestPage = await guestContext.newPage();
+    await login(guestPage, guestName);
+    await guestPage
+      .getByRole('button', {
+        name: new RegExp(`${lobbyName}.*Leader: ${hostName}`),
+      })
+      .click();
+    await guestPage.waitForURL('**/lobbies/*');
+
+    await hostPage.bringToFront();
+    const guestRow = hostPage.locator('.player-row', { hasText: guestName });
+    await expect(guestRow).toBeVisible();
+    await expect(guestRow.getByText('Disconnected')).not.toBeVisible();
+
+    await guestContext.setOffline(true);
+    await expect(guestPage.getByText('Offline', { exact: true })).toBeVisible({ timeout: 10_000 });
+    await expect(guestPage.getByRole('button', { name: 'Leave Lobby' })).toBeVisible();
+    await expect(guestRow.getByText('Disconnected')).toBeVisible({ timeout: 15_000 });
+
+    await guestContext.setOffline(false);
+    await guestPage.reload();
+    await waitConnected(guestPage);
+    await expect(guestPage.getByText('Waiting for host to start')).toBeVisible();
+
+    await hostPage.bringToFront();
+    await expect(guestRow.getByText('Disconnected')).not.toBeVisible({ timeout: 15_000 });
+
+    await hostContext.close();
+    await guestContext.close();
+  });
+
   test('sign out leaves the lobby and does not auto-restore on next login', async ({ page }) => {
     const id = suffix();
     const lobbyName = `SignOut Lobby ${id}`;

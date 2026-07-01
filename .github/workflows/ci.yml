@@ -115,6 +115,51 @@ jobs:
           SMOKE_PORT: 19888
           CI: true
 
+  game-e2e:
+    name: Game Hub E2E (Playwright)
+    runs-on: ubuntu-latest
+    needs: build-and-verify
+    timeout-minutes: 15
+    services:
+      postgres:
+        image: postgres:16-alpine
+        env:
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: postgres
+          POSTGRES_DB: game_hub
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U postgres -d game_hub"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 10
+    container:
+      image: mcr.microsoft.com/playwright:v1.57.0-noble
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Install pnpm
+        uses: pnpm/action-setup@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+          cache: 'pnpm'
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Run Game Hub lobby behavior smoke
+        run: timeout 12m node scripts/smoke-game.mjs
+        env:
+          CI: true
+          DATABASE_URL: postgresql://postgres:postgres@localhost:5432/game_hub
+          SMOKE_GAME_SERVER_PORT: 30901
+          SMOKE_GAME_HUB_PORT: 30900
+
   docker-smoke:
     name: Docker build smoke (home)
     runs-on: ubuntu-latest

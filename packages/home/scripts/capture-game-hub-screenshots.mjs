@@ -33,7 +33,10 @@ async function capture() {
   const hostPage = await desktop.newPage();
 
   await login(hostPage, PLAYER_A);
-  await hostPage.screenshot({ path: path.join(OUT_DIR, '01-lobby-list-desktop.png'), fullPage: true });
+  await hostPage.screenshot({
+    path: path.join(OUT_DIR, '01-lobby-list-desktop.png'),
+    fullPage: true,
+  });
 
   await hostPage.getByPlaceholder('Enter lobby name...').fill(LOBBY_NAME);
   await hostPage.getByRole('button', { name: 'Create Lobby' }).click();
@@ -56,7 +59,9 @@ async function capture() {
     fullPage: true,
   });
 
-  await guestPage.getByRole('button', { name: new RegExp(`^${LOBBY_NAME}.*Leader: ${PLAYER_A}`) }).click();
+  await guestPage
+    .getByRole('button', { name: new RegExp(`^${LOBBY_NAME}.*Leader: ${PLAYER_A}`) })
+    .click();
   await guestPage.waitForURL(`**/lobbies/${lobbyId}`, { timeout: 15000 });
   await guestPage.getByText('Waiting for host to start').waitFor({ timeout: 10000 });
   await guestPage.waitForTimeout(800);
@@ -78,7 +83,10 @@ async function capture() {
   const mobile = await browser.newContext({ ...devices['iPhone 13'] });
   const mobilePage = await mobile.newPage();
   await login(mobilePage, `Mobile-${suffix}`);
-  await mobilePage.screenshot({ path: path.join(OUT_DIR, '06-lobby-list-mobile.png'), fullPage: true });
+  await mobilePage.screenshot({
+    path: path.join(OUT_DIR, '06-lobby-list-mobile.png'),
+    fullPage: true,
+  });
 
   await mobilePage.getByPlaceholder('Enter lobby name...').fill('Mobile Lobby');
   await mobilePage.getByRole('button', { name: 'Create Lobby' }).click();

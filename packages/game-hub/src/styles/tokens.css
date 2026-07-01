@@ -1,0 +1,12 @@
+:root {
+  --grid-gap: 1rem;
+  --grid-gap-mobile: 0.75rem;
+  --lobby-card-min: 300px;
+  --player-card-min: 200px;
+}
+
+@media (max-width: 768px) {
+  :root {
+    --grid-gap: var(--grid-gap-mobile);
+  }
+}

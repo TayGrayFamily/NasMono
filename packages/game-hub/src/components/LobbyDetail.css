@@ -1,0 +1,29 @@
+.lobby-detail__players-header {
+  font-size: 1.125rem;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin: 0;
+}
+
+.lobby-detail__players-section {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.lobby-detail__count-badge {
+  font-size: 0.7rem;
+}
+
+.lobby-detail__error-panel {
+  text-align: center;
+}
+
+.lobby-detail__error-title {
+  color: var(--error-color);
+}
+
+.lobby-detail__leave-btn {
+  width: 100%;
+}

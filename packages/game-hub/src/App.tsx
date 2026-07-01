@@ -1,5 +1,6 @@
 /// <reference types="vite/client" />
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
+import { useQueryClient } from '@tanstack/react-query';
 import {
   BrowserRouter as Router,
   Routes,
@@ -7,6 +8,7 @@ import {
   Navigate,
   useNavigate,
   useLocation,
+  useParams,
 } from 'react-router-dom';
 import PlayerSetup from './components/PlayerSetup';
 import LobbyList from './components/LobbyList';
@@ -14,9 +16,9 @@ import LobbyDetail from './components/LobbyDetail';
 import ManageUser from './components/ManageUser';
 import { SocketProvider, useSocket } from './components/SocketContext';
 import { Header } from './components/layout/Header';
+import { apiFetch } from './lib/api';
+import { USER_STORAGE_KEY, getLastLobbyId, setLastLobbyId } from './lib/session';
 import './index.css';
-
-const USER_STORAGE_KEY = 'game-hub-user';
 
 interface User {
   id: string;
@@ -35,6 +37,17 @@ function loadStoredUser(): User | null {
   return null;
 }
 
+function LobbyDetailRoute({
+  currentUserId,
+  onBack,
+}: {
+  currentUserId: string;
+  onBack: () => void;
+}) {
+  const { lobbyId = '' } = useParams<{ lobbyId: string }>();
+  return <LobbyDetail lobbyId={lobbyId} currentUserId={currentUserId} onBack={onBack} />;
+}
+
 function AppContent({
   currentUser,
   onUserCreated,
@@ -47,41 +60,42 @@ function AppContent({
   onSignOut: () => void;
 }) {
   const socket = useSocket();
+  const queryClient = useQueryClient();
   const navigate = useNavigate();
   const location = useLocation();
   const [isConnected, setIsConnected] = useState(socket.connected);
+  const [lobbyRestoreAttempted, setLobbyRestoreAttempted] = useState(false);
 
   useEffect(() => {
-    const onConnect = () => {
-      console.log('Socket connected event:', socket.id);
-      setIsConnected(true);
+    const invalidateLobbies = () => {
+      queryClient.invalidateQueries({ queryKey: ['lobbies'] });
     };
-    const onDisconnect = (reason: string) => {
-      console.warn('Socket disconnected event. Reason:', reason);
-      setIsConnected(false);
+
+    socket.on('lobby_created', invalidateLobbies);
+    socket.on('lobby_updated', invalidateLobbies);
+    socket.on('lobby_deleted', invalidateLobbies);
+
+    return () => {
+      socket.off('lobby_created', invalidateLobbies);
+      socket.off('lobby_updated', invalidateLobbies);
+      socket.off('lobby_deleted', invalidateLobbies);
     };
-    const onConnectError = (error: Error) => {
-      console.error('Socket connection error event:', error.message);
-    };
+  }, [socket, queryClient]);
+
+  useEffect(() => {
+    const onConnect = () => setIsConnected(true);
+    const onDisconnect = () => setIsConnected(false);
 
     socket.on('connect', onConnect);
     socket.on('disconnect', onDisconnect);
-    socket.on('connect_error', onConnectError);
-
-    socket.onAny((eventName, ...args) => {
-      console.log(`[Socket Incoming] ${eventName}:`, args);
-    });
 
     if (currentUser) {
-      console.log('Emitting set_user for:', currentUser.id);
       socket.emit('set_user', { userId: currentUser.id });
     }
 
     return () => {
       socket.off('connect', onConnect);
       socket.off('disconnect', onDisconnect);
-      socket.off('connect_error', onConnectError);
-      socket.offAny();
     };
   }, [socket, currentUser]);
 
@@ -91,7 +105,12 @@ function AppContent({
     }
   }, [isConnected, currentUser, socket]);
 
-  // Handle protected routes
+  useEffect(() => {
+    if (currentUser && !socket.connected) {
+      socket.connect();
+    }
+  }, [currentUser, socket]);
+
   useEffect(() => {
     if (!currentUser && location.pathname !== '/login') {
       navigate('/login');
@@ -100,6 +119,82 @@ function AppContent({
     }
   }, [currentUser, location.pathname, navigate]);
 
+  useEffect(() => {
+    if (!currentUser || !isConnected || lobbyRestoreAttempted) return;
+    if (location.pathname.startsWith('/lobbies/')) {
+      setLobbyRestoreAttempted(true);
+      return;
+    }
+
+    const lastLobbyId = getLastLobbyId();
+    if (!lastLobbyId) {
+      setLobbyRestoreAttempted(true);
+      return;
+    }
+
+    let cancelled = false;
+
+    (async () => {
+      try {
+        const response = await fetch(`/api/lobbies/${lastLobbyId}`);
+        if (!response.ok) {
+          setLastLobbyId(null);
+          return;
+        }
+        const lobby = await response.json();
+        const isMember = lobby.players?.some((p: { id: string }) => p.id === currentUser.id);
+        if (!cancelled && isMember) {
+          socket.emit('join_lobby_room', { lobbyId: lastLobbyId, userId: currentUser.id });
+          navigate(`/lobbies/${lastLobbyId}`, { replace: true });
+        } else {
+          setLastLobbyId(null);
+        }
+      } catch {
+        // ignore restore errors
+      } finally {
+        if (!cancelled) setLobbyRestoreAttempted(true);
+      }
+    })();
+
+    return () => {
+      cancelled = true;
+    };
+  }, [currentUser, isConnected, lobbyRestoreAttempted, location.pathname, navigate, socket]);
+
+  const handleLobbyJoined = useCallback(
+    (id: string) => {
+      setLastLobbyId(id);
+      navigate(`/lobbies/${id}`);
+    },
+    [navigate],
+  );
+
+  const handleSignOut = async () => {
+    if (currentUser) {
+      const lastLobbyId = getLastLobbyId();
+      if (lastLobbyId) {
+        try {
+          await apiFetch(
+            `/api/lobbies/${lastLobbyId}/leave`,
+            {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({ userId: currentUser.id }),
+            },
+            socket.id,
+          );
+          socket.emit('leave_lobby_room', { lobbyId: lastLobbyId, userId: currentUser.id });
+        } catch {
+          // best-effort leave on sign out
+        }
+      }
+    }
+
+    setLastLobbyId(null);
+    socket.disconnect();
+    onSignOut();
+  };
+
   return (
     <div className="app-container">
       <Header
@@ -107,7 +202,7 @@ function AppContent({
         subtitle="Join a lobby or start a game."
         currentUser={currentUser}
         isConnected={isConnected}
-        onSignOut={onSignOut}
+        onSignOut={handleSignOut}
         onManageUser={() => navigate('/manage-profile')}
       />
 
@@ -127,17 +222,13 @@ function AppContent({
               <Route
                 path="/lobbies"
                 element={
-                  <LobbyList
-                    currentUserId={currentUser.id}
-                    onSelectLobby={(id) => navigate(`/lobbies/${id}`)}
-                  />
+                  <LobbyList currentUserId={currentUser.id} onJoinLobby={handleLobbyJoined} />
                 }
               />
               <Route
                 path="/lobbies/:lobbyId"
                 element={
-                  <LobbyDetail
-                    lobbyId={location.pathname.split('/').pop() || ''}
+                  <LobbyDetailRoute
                     currentUserId={currentUser.id}
                     onBack={() => navigate('/lobbies')}
                   />
@@ -154,18 +245,7 @@ function AppContent({
         </Routes>
       </main>
 
-      <footer
-        style={{
-          padding: '1.5rem',
-          fontSize: '0.875rem',
-          textAlign: 'center',
-          color: 'var(--text-muted)',
-          borderTop: '1px solid var(--border-color)',
-          marginTop: 'auto',
-        }}
-      >
-        v{__APP_VERSION__} • {isConnected ? 'Connected' : 'Disconnected'}
-      </footer>
+      <footer className="app-footer">v{__APP_VERSION__}</footer>
     </div>
   );
 }
@@ -181,27 +261,14 @@ function App() {
     }
   }, [currentUser]);
 
-  const handleUserCreated = (user: User) => {
-    setCurrentUser(user);
-  };
-
-  const handleUserUpdated = (user: User) => {
-    setCurrentUser(user);
-  };
-
-  const handleSignOut = () => {
-    setCurrentUser(null);
-    console.log('User signed out');
-  };
-
   return (
     <SocketProvider url="/">
       <Router>
         <AppContent
           currentUser={currentUser}
-          onUserCreated={handleUserCreated}
-          onUserUpdated={handleUserUpdated}
-          onSignOut={handleSignOut}
+          onUserCreated={setCurrentUser}
+          onUserUpdated={setCurrentUser}
+          onSignOut={() => setCurrentUser(null)}
         />
       </Router>
     </SocketProvider>

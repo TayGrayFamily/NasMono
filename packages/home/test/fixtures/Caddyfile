@@ -1,0 +1,52 @@
+# Representative homelab Caddyfile for parser/editor design (P0 spike).
+# Redacted: no TLS certs, no real upstream IPs. Upstreams use Docker container names.
+
+{
+	# HTTP-only homelab; TLS deferred
+	auto_https off
+}
+
+# Unraid Web UI (not a LaunchPad tile)
+http://unraid.tower {
+	reverse_proxy host.docker.internal:80
+}
+
+# LaunchPad / nasmono-home
+http://home.tower {
+	reverse_proxy web_app:8888
+}
+
+# --- LaunchPad curated apps (see config/launchpad.apps.json) ---
+
+http://immich.tower {
+	reverse_proxy immich-server:2283
+}
+
+http://jellyfin.tower {
+	reverse_proxy jellyfin:8096
+}
+
+http://frame.tower {
+	reverse_proxy frame:3000
+}
+
+http://radarr.tower {
+	reverse_proxy radarr:7878
+}
+
+http://sonarr.tower {
+	reverse_proxy sonarr:8989
+}
+
+http://torrent.tower {
+	reverse_proxy qbittorrent:8080
+}
+
+http://pihole.tower {
+	reverse_proxy binhex-official-pihole:80
+}
+
+# Game Hub (planned LaunchPad tile — ADR-0007)
+http://games.tower {
+	reverse_proxy game_hub_ui:80
+}

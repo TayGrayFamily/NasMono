@@ -1,0 +1,23 @@
+{
+  "description": "P0 drift snapshot: fixture Caddyfile hostnames vs launchpad.apps.json (repo defaults). Live NAS may differ.",
+  "fixtureCaddyfile": "packages/home/test/fixtures/Caddyfile",
+  "launchpadConfig": "packages/home/config/launchpad.apps.json",
+  "inBoth": [
+    "frame.tower",
+    "immich.tower",
+    "jellyfin.tower",
+    "pihole.tower",
+    "radarr.tower",
+    "sonarr.tower",
+    "torrent.tower"
+  ],
+  "caddyOnly": ["games.tower", "home.tower", "unraid.tower"],
+  "launchpadOnly": [],
+  "notes": {
+    "unraid.tower": "Unraid dashboard link in unraidLinks.ts, not a LaunchPad tile",
+    "home.tower": "Optional alias for nasmono-home; LaunchPad served on host port 8888",
+    "games.tower": "Game Hub tile planned per ADR-0007; not yet in launchpad.apps.json",
+    "pihole.tower": "LaunchPad url includes /admin path; Caddy routes full host",
+    "frame.tower": "LaunchPad url includes Immich frame query params"
+  }
+}

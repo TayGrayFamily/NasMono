@@ -17,6 +17,9 @@ services:
       REACHABILITY_GATEWAY: http://host.docker.internal
       UNRAID_GRAPHQL_URL: http://tower:8080/graphql
       UNRAID_API_KEY: ${UNRAID_API_KEY}
+      ADMIN_ACTIONS_ENABLED: 'true'
+      STACK_UPDATE_CONTAINER_MATCH: '^web_app$|^game_server$|^game_hub_ui$|^game_hub_db$'
+      COMPOSE_MANAGER_STACK_URL: 'http://tower/Docker/Compose'
     extra_hosts:
       - 'host.docker.internal:host-gateway'
     volumes:

@@ -1,0 +1,90 @@
+.container-card .stat-card-detail {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+}
+
+.container-card-status {
+  display: block;
+}
+
+.container-card-image {
+  display: block;
+  font-size: 0.7rem;
+  opacity: 0.75;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.container-card-update-badge {
+  display: inline-block;
+  font-size: 0.7rem;
+  font-weight: 600;
+  color: var(--status-orange, #e8a317);
+}
+
+.container-card-footer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.5rem;
+  margin-top: 0.5rem;
+}
+
+.container-card-tag {
+  font-size: 0.75rem;
+  opacity: 0.85;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.container-card-menu-content a {
+  display: block;
+  width: 100%;
+  text-decoration: none;
+  color: inherit;
+}
+
+.container-update-dialog-image {
+  font-family: monospace;
+  font-size: 0.8rem;
+  opacity: 0.85;
+  word-break: break-all;
+}
+
+.container-update-dialog-warning {
+  color: var(--status-orange, #e8a317);
+  font-size: 0.85rem;
+  margin-top: 0.75rem;
+}
+
+.container-update-dialog-footer {
+  display: flex;
+  gap: 0.5rem;
+  justify-content: flex-end;
+}
+
+.docker-toolbar-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  margin-bottom: 1rem;
+}
+
+.docker-updates-section {
+  margin-bottom: 1.5rem;
+}
+
+.docker-updates-section-title {
+  font-size: 1rem;
+  font-weight: 600;
+  margin-bottom: 0.75rem;
+}
+
+.docker-action-error {
+  color: var(--status-red, #e53e3e);
+  font-size: 0.85rem;
+  margin-bottom: 0.75rem;
+}

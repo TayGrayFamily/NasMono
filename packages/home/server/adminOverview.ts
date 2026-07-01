@@ -3,6 +3,11 @@ import {
   parseContainerStatus,
   type ContainerAttention,
 } from './containerStatus.js';
+import {
+  getComposeManagerStackUrl,
+  getStackUpdateContainerMatch,
+  isAdminActionsEnabled,
+} from './adminActionsConfig.js';
 import { getUnraidConfig, unraidQuery } from './unraidGraphql.js';
 import { extractTempReadings, recordTempSample } from './tempHistory.js';
 import { recordMetricsSample } from './metricsHistory.js';
@@ -33,7 +38,7 @@ query AdminOverview {
   }
   disks { name device temperature smartStatus size isSpinning }
   docker {
-    containers { names state status autoStart }
+    containers { id names image state status autoStart isUpdateAvailable }
   }
   shares { name free used }
   services { name online version }
@@ -127,10 +132,13 @@ type GqlOverview = {
   disks: GqlPhysicalDisk[];
   docker: {
     containers: Array<{
+      id: string;
       names: string[];
+      image: string;
       state: string;
       status: string;
       autoStart: boolean;
+      isUpdateAvailable: boolean | null;
     }>;
   };
   shares: Array<{ name: string; free: number; used: number }>;
@@ -167,7 +175,10 @@ export type AdminNotification = {
 export type { ContainerAttention };
 
 export type AdminContainerSummary = {
+  id: string;
   name: string;
+  image: string;
+  updateAvailable: boolean;
   state: string;
   status: string;
   autoStart: boolean;
@@ -280,7 +291,13 @@ export type AdminOverview = {
     unhealthy: number;
     restarting: number;
     crashed: number;
+    updatesAvailable: number;
     items: AdminContainerSummary[];
+  };
+  capabilities: {
+    adminActions: boolean;
+    stackUpdateContainerMatch: string | null;
+    composeManagerStackUrl: string | null;
   };
   shares: Array<{ name: string; free: number; used: number }>;
   services: Array<{ name: string; online: boolean; version: string | null }>;
@@ -409,7 +426,10 @@ function mapContainers(raw: GqlOverview['docker']['containers']): AdminOverview[
     const parsed = parseContainerStatus(c.state, c.status);
     const { attention, detail } = containerAttention(c.state, c.status, parsed);
     return {
+      id: c.id,
       name,
+      image: c.image,
+      updateAvailable: c.isUpdateAvailable === true,
       state: c.state,
       status: c.status,
       autoStart: c.autoStart,
@@ -426,6 +446,7 @@ function mapContainers(raw: GqlOverview['docker']['containers']): AdminOverview[
   const unhealthy = items.filter((c) => c.unhealthy).length;
   const restarting = items.filter((c) => c.restarting).length;
   const crashed = items.filter((c) => c.attention === 'crashed').length;
+  const updatesAvailable = items.filter((c) => c.updateAvailable).length;
 
   return {
     total: items.length,
@@ -434,6 +455,7 @@ function mapContainers(raw: GqlOverview['docker']['containers']): AdminOverview[
     unhealthy,
     restarting,
     crashed,
+    updatesAvailable,
     items,
   };
 }
@@ -482,6 +504,11 @@ export async function fetchAdminOverview(): Promise<AdminOverview> {
     },
     physicalDisks: mapPhysicalDisks(data.disks, data.array.boot.device),
     containers: mapContainers(data.docker.containers),
+    capabilities: {
+      adminActions: isAdminActionsEnabled(),
+      stackUpdateContainerMatch: getStackUpdateContainerMatch()?.source ?? null,
+      composeManagerStackUrl: getComposeManagerStackUrl(),
+    },
     shares: data.shares,
     services: data.services,
     notifications: {

@@ -23,12 +23,31 @@ Open **http://localhost:8888**
 
 ### API endpoints
 
-| Route                                       | Description                                            |
-| ------------------------------------------- | ------------------------------------------------------ |
-| `GET /api/health`                           | Liveness                                               |
-| `GET /api/launchpad`                        | Merged app list + Docker status + unmatched containers |
-| `GET /api/containers`                       | Raw container list (debug)                             |
-| `GET /api/reachability?target=…&hostPort=…` | Server-side HTTP probe                                 |
+| Route                                          | Description                                                     |
+| ---------------------------------------------- | --------------------------------------------------------------- |
+| `GET /api/health`                              | Liveness                                                        |
+| `GET /api/launchpad`                           | Merged app list + Docker status + unmatched containers          |
+| `GET /api/containers`                          | Raw container list (debug)                                      |
+| `GET /api/reachability?target=…&hostPort=…`    | Server-side HTTP probe                                          |
+| `GET /api/admin/overview`                      | Unraid system + Docker overview                                 |
+| `POST /api/admin/docker/refresh-digests`       | Refresh Unraid image digest cache (requires env gate)           |
+| `POST /api/admin/docker/containers/:id/update` | Pull + recreate one container                                   |
+| `POST /api/admin/docker/update-outdated`       | Update all containers with pending updates                      |
+| `POST /api/admin/docker/update-stack`          | Batch update containers matching `STACK_UPDATE_CONTAINER_MATCH` |
+
+### Docker updates (System view)
+
+When `ADMIN_ACTIONS_ENABLED=true`, **System → Docker** shows image version, update badges, and per-container actions (Update image, Check for updates). Requires an Unraid API key with **Docker write** permissions—not read-only.
+
+Compose-managed containers (e.g. `web_app`) can be updated via the same GraphQL mutations. This is not identical to Compose Manager's `compose pull + up -d`; use the **Compose Manager** link for full stack semantics. Updating `web_app` restarts the dashboard briefly.
+
+**Unraid compose env** (see `docker-compose.unraid.yml`):
+
+| Variable                       | Purpose                                         |
+| ------------------------------ | ----------------------------------------------- |
+| `ADMIN_ACTIONS_ENABLED`        | Enable POST mutation routes                     |
+| `STACK_UPDATE_CONTAINER_MATCH` | Regex on container names for batch stack update |
+| `COMPOSE_MANAGER_STACK_URL`    | Optional link to Compose Manager UI             |
 
 ## LaunchPad app config
 

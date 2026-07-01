@@ -23,6 +23,12 @@ export function DockerGroupPanel({ severity, containers }: DockerGroupPanelProps
           <h2 className="group-panel-title">Docker</h2>
         </div>
         <div className="docker-group-header-meta">
+          {containers.updatesAvailable > 0 ? (
+            <Link to="/system/docker" hash="updates" className="docker-group-updates-badge">
+              {containers.updatesAvailable} update{containers.updatesAvailable === 1 ? '' : 's'}{' '}
+              available
+            </Link>
+          ) : null}
           {issueCount > 0 ? (
             <span className={`group-panel-badge group-panel-badge--${severity}`}>
               {issueCount} need attention

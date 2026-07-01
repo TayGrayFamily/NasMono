@@ -1,10 +1,12 @@
 import { Button } from '@chakra-ui/react';
 import { useMemo, type JSX } from 'react';
 import { UNRAID_DASHBOARD_URL } from '@/constants/unraidLinks';
+import { useDockerActions } from '@/hooks/useDockerActions';
 import { useTemperatureAnalytics } from '@/hooks/useTemperatureAnalytics';
 import { useMetricsHistory } from '@/hooks/useMetricsHistory';
 import { buildControlPanelReport } from './controlPanelHealth';
 import { AlertsGroupPanel } from './AlertsGroup';
+import { ConfirmDialog } from './ConfirmDialog';
 import { DockerGroupPanel } from './DockerGroup';
 import { GroupPanel } from './GroupPanel';
 import { useSystemContext } from './SystemProvider';
@@ -13,6 +15,7 @@ import './ControlPanel.css';
 
 export function ControlPanel(): JSX.Element {
   const { data, error, loading, refresh } = useSystemContext();
+  const actions = useDockerActions(refresh);
   const { data: tempData } = useTemperatureAnalytics('24h', Boolean(data));
   const { data: metricsData } = useMetricsHistory('24h', Boolean(data));
 
@@ -45,6 +48,24 @@ export function ControlPanel(): JSX.Element {
       <header className="control-panel-toolbar">
         <span className="control-panel-host">{report.hostname}</span>
         <div className="control-panel-actions">
+          {data.capabilities.adminActions && data.capabilities.stackUpdateContainerMatch ? (
+            <ConfirmDialog
+              title="Update NasMono stack?"
+              confirmLabel="Update stack"
+              loading={actions.busy === 'update-stack'}
+              onConfirm={() => void actions.updateStack()}
+              trigger={(open) => (
+                <Button size="sm" colorPalette="teal" variant="outline" onClick={open}>
+                  Update stack
+                </Button>
+              )}
+            >
+              <p>
+                Update all configured stack services. The dashboard may reload while{' '}
+                <strong>web_app</strong> restarts.
+              </p>
+            </ConfirmDialog>
+          ) : null}
           <a
             className="launch-button"
             href={UNRAID_DASHBOARD_URL}

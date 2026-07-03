@@ -13,7 +13,9 @@ interface PlayerRowProps {
   isHost: boolean;
   showHostMenu?: boolean;
   onTransferHost?: () => void;
+  onRemovePlayer?: () => void;
   isTransferring?: boolean;
+  isRemoving?: boolean;
 }
 
 export function PlayerRow({
@@ -22,7 +24,9 @@ export function PlayerRow({
   isHost,
   showHostMenu,
   onTransferHost,
+  onRemovePlayer,
   isTransferring,
+  isRemoving,
 }: PlayerRowProps) {
   const [menuOpen, setMenuOpen] = useState(false);
   const menuRef = useRef<HTMLDivElement>(null);
@@ -59,7 +63,7 @@ export function PlayerRow({
         </div>
       </div>
 
-      {showHostMenu && onTransferHost && (
+      {showHostMenu && (onTransferHost || onRemovePlayer) && (
         <div className="player-row__menu-wrap" ref={menuRef}>
           <button
             type="button"
@@ -67,24 +71,40 @@ export function PlayerRow({
             aria-haspopup="true"
             aria-expanded={menuOpen}
             onClick={() => setMenuOpen(!menuOpen)}
-            disabled={isTransferring}
+            disabled={isTransferring || isRemoving}
           >
             ⋯
           </button>
           {menuOpen && (
             <div className="player-row__menu" role="menu">
-              <button
-                type="button"
-                className="player-row__menu-item"
-                role="menuitem"
-                disabled={isTransferring}
-                onClick={() => {
-                  setMenuOpen(false);
-                  onTransferHost();
-                }}
-              >
-                {isTransferring ? 'Transferring…' : 'Make host'}
-              </button>
+              {onTransferHost && (
+                <button
+                  type="button"
+                  className="player-row__menu-item"
+                  role="menuitem"
+                  disabled={isTransferring || isRemoving}
+                  onClick={() => {
+                    setMenuOpen(false);
+                    onTransferHost();
+                  }}
+                >
+                  {isTransferring ? 'Transferring…' : 'Make host'}
+                </button>
+              )}
+              {onRemovePlayer && (
+                <button
+                  type="button"
+                  className="player-row__menu-item"
+                  role="menuitem"
+                  disabled={isTransferring || isRemoving}
+                  onClick={() => {
+                    setMenuOpen(false);
+                    onRemovePlayer();
+                  }}
+                >
+                  {isRemoving ? 'Removing…' : 'Remove player'}
+                </button>
+              )}
             </div>
           )}
         </div>

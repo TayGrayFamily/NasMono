@@ -2,6 +2,7 @@ import express from 'express';
 import { LobbyService, type LobbyLeaveResult } from '../services/LobbyService.js';
 import { SocketService } from '../services/SocketService.js';
 import { createRequireSocketUser } from '../middleware/requireSocketUser.js';
+import { LobbyFullError } from '../config/lobby.js';
 
 function emitLeaveResults(
   io: ReturnType<SocketService['getIo']>,
@@ -81,6 +82,9 @@ export function createLobbyRouter(lobbyService: LobbyService, socketService: Soc
       socketService.emitLobbyUpdated(lobbyId);
       res.status(200).json({ message: 'Joined' });
     } catch (err: unknown) {
+      if (err instanceof LobbyFullError) {
+        return res.status(409).json({ error: err.message });
+      }
       res.status(500).json({ error: err instanceof Error ? err.message : String(err) });
     }
   });
@@ -123,6 +127,40 @@ export function createLobbyRouter(lobbyService: LobbyService, socketService: Soc
       io.to(lobbyId).emit('host_transferred', { newHostId });
       socketService.emitLobbyUpdated(lobbyId);
       res.json({ message: 'Host transferred' });
+    } catch (err: unknown) {
+      res.status(500).json({ error: err instanceof Error ? err.message : String(err) });
+    }
+  });
+
+  router.post('/:lobbyId/kick', requireSocketUser, async (req, res) => {
+    const lobbyId = String(req.params.lobbyId);
+    const hostUserId = req.identifiedUserId!;
+    const { targetUserId } = req.body;
+
+    if (!targetUserId || typeof targetUserId !== 'string') {
+      return res.status(400).json({ error: 'targetUserId is required' });
+    }
+    if (targetUserId === hostUserId) {
+      return res.status(400).json({ error: 'Host cannot remove themselves' });
+    }
+
+    try {
+      const lobby = await lobbyService.getLobbyById(lobbyId);
+      if (!lobby) return res.status(404).json({ error: 'Lobby not found' });
+
+      if (lobby.hostId !== hostUserId) {
+        return res.status(403).json({ error: 'Only the host can remove players' });
+      }
+
+      const isMember = lobby.players.some((p: { id: string }) => p.id === targetUserId);
+      if (!isMember) {
+        return res.status(404).json({ error: 'Player not in lobby' });
+      }
+
+      const result = await lobbyService.leaveLobby(lobbyId, targetUserId);
+      emitLeaveResults(io, socketService, targetUserId, [result]);
+
+      res.json({ message: 'Player removed' });
     } catch (err: unknown) {
       res.status(500).json({ error: err instanceof Error ? err.message : String(err) });
     }

@@ -107,6 +107,7 @@ describe('LobbyService', () => {
       const leaveSpy = vi.spyOn(service, 'leaveAllLobbiesExcept').mockResolvedValue(left);
       const client = mockClient(async (sql) => {
         if (sql.includes('SELECT 1 FROM lobby_players')) return { rows: [] };
+        if (sql.includes('COUNT(*)')) return { rows: [{ count: 1 }] };
         if (sql.startsWith('INSERT INTO lobby_players')) return { rows: [] };
         if (sql.includes('SELECT name FROM users')) return { rows: [{ name: 'Alex' }] };
         throw new Error(`Unexpected query: ${sql}`);

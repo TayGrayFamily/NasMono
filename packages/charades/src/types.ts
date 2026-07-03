@@ -1,4 +1,4 @@
-export type CardType = 'word' | 'term' | 'quote' | 'person';
+export type CardType = 'word' | 'term' | 'quote' | 'person' | 'title' | 'character' | 'actor';
 
 export type Difficulty = 'easy' | 'medium' | 'hard';
 
@@ -23,4 +23,5 @@ export interface CharadesPack {
 export interface CharadesSessionConfig {
   packId: string;
   difficulty: Difficulty;
+  enabledTypes: CardType[];
 }

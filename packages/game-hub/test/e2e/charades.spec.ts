@@ -25,4 +25,22 @@ test.describe('Charades solo play', () => {
     await page.getByRole('button', { name: 'Next card' }).click();
     await expect(page.getByText('Tap to reveal')).toBeVisible();
   });
+
+  test('movies pack can disable actors and still start', async ({ page }) => {
+    await page.goto('/play/charades');
+
+    await page
+      .locator('.charades-pack-card')
+      .filter({ hasText: 'Titles, quotes, characters, and actors' })
+      .click();
+    await page.getByRole('button', { name: 'Easy', exact: true }).click();
+    await page.getByRole('button', { name: 'Actors', exact: true }).click();
+
+    await expect(page.getByText(/cards in this round/)).toBeVisible();
+    await page.getByRole('button', { name: 'Start' }).click();
+    await page.waitForURL('**/play/charades/game');
+
+    await page.getByRole('button', { name: 'Reveal', exact: true }).click();
+    await expect(page.getByText('Actor', { exact: true })).not.toBeVisible();
+  });
 });

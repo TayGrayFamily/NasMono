@@ -1,7 +1,21 @@
-import type { CharadesCard, Difficulty } from '../types.js';
+import type { CardType, CharadesCard, Difficulty } from '../types.js';
+
+export interface DeckFilter {
+  difficulty: Difficulty;
+  types: CardType[];
+}
 
 export function filterByDifficulty(cards: CharadesCard[], difficulty: Difficulty): CharadesCard[] {
   return cards.filter((c) => c.difficulty === difficulty);
+}
+
+export function filterByTypes(cards: CharadesCard[], types: CardType[]): CharadesCard[] {
+  const allowed = new Set(types);
+  return cards.filter((c) => allowed.has(c.type));
+}
+
+export function filterCards(cards: CharadesCard[], filter: DeckFilter): CharadesCard[] {
+  return filterByTypes(filterByDifficulty(cards, filter.difficulty), filter.types);
 }
 
 export function shuffleDeck<T>(items: T[], random: () => number = Math.random): T[] {
@@ -15,10 +29,10 @@ export function shuffleDeck<T>(items: T[], random: () => number = Math.random): 
 
 export function createShuffledDeck(
   cards: CharadesCard[],
-  difficulty: Difficulty,
+  filter: DeckFilter,
   random: () => number = Math.random,
 ): CharadesCard[] {
-  return shuffleDeck(filterByDifficulty(cards, difficulty), random);
+  return shuffleDeck(filterCards(cards, filter), random);
 }
 
 export interface DeckState {
@@ -28,11 +42,11 @@ export interface DeckState {
 
 export function createDeckState(
   cards: CharadesCard[],
-  difficulty: Difficulty,
+  filter: DeckFilter,
   random?: () => number,
 ): DeckState {
   return {
-    deck: createShuffledDeck(cards, difficulty, random),
+    deck: createShuffledDeck(cards, filter, random),
     index: 0,
   };
 }

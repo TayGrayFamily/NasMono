@@ -1,13 +1,16 @@
 import { describe, expect, it } from 'vitest';
-import { allPacks } from '../data/index.js';
+import { allPacks, getPackById } from '../data/index.js';
 import { validatePack } from '../schema.js';
-import type { Difficulty } from '../types.js';
+import type { CardType, Difficulty } from '../types.js';
+import { getTypesInPack } from './cardTypes.js';
 import {
   advanceDeck,
   createDeckState,
   createShuffledDeck,
   drawCurrent,
   filterByDifficulty,
+  filterByTypes,
+  filterCards,
   shuffleDeck,
 } from './deck.js';
 
@@ -27,16 +30,45 @@ describe('deck', () => {
     expect(easy.every((card) => card.difficulty === 'easy')).toBe(true);
   });
 
+  it('filters cards by type', () => {
+    const movies = getPackById('movies');
+    expect(movies).toBeDefined();
+    const titles = filterByTypes(movies!.cards, ['title']);
+    expect(titles.length).toBeGreaterThan(0);
+    expect(titles.every((card) => card.type === 'title')).toBe(true);
+  });
+
+  it('filters by difficulty and types together', () => {
+    const movies = getPackById('movies')!;
+    const filtered = filterCards(movies.cards, {
+      difficulty: 'easy',
+      types: ['actor'],
+    });
+    expect(filtered.every((c) => c.difficulty === 'easy' && c.type === 'actor')).toBe(true);
+  });
+
   it('shuffles deterministically with a seeded rng', () => {
     const pack = allPacks[0];
-    const first = createShuffledDeck(pack.cards, 'easy', seededRandom(42));
-    const second = createShuffledDeck(pack.cards, 'easy', seededRandom(42));
+    const first = createShuffledDeck(
+      pack.cards,
+      { difficulty: 'easy', types: getTypesInPack(pack) },
+      seededRandom(42),
+    );
+    const second = createShuffledDeck(
+      pack.cards,
+      { difficulty: 'easy', types: getTypesInPack(pack) },
+      seededRandom(42),
+    );
     expect(first.map((c) => c.id)).toEqual(second.map((c) => c.id));
   });
 
   it('draws and advances without repeating until deck is exhausted', () => {
     const pack = allPacks[0];
-    let state = createDeckState(pack.cards, 'easy', seededRandom(7));
+    let state = createDeckState(
+      pack.cards,
+      { difficulty: 'easy', types: getTypesInPack(pack) },
+      seededRandom(7),
+    );
     const seen = new Set<string>();
 
     for (let i = 0; i < state.deck.length; i += 1) {
@@ -84,5 +116,23 @@ describe('pack data', () => {
       const ids = pack.cards.map((card) => card.id);
       expect(new Set(ids).size).toBe(ids.length);
     }
+  });
+
+  it('movies pack supports turning off actors while keeping enough easy cards', () => {
+    const movies = getPackById('movies')!;
+    const withoutActors = filterCards(movies.cards, {
+      difficulty: 'easy',
+      types: ['title', 'quote', 'character'],
+    });
+    expect(withoutActors.length).toBeGreaterThanOrEqual(15);
+  });
+});
+
+describe('cardTypes', () => {
+  it('movies pack exposes all four toggleable types', () => {
+    const movies = getPackById('movies')!;
+    const types = getTypesInPack(movies);
+    const expected: CardType[] = ['title', 'quote', 'character', 'actor'];
+    expect(types).toEqual(expected);
   });
 });

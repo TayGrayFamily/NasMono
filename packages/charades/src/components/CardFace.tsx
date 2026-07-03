@@ -1,5 +1,6 @@
 import React from 'react';
 import type { CharadesCard } from '../types.js';
+import { CARD_TYPE_PLAY_HINT, formatCardType } from '../lib/cardTypes.js';
 import './CardFace.css';
 
 interface CardFaceProps {
@@ -9,21 +10,6 @@ interface CardFaceProps {
   onPointerDown?: (event: React.PointerEvent<HTMLElement>) => void;
   onPointerUp?: (event: React.PointerEvent<HTMLElement>) => void;
   showSwipeHint?: boolean;
-}
-
-function formatCardType(type: CharadesCard['type']): string {
-  switch (type) {
-    case 'word':
-      return 'Word';
-    case 'term':
-      return 'Term';
-    case 'quote':
-      return 'Quote';
-    case 'person':
-      return 'Person';
-    default:
-      return type;
-  }
 }
 
 export function CardFace({
@@ -37,10 +23,12 @@ export function CardFace({
   if (!card) {
     return (
       <div className="card-face card-face--empty">
-        <p>No cards left in this deck.</p>
+        <p>No cards match your filters. End the round and adjust settings.</p>
       </div>
     );
   }
+
+  const playHint = card.actHint ?? CARD_TYPE_PLAY_HINT[card.type];
 
   return (
     <button
@@ -56,7 +44,7 @@ export function CardFace({
           <span className="card-face__type">{formatCardType(card.type)}</span>
           <p className="card-face__text">{card.text}</p>
           {card.year && <span className="card-face__meta">{card.year}</span>}
-          {card.actHint && <span className="card-face__hint">{card.actHint}</span>}
+          {playHint && <span className="card-face__hint">{playHint}</span>}
           {showSwipeHint && <span className="card-face__swipe-hint">Swipe for next card</span>}
         </div>
       ) : (

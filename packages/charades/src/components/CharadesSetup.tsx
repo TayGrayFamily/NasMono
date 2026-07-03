@@ -2,6 +2,7 @@ import React from 'react';
 import { useNavigate } from 'react-router-dom';
 import { allPacks } from '../data/index.js';
 import type { Difficulty } from '../types.js';
+import { CARD_TYPE_LABELS } from '../lib/cardTypes.js';
 import { useCharadesSetup } from '../hooks/useCharadesSession.js';
 import './charades.css';
 
@@ -14,8 +15,18 @@ function formatAgeRange(ageMin: number, ageMax: number | null): string {
 
 export function CharadesSetup() {
   const navigate = useNavigate();
-  const { packId, setPackId, difficulty, setDifficulty, filteredCount, canStart, startSession } =
-    useCharadesSetup();
+  const {
+    packId,
+    setPackId,
+    difficulty,
+    setDifficulty,
+    availableTypes,
+    enabledTypes,
+    toggleType,
+    filteredCount,
+    canStart,
+    startSession,
+  } = useCharadesSetup();
 
   const handleStart = () => {
     const config = startSession();
@@ -23,6 +34,8 @@ export function CharadesSetup() {
       navigate('/play/charades/game');
     }
   };
+
+  const showTypeFilters = availableTypes.length > 1;
 
   return (
     <div className="charades-page">
@@ -32,7 +45,7 @@ export function CharadesSetup() {
         </button>
         <h2 className="charades-header__title">Charades</h2>
         <p className="charades-header__subtitle">
-          Pick a pack and difficulty. Pass the phone to act it out.
+          Pick a pack, difficulty, and card types. Pass the phone to act it out.
         </p>
       </header>
 
@@ -73,6 +86,32 @@ export function CharadesSetup() {
           ))}
         </div>
       </section>
+
+      {showTypeFilters && (
+        <section>
+          <h3 className="charades-section-title">Card types</h3>
+          <p className="charades-type-hint">
+            Turn off anything your group does not want — skip actors, quotes, or titles. At least
+            one type must stay on.
+          </p>
+          <div className="charades-type-filters" role="group" aria-label="Card types">
+            {availableTypes.map((type) => {
+              const on = enabledTypes.includes(type);
+              return (
+                <button
+                  key={type}
+                  type="button"
+                  className={`charades-type-filter ${on ? 'charades-type-filter--on' : 'charades-type-filter--off'}`}
+                  onClick={() => toggleType(type)}
+                  aria-pressed={on}
+                >
+                  {CARD_TYPE_LABELS[type]}
+                </button>
+              );
+            })}
+          </div>
+        </section>
+      )}
 
       {packId && (
         <p className="charades-meta" aria-live="polite">

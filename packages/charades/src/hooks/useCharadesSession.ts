@@ -1,11 +1,12 @@
 import { useCallback, useEffect, useMemo, useState } from 'react';
-import type { CharadesSessionConfig, CharadesCard, Difficulty } from '../types.js';
+import type { CharadesSessionConfig, CharadesCard, CardType, Difficulty } from '../types.js';
 import { getPackById } from '../data/index.js';
+import { getTypesInPack } from '../lib/cardTypes.js';
 import {
   advanceDeck,
   createDeckState,
   drawCurrent,
-  filterByDifficulty,
+  filterCards,
   type DeckState,
 } from '../lib/deck.js';
 
@@ -16,7 +17,7 @@ function loadSessionConfig(): CharadesSessionConfig | null {
     const raw = sessionStorage.getItem(SESSION_KEY);
     if (!raw) return null;
     const parsed = JSON.parse(raw) as CharadesSessionConfig;
-    if (parsed?.packId && parsed?.difficulty) return parsed;
+    if (parsed?.packId && parsed?.difficulty && parsed?.enabledTypes?.length) return parsed;
   } catch {
     // ignore corrupt storage
   }
@@ -34,22 +35,42 @@ export function clearSessionConfig() {
 export function useCharadesSetup() {
   const [packId, setPackId] = useState<string | null>(null);
   const [difficulty, setDifficulty] = useState<Difficulty>('easy');
+  const [enabledTypes, setEnabledTypes] = useState<CardType[]>([]);
 
   const pack = packId ? getPackById(packId) : undefined;
+  const availableTypes = useMemo(() => (pack ? getTypesInPack(pack) : []), [pack]);
+
+  useEffect(() => {
+    if (pack) {
+      setEnabledTypes(getTypesInPack(pack));
+    } else {
+      setEnabledTypes([]);
+    }
+  }, [pack?.id]);
+
+  const toggleType = useCallback((type: CardType) => {
+    setEnabledTypes((prev) => {
+      if (prev.includes(type)) {
+        if (prev.length <= 1) return prev;
+        return prev.filter((t) => t !== type);
+      }
+      return [...prev, type];
+    });
+  }, []);
 
   const filteredCount = useMemo(() => {
-    if (!pack) return 0;
-    return filterByDifficulty(pack.cards, difficulty).length;
-  }, [pack, difficulty]);
+    if (!pack || enabledTypes.length === 0) return 0;
+    return filterCards(pack.cards, { difficulty, types: enabledTypes }).length;
+  }, [pack, difficulty, enabledTypes]);
 
   const canStart = Boolean(pack && filteredCount > 0);
 
   const startSession = useCallback(() => {
     if (!packId || !canStart) return null;
-    const config = { packId, difficulty };
+    const config: CharadesSessionConfig = { packId, difficulty, enabledTypes };
     saveSessionConfig(config);
     return config;
-  }, [packId, difficulty, canStart]);
+  }, [packId, difficulty, enabledTypes, canStart]);
 
   return {
     packId,
@@ -57,6 +78,9 @@ export function useCharadesSetup() {
     difficulty,
     setDifficulty,
     pack,
+    availableTypes,
+    enabledTypes,
+    toggleType,
     filteredCount,
     canStart,
     startSession,
@@ -69,7 +93,10 @@ export function useCharadesPlay() {
 
   const [deckState, setDeckState] = useState<DeckState | null>(() => {
     if (!config || !pack) return null;
-    return createDeckState(pack.cards, config.difficulty);
+    return createDeckState(pack.cards, {
+      difficulty: config.difficulty,
+      types: config.enabledTypes,
+    });
   });
 
   const [revealed, setRevealed] = useState(false);

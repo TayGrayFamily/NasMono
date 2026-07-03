@@ -1,6 +1,14 @@
 import { z } from 'zod';
 
-export const cardTypeSchema = z.enum(['word', 'term', 'quote', 'person']);
+export const cardTypeSchema = z.enum([
+  'word',
+  'term',
+  'quote',
+  'person',
+  'title',
+  'character',
+  'actor',
+]);
 
 export const difficultySchema = z.enum(['easy', 'medium', 'hard']);
 

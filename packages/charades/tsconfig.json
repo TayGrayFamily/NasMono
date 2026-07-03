@@ -10,11 +10,7 @@
     "isolatedModules": true,
     "noEmit": true,
     "jsx": "react-jsx",
-    "baseUrl": ".",
-    "paths": {
-      "@/*": ["./src/*"],
-      "charades": ["../charades/src/index.ts"]
-    }
+    "skipLibCheck": true
   },
-  "include": ["src", "../charades/src"]
+  "include": ["src"]
 }

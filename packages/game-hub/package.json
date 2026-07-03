@@ -13,6 +13,7 @@
   },
   "dependencies": {
     "@tanstack/react-query": "5.96.2",
+    "charades": "workspace:*",
     "just-one": "workspace:*",
     "react": "^19.2.1",
     "react-dom": "^19.2.1",

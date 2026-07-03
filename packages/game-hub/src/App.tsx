@@ -14,6 +14,8 @@ import PlayerSetup from './components/PlayerSetup';
 import LobbyList from './components/LobbyList';
 import LobbyDetail from './components/LobbyDetail';
 import ManageUser from './components/ManageUser';
+import { PlayHome } from './components/PlayHome';
+import { CharadesRoutes } from 'charades';
 import { SocketProvider, useSocket } from './components/SocketContext';
 import { Header } from './components/layout/Header';
 import { apiFetch } from './lib/api';
@@ -35,6 +37,10 @@ function loadStoredUser(): User | null {
     // ignore corrupt storage
   }
   return null;
+}
+
+function isPublicPath(pathname: string): boolean {
+  return pathname === '/' || pathname.startsWith('/play/charades');
 }
 
 function LobbyDetailRoute({
@@ -112,7 +118,7 @@ function AppContent({
   }, [currentUser, socket]);
 
   useEffect(() => {
-    if (!currentUser && location.pathname !== '/login') {
+    if (!currentUser && !isPublicPath(location.pathname) && location.pathname !== '/login') {
       navigate('/login');
     } else if (currentUser && location.pathname === '/login') {
       navigate('/lobbies');
@@ -195,11 +201,15 @@ function AppContent({
     onSignOut();
   };
 
+  const headerSubtitle = location.pathname.startsWith('/play/charades')
+    ? 'Pick a card. Pass the phone.'
+    : 'Join a lobby or start a game.';
+
   return (
     <div className="app-container">
       <Header
         title="Game Hub"
-        subtitle="Join a lobby or start a game."
+        subtitle={headerSubtitle}
         currentUser={currentUser}
         isConnected={isConnected}
         onSignOut={handleSignOut}
@@ -208,6 +218,9 @@ function AppContent({
 
       <main className="main-content">
         <Routes>
+          <Route path="/" element={<PlayHome currentUser={currentUser} />} />
+          <Route path="/play/charades/*" element={<CharadesRoutes />} />
+
           <Route
             path="/login"
             element={
@@ -241,7 +254,7 @@ function AppContent({
             </>
           )}
 
-          <Route path="*" element={<Navigate to={currentUser ? '/lobbies' : '/login'} replace />} />
+          <Route path="*" element={<Navigate to="/" replace />} />
         </Routes>
       </main>
 

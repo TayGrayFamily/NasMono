@@ -32,6 +32,8 @@ function LobbyDetail({ lobbyId, currentUserId, onBack }: LobbyDetailProps) {
   const [isLeaving, setIsLeaving] = useState(false);
   const [isTransferring, setIsTransferring] = useState<string | null>(null);
   const [transferTarget, setTransferTarget] = useState<string | null>(null);
+  const [removeTarget, setRemoveTarget] = useState<string | null>(null);
+  const [isRemoving, setIsRemoving] = useState<string | null>(null);
   const [actionError, setActionError] = useState<string | null>(null);
 
   useEffect(() => {
@@ -71,6 +73,12 @@ function LobbyDetail({ lobbyId, currentUserId, onBack }: LobbyDetailProps) {
     };
 
     const handlePlayerLeft = (data: { userId: string }) => {
+      if (data.userId === currentUserId) {
+        socket?.emit('leave_lobby_room', { lobbyId, userId: currentUserId });
+        setLastLobbyId(null);
+        onBack();
+        return;
+      }
       setLobby((current) => {
         if (!current) return null;
         return { ...current, players: current.players.filter((p) => p.id !== data.userId) };
@@ -183,6 +191,32 @@ function LobbyDetail({ lobbyId, currentUserId, onBack }: LobbyDetailProps) {
     }
   };
 
+  const handleRemovePlayer = async (targetUserId: string) => {
+    setIsRemoving(targetUserId);
+    setActionError(null);
+    try {
+      const response = await apiFetch(
+        `/api/lobbies/${lobbyId}/kick`,
+        {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ targetUserId }),
+        },
+        socket?.id,
+      );
+
+      if (!response.ok) {
+        const text = await response.text();
+        throw new Error(text || 'Failed to remove player');
+      }
+    } catch (err: unknown) {
+      setActionError(err instanceof Error ? err.message : String(err));
+    } finally {
+      setIsRemoving(null);
+      setRemoveTarget(null);
+    }
+  };
+
   const leaveLobby = async () => {
     await apiFetch(
       `/api/lobbies/${lobbyId}/leave`,
@@ -269,7 +303,9 @@ function LobbyDetail({ lobbyId, currentUserId, onBack }: LobbyDetailProps) {
                 isHost={p.id === lobby.hostId}
                 showHostMenu={isHost && p.id !== currentUserId}
                 onTransferHost={() => setTransferTarget(p.id)}
+                onRemovePlayer={() => setRemoveTarget(p.id)}
                 isTransferring={isTransferring === p.id}
+                isRemoving={isRemoving === p.id}
               />
             ))}
           </PlayersGrid>
@@ -314,6 +350,15 @@ function LobbyDetail({ lobbyId, currentUserId, onBack }: LobbyDetailProps) {
         confirmLabel="Make host"
         onConfirm={() => transferTarget && handleTransferHost(transferTarget)}
         onCancel={() => setTransferTarget(null)}
+      />
+
+      <ConfirmDialog
+        open={removeTarget !== null}
+        title="Remove player"
+        message="Remove this player from the lobby?"
+        confirmLabel="Remove player"
+        onConfirm={() => removeTarget && handleRemovePlayer(removeTarget)}
+        onCancel={() => setRemoveTarget(null)}
       />
     </div>
   );

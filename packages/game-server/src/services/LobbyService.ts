@@ -1,4 +1,5 @@
 import { getDbClient } from '../db/index.js';
+import { getMaxLobbySize, LobbyFullError } from '../config/lobby.js';
 
 export type LobbyLeaveResult = {
   lobbyId: string;
@@ -73,6 +74,17 @@ export class LobbyService {
         [lobbyId, userId],
       );
       const alreadyMember = existing.rows.length > 0;
+
+      if (!alreadyMember) {
+        const countResult = await client.query(
+          'SELECT COUNT(*)::int as count FROM lobby_players WHERE lobby_id = $1',
+          [lobbyId],
+        );
+        const maxSize = getMaxLobbySize();
+        if (countResult.rows[0].count >= maxSize) {
+          throw new LobbyFullError(maxSize);
+        }
+      }
 
       await client.query(
         'INSERT INTO lobby_players (lobby_id, user_id) VALUES ($1, $2) ON CONFLICT DO NOTHING',

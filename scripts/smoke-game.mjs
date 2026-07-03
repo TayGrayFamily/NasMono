@@ -76,6 +76,7 @@ async function startGameServer() {
     GAME_SERVER_PORT: String(SERVER_PORT),
     SERVER_HOST: '127.0.0.1',
     GAME_SERVER_ENABLE_ADMIN: 'false',
+    MAX_LOBBY_SIZE: process.env.MAX_LOBBY_SIZE ?? '2',
   };
 
   gameServerChild = spawn('node', [gameServerDist], {

@@ -78,7 +78,17 @@ function LobbyList({ currentUserId, onJoinLobby }: LobbyListProps) {
         },
         socket?.id,
       );
-      if (!response.ok) throw new Error('Failed to join lobby');
+      if (!response.ok) {
+        const text = await response.text();
+        let message = 'Failed to join lobby';
+        try {
+          const parsed = JSON.parse(text) as { error?: string };
+          if (parsed.error) message = parsed.error;
+        } catch {
+          if (text) message = text;
+        }
+        throw new Error(message);
+      }
       queryClient.invalidateQueries({ queryKey: ['lobbies'] });
       onJoinLobby(lobbyId);
     } catch (err: unknown) {

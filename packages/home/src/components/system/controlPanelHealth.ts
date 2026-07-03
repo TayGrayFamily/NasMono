@@ -130,6 +130,14 @@ function buildSystemGroup(
       detail: `${shareCount} share${shareCount === 1 ? '' : 's'} · ${arrayLabel}`,
       to: '/system/storage',
     },
+    {
+      id: 'domains',
+      title: 'Domains',
+      severity: 'ok',
+      summary: 'Caddy routes',
+      detail: 'Hostname → port mappings',
+      to: '/system/domains',
+    },
   ];
 
   return {

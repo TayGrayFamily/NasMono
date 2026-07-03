@@ -15,6 +15,8 @@ import { METRICS_WINDOW_MS, parseMetricsWindow } from './metricsHistory.js';
 import { TEMP_WINDOW_MS, parseTempWindow } from './tempHistory.js';
 import { startTempSampler } from './tempSampler.js';
 import { probeReachability } from './reachability.js';
+import { loadDomainsConfig, saveDomainsConfig } from './domainsService.js';
+import { parseDomainsConfig } from './domainRoutesSchema.js';
 import type { DockerSource } from './types.js';
 
 // Assuming game-server db functions are available via import.
@@ -81,6 +83,28 @@ export function createApiRouter(): Router {
       const windowKey = parseMetricsWindow(Array.isArray(raw) ? raw[0] : raw);
       const windowMs = METRICS_WINDOW_MS[windowKey];
       res.json(buildMetricsAnalytics(windowKey, windowMs));
+    } catch (err) {
+      next(err);
+    }
+  });
+
+  r.get('/admin/domains', async (_req: Request, res: Response, next: NextFunction) => {
+    try {
+      res.json(loadDomainsConfig());
+    } catch (err) {
+      next(err);
+    }
+  });
+
+  r.put('/admin/domains', async (req: Request, res: Response, next: NextFunction) => {
+    try {
+      const config = parseDomainsConfig(req.body, 'PUT /admin/domains');
+      if (!config) {
+        res.status(400).json({ ok: false, error: 'invalid domains config' });
+        return;
+      }
+      const result = await saveDomainsConfig(config);
+      res.json({ ok: true, ...result });
     } catch (err) {
       next(err);
     }
@@ -168,7 +192,7 @@ export function createApiRouter(): Router {
     }
   });
 
-  r.use((err: unknown, _req: Request, res: Response) => {
+  r.use((err: unknown, _req: Request, res: Response, _next: NextFunction) => {
     console.error(err);
     const message = err instanceof Error ? err.message : String(err);
     res.status(500).json({ ok: false, error: message });

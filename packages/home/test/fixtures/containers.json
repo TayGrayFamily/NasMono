@@ -76,6 +76,50 @@
     "primaryPortLoopbackOnly": false
   },
   {
+    "id": "fixture-game-hub-ui",
+    "name": "game_hub_ui",
+    "state": "running",
+    "statusText": "Up 1 day (healthy)",
+    "image": "ghcr.io/taygrayfamily/nasmono-game-hub:latest",
+    "publicPorts": [
+      {
+        "hostPort": 8000,
+        "containerPort": 80,
+        "protocol": "tcp",
+        "hostIp": "0.0.0.0"
+      }
+    ],
+    "primaryPort": {
+      "hostPort": 8000,
+      "containerPort": 80,
+      "protocol": "tcp",
+      "hostIp": "0.0.0.0"
+    },
+    "primaryPortLoopbackOnly": false
+  },
+  {
+    "id": "fixture-game-server",
+    "name": "game_server",
+    "state": "running",
+    "statusText": "Up 1 day (healthy)",
+    "image": "ghcr.io/taygrayfamily/nasmono-game-server:latest",
+    "publicPorts": [
+      {
+        "hostPort": 3001,
+        "containerPort": 3001,
+        "protocol": "tcp",
+        "hostIp": "0.0.0.0"
+      }
+    ],
+    "primaryPort": {
+      "hostPort": 3001,
+      "containerPort": 3001,
+      "protocol": "tcp",
+      "hostIp": "0.0.0.0"
+    },
+    "primaryPortLoopbackOnly": false
+  },
+  {
     "id": "fixture-watchtower",
     "name": "watchtower",
     "state": "running",

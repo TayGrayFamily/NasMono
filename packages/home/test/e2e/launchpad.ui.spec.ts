@@ -21,6 +21,7 @@ test('LaunchPad page renders curated app tiles from fixtures', async ({ page }) 
 
   await expect(page.getByRole('heading', { name: 'Jellyfin' })).toBeVisible();
   await expect(page.getByRole('heading', { name: 'Pihole' })).toBeVisible();
+  await expect(page.getByRole('heading', { name: 'Game Hub' })).toBeVisible();
 });
 
 test('running app tiles show container state and launch links', async ({ page }) => {
@@ -34,6 +35,10 @@ test('running app tiles show container state and launch links', async ({ page })
   const jellyfinCard = page.getByRole('link', { name: /^Jellyfin\b/ });
   await expect(jellyfinCard).toHaveAttribute('href', 'http://jellyfin.tower');
   await expect(jellyfinCard).toContainText('running');
+
+  const gameHubCard = page.getByRole('link', { name: /^Game Hub\b/ });
+  await expect(gameHubCard).toHaveAttribute('href', 'http://games.tower');
+  await expect(gameHubCard).toContainText('running');
 });
 
 test('apps without a matching container show no container status', async ({ page }) => {
@@ -56,9 +61,10 @@ test('unmatched containers appear under System Services', async ({ page }) => {
   await page.goto('/');
   await waitForLaunchPad(page);
 
-  // Exited immich-public-proxy (no app match) + watchtower
-  await expect(page.getByText('System Services (2)')).toBeVisible();
-  await page.getByText('System Services (2)').click();
+  // Exited immich-public-proxy (no app match) + game_server (secondary match) + watchtower
+  await expect(page.getByText('System Services (3)')).toBeVisible();
+  await page.getByText('System Services (3)').click();
   await expect(page.getByRole('heading', { name: 'watchtower' })).toBeVisible();
   await expect(page.getByRole('heading', { name: 'immich-public-proxy' })).toBeVisible();
+  await expect(page.getByRole('heading', { name: 'game_server' })).toBeVisible();
 });

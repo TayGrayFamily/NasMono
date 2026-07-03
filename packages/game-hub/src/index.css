@@ -65,15 +65,9 @@ body {
   width: 100%;
   max-width: 800px;
   margin: 0 auto;
-  padding: 1.5rem;
+  padding: var(--space-page);
   display: flex;
   flex-direction: column;
-}
-
-@media (max-width: 640px) {
-  .main-content {
-    padding: 1rem;
-  }
 }
 
 /* UI Components */
@@ -86,10 +80,19 @@ body {
   width: 100%;
 }
 
-@media (max-width: 640px) {
+@media (max-width: 768px) {
   .panel {
     padding: 1.5rem;
   }
+}
+
+.app-footer {
+  padding: 1.5rem;
+  font-size: 0.875rem;
+  text-align: center;
+  color: var(--text-muted);
+  border-top: 1px solid var(--border-color);
+  margin-top: auto;
 }
 
 /* Typography */

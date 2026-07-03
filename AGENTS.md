@@ -135,6 +135,12 @@ Unraid-specific checks (`*.tower` DNS, live GraphQL) stay **out of CI** — run 
 - Only commit when explicitly asked
 - **Before changing LaunchPad, deploy, reachability, or compose:** read relevant ADRs in `docs/decisions/`
 
+## GitHub issues
+
+When a PR completes work for a tracked issue, include `Closes #N` (or `Fixes #N` / `Resolves #N`) in the PR body. GitHub auto-closes linked issues on merge.
+
+Use the exact keyword form — prose like "closes scope for issue #28" does **not** auto-close. Do not rely on `gh issue close`; the Cloud Agent integration may lack issue-write permissions.
+
 ## Docs map
 
 - `README.md` — monorepo overview + Unraid deploy summary

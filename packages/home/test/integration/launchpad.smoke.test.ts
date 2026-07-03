@@ -71,6 +71,15 @@ describe('LaunchPad API (fixture integration)', () => {
       containerName: 'binhex-official-pihole',
     });
 
+    const gameHub = res.body.apps.find((a: { id: string }) => a.id === 'game-hub');
+    expect(gameHub).toMatchObject({
+      displayName: 'Game Hub',
+      url: 'http://games.tower',
+      state: 'running',
+      containerName: 'game_hub_ui',
+      hostPort: 8000,
+    });
+
     const watchtower = res.body.otherServices.find(
       (c: { name: string }) => c.name === 'watchtower',
     );
@@ -80,6 +89,12 @@ describe('LaunchPad API (fixture integration)', () => {
       res.body.apps.map((a: { containerName?: string }) => a.containerName).filter(Boolean),
     );
     expect(matchedIds.has('watchtower')).toBe(false);
+    expect(matchedIds.has('game_server')).toBe(false);
+
+    const gameServer = res.body.otherServices.find(
+      (c: { name: string }) => c.name === 'game_server',
+    );
+    expect(gameServer).toMatchObject({ state: 'running' });
   });
 
   it('GET /launchpad applies NAS override merge (enabled:false + new app)', async () => {

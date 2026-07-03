@@ -1,7 +1,8 @@
 import express from 'express';
 import { setupDatabase, getDbClient } from '../db/index.js';
+import { SocketService } from '../services/SocketService.js';
 
-export function createAdminRouter() {
+export function createAdminRouter(socketService: SocketService) {
   const router = express.Router();
 
   router.post('/actions/sync-db', async (req, res) => {
@@ -43,6 +44,7 @@ export function createAdminRouter() {
       const client = await getDbClient();
       await client.query('DELETE FROM lobbies WHERE id = $1', [req.params.id]);
       client.release();
+      socketService.emitLobbyDeleted(req.params.id);
       res.json({ message: 'Lobby deleted.' });
     } catch (e) {
       res.status(500).json({ error: String(e) });

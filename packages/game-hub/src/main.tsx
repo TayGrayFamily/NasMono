@@ -2,6 +2,8 @@ import React from 'react';
 import ReactDOM from 'react-dom/client';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import App from './App';
+import './styles/breakpoints.css';
+import './styles/tokens.css';
 import './index.css';
 // Removed SocketProvider import from here as App.tsx will now provide it.
 

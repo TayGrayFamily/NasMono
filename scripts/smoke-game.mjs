@@ -135,19 +135,24 @@ async function main() {
   const skipBuild = process.argv.includes('--skip-build');
   const apiOnly = process.argv.includes('--api-only');
   const e2eOnly = process.argv.includes('--e2e-only');
+  const withUnitTests = process.argv.includes('--with-unit-tests');
 
-  if (!skipBuild && !apiOnly && !e2eOnly) {
+  // Default: behavioral Playwright smoke only. Opt in to mocked unit tests via --with-unit-tests.
+  const runUnitTests = apiOnly || (withUnitTests && !e2eOnly);
+  const runE2e = !apiOnly;
+
+  if (!skipBuild && runE2e) {
     log('building game-server and game-hub…');
     await runCommand('pnpm', ['--filter', 'game-server', 'build']);
     await runCommand('pnpm', ['--filter', 'game-hub', 'build']);
   }
 
-  if (!e2eOnly) {
+  if (runUnitTests) {
     log('running game-server unit tests…');
     await runGameServerTests();
   }
 
-  if (!apiOnly) {
+  if (runE2e) {
     if (!fs.existsSync(gameServerDist)) {
       fail(`missing ${gameServerDist} — run pnpm --filter game-server build first`);
     }

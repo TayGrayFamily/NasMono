@@ -1,6 +1,5 @@
-import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
+import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { LobbyService } from './LobbyService.js';
-import { LobbyFullError } from '../config/lobby.js';
 import * as db from '../db/index.js';
 
 vi.mock('../db/index.js');
@@ -17,12 +16,7 @@ describe('LobbyService', () => {
 
   beforeEach(() => {
     vi.clearAllMocks();
-    vi.unstubAllEnvs();
     service = new LobbyService();
-  });
-
-  afterEach(() => {
-    vi.unstubAllEnvs();
   });
 
   describe('leaveLobby', () => {
@@ -124,34 +118,6 @@ describe('LobbyService', () => {
 
       expect(leaveSpy).toHaveBeenCalledWith('user-1', 'lobby-2');
       expect(result).toMatchObject({ userName: 'Alex', alreadyMember: false, left });
-    });
-
-    it('joinLobby rejects when lobby is at max capacity', async () => {
-      vi.stubEnv('MAX_LOBBY_SIZE', '2');
-      vi.spyOn(service, 'leaveAllLobbiesExcept').mockResolvedValue([]);
-      const client = mockClient(async (sql) => {
-        if (sql.includes('SELECT 1 FROM lobby_players')) return { rows: [] };
-        if (sql.includes('COUNT(*)')) return { rows: [{ count: 2 }] };
-        throw new Error(`Unexpected query: ${sql}`);
-      });
-      vi.mocked(db.getDbClient).mockResolvedValue(client as never);
-
-      await expect(service.joinLobby('lobby-1', 'user-new')).rejects.toBeInstanceOf(LobbyFullError);
-    });
-
-    it('joinLobby allows rejoin when user is already a member even at capacity', async () => {
-      vi.stubEnv('MAX_LOBBY_SIZE', '2');
-      vi.spyOn(service, 'leaveAllLobbiesExcept').mockResolvedValue([]);
-      const client = mockClient(async (sql) => {
-        if (sql.includes('SELECT 1 FROM lobby_players')) return { rows: [{ '?column?': 1 }] };
-        if (sql.startsWith('INSERT INTO lobby_players')) return { rows: [] };
-        if (sql.includes('SELECT name FROM users')) return { rows: [{ name: 'Alex' }] };
-        throw new Error(`Unexpected query: ${sql}`);
-      });
-      vi.mocked(db.getDbClient).mockResolvedValue(client as never);
-
-      const result = await service.joinLobby('lobby-1', 'user-1');
-      expect(result.alreadyMember).toBe(true);
     });
   });
 

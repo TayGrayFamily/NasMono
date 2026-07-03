@@ -1,3 +1,9 @@
+/**
+ * Game Hub lobby behavioral smoke tests (ADR-0009).
+ *
+ * These are feature-level tests: real browser, real API, real Postgres.
+ * Prefer adding coverage here over mocked unit tests while lobby UX stabilizes.
+ */
 import { expect, test } from '@playwright/test';
 
 const suffix = () => Date.now().toString(36);
@@ -236,6 +242,12 @@ test.describe('Game Hub lobby behavior (ADR-0009)', () => {
       timeout: 15_000,
     });
     await expect(guest2Page).toHaveURL(/\/lobbies$/);
+
+    const lobbyUrl = guest1Page.url();
+    await guest1Page.reload();
+    await waitConnected(guest1Page);
+    await expect(guest1Page).toHaveURL(lobbyUrl);
+    await expect(guest1Page.getByText('Waiting for host to start')).toBeVisible();
 
     await hostContext.close();
     await guest1Context.close();

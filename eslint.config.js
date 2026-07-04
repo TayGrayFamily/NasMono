@@ -42,6 +42,7 @@ export default [
       'packages/game-hub/**/*.{ts,tsx}',
       'packages/home/**/*.{ts,tsx}',
       'packages/just-one/**/*.{ts,tsx}',
+      'packages/charades/**/*.{ts,tsx}',
     ],
     plugins: {
       react,

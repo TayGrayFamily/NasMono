@@ -33,20 +33,18 @@ export function clearSessionConfig() {
 }
 
 export function useCharadesSetup() {
-  const [packId, setPackId] = useState<string | null>(null);
+  const [packId, setPackIdState] = useState<string | null>(null);
   const [difficulty, setDifficulty] = useState<Difficulty>('easy');
   const [enabledTypes, setEnabledTypes] = useState<CardType[]>([]);
 
   const pack = packId ? getPackById(packId) : undefined;
   const availableTypes = useMemo(() => (pack ? getTypesInPack(pack) : []), [pack]);
 
-  useEffect(() => {
-    if (pack) {
-      setEnabledTypes(getTypesInPack(pack));
-    } else {
-      setEnabledTypes([]);
-    }
-  }, [pack?.id]);
+  const setPackId = useCallback((id: string | null) => {
+    setPackIdState(id);
+    const nextPack = id ? getPackById(id) : undefined;
+    setEnabledTypes(nextPack ? getTypesInPack(nextPack) : []);
+  }, []);
 
   const toggleType = useCallback((type: CardType) => {
     setEnabledTypes((prev) => {

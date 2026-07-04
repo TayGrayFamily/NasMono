@@ -3,6 +3,7 @@ import {
   GiphyFetchError,
   clearGiphyCacheForTests,
   isGiphyConfigured,
+  pickBestGiphyGif,
   resolveGiphyGifById,
   searchGiphyGif,
 } from './giphy.js';
@@ -49,7 +50,7 @@ describe('giphy', () => {
     expect(fetchMock).toHaveBeenCalledOnce();
   });
 
-  it('searches giphy and returns the first animated gif', async () => {
+  it('searches giphy and returns the best-matching animated gif', async () => {
     vi.stubGlobal(
       'fetch',
       vi.fn().mockResolvedValue({
@@ -71,6 +72,44 @@ describe('giphy', () => {
     await expect(searchGiphyGif('lion king')).resolves.toBe(
       'https://media.giphy.com/search-animated.gif',
     );
+  });
+
+  it('prefers gifs whose titles match the query over unrelated first results', async () => {
+    vi.stubGlobal(
+      'fetch',
+      vi.fn().mockResolvedValue({
+        ok: true,
+        json: async () => ({
+          data: [
+            {
+              id: 'bad',
+              title: 'taylor swift reputation tour',
+              images: { fixed_height: { url: 'https://media.giphy.com/taylor.gif' } },
+            },
+            {
+              id: 'good',
+              title: 'madoka kaname magical girl anime',
+              images: { fixed_height: { url: 'https://media.giphy.com/madoka.gif' } },
+            },
+          ],
+        }),
+      }),
+    );
+
+    await expect(searchGiphyGif('madoka kaname madoka magica anime')).resolves.toBe(
+      'https://media.giphy.com/madoka.gif',
+    );
+  });
+
+  it('pickBestGiphyGif rejects multiple unrelated results', () => {
+    const picked = pickBestGiphyGif(
+      [
+        { id: 'a', title: 'random celebrity' },
+        { id: 'b', title: 'another unrelated gif' },
+      ],
+      'madoka kaname anime',
+    );
+    expect(picked).toBeUndefined();
   });
 
   it('throws GiphyFetchError with HTTP status on failure', async () => {

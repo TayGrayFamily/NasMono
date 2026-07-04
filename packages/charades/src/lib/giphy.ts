@@ -51,6 +51,28 @@ function pickGifUrl(gif: GiphyGif): string | undefined {
   );
 }
 
+function scoreGifMatch(gif: GiphyGif, query: string): number {
+  const haystack = (gif.title ?? '').toLowerCase();
+  const terms = query
+    .toLowerCase()
+    .split(/\s+/)
+    .filter((term) => term.length > 2);
+  if (terms.length === 0) return 0;
+  return terms.filter((term) => haystack.includes(term)).length;
+}
+
+/** Pick the best-ranked result; avoid returning an unrelated first hit when better matches exist. */
+export function pickBestGiphyGif(gifs: GiphyGif[], query: string): GiphyGif | undefined {
+  if (gifs.length === 0) return undefined;
+  const ranked = gifs
+    .map((gif) => ({ gif, score: scoreGifMatch(gif, query) }))
+    .sort((a, b) => b.score - a.score);
+  const best = ranked[0];
+  if (best.score > 0) return best.gif;
+  if (gifs.length === 1) return gifs[0];
+  return undefined;
+}
+
 async function fetchJson(url: string): Promise<GiphyResponse> {
   const response = await fetch(url);
   if (!response.ok) {
@@ -93,13 +115,14 @@ export async function searchGiphyGif(query: string): Promise<string | undefined>
   const params = new URLSearchParams({
     api_key: apiKey,
     q: query.trim(),
-    limit: '1',
+    limit: '10',
     rating: 'g',
     lang: 'en',
   });
   const url = `${GIPHY_API}/search?${params.toString()}`;
   const payload = await fetchJson(url);
-  const gif = Array.isArray(payload.data) ? payload.data[0] : undefined;
+  const gifs = Array.isArray(payload.data) ? payload.data : payload.data ? [payload.data] : [];
+  const gif = pickBestGiphyGif(gifs, query.trim());
   const gifUrl = gif ? pickGifUrl(gif) : undefined;
   if (gifUrl) imageCache.set(cacheKey, gifUrl);
   return gifUrl;

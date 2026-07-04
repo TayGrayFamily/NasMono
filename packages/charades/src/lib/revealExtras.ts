@@ -28,6 +28,17 @@ export function getCardImageSearch(card: CharadesCard): string | undefined {
     return card.text;
   }
 
+  if (card.type === 'character') {
+    if (source) {
+      const animeTag = card.packId === 'anime' ? ' anime' : '';
+      return `${card.text} ${source}${animeTag}`;
+    }
+    if (card.packId === 'anime') {
+      return `${card.text} anime`;
+    }
+    return card.text;
+  }
+
   if (source) {
     return `${card.text} ${source}`;
   }

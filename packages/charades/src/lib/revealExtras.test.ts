@@ -45,6 +45,14 @@ describe('revealExtras', () => {
     expect(
       getCardImageSearch(card('c-1', 'Woody', 'character', 'easy', { context: 'Toy Story' })),
     ).toBe('Woody Toy Story');
+    expect(
+      getCardImageSearch(
+        card('c-3', 'Madoka Kaname', 'character', 'hard', {
+          context: 'Puella Magi Madoka Magica',
+          packId: 'anime',
+        }),
+      ),
+    ).toBe('Madoka Kaname Puella Magi Madoka Magica anime');
     expect(getCardImageSearch(card('c-2', 'Goku', 'person', 'easy'))).toBe('Goku');
   });
 

@@ -2,6 +2,7 @@ import type { CardType, CharadesCard, Difficulty } from '../types.js';
 
 type CardExtras = Pick<
   CharadesCard,
+  | 'packId'
   | 'actHint'
   | 'generations'
   | 'context'

@@ -5,10 +5,7 @@ import path from 'path';
 import { fileURLToPath } from 'url';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
-const OUT_DIR = path.resolve(
-  __dirname,
-  '../../../artifacts/screenshots/charades',
-);
+const OUT_DIR = path.resolve(__dirname, '../../../artifacts/screenshots/charades');
 
 const BASE = process.env.GAME_HUB_URL || 'http://127.0.0.1:30900';
 
@@ -66,11 +63,7 @@ async function capture() {
   const mobilePage = await mobile.newPage();
 
   await mobilePage.goto(`${BASE}/play/charades`);
-  await mobilePage
-    .locator('.charades-pack-card')
-    .filter({ hasText: 'Animals' })
-    .first()
-    .click();
+  await mobilePage.locator('.charades-pack-card').filter({ hasText: 'Animals' }).first().click();
   await mobilePage.getByRole('button', { name: 'Easy', exact: true }).click();
   await mobilePage.waitForTimeout(400);
   await mobilePage.screenshot({

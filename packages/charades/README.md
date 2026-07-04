@@ -29,6 +29,19 @@ Client-side charades card picker for Game Hub.
 | Video Game Characters | people                                           |
 | Anime Characters      | people                                           |
 
-Cards may include a `generations` array (who is likely to know the reference) and an optional `actHint` (shown on the revealed card, e.g. source film). Universal packs (animals, actions, etc.) omit `generations` and suit every player. Other packs fall back to difficulty-based defaults when `generations` is omitted — prefer setting it explicitly on pop-culture cards.
+Cards may include a `generations` array (who is likely to know the reference) and optional reveal extras:
+
+| Field                     | Purpose                                                                    |
+| ------------------------- | -------------------------------------------------------------------------- |
+| `context`                 | Source or background (film, era) — **Context** chip                        |
+| `guessHint`               | Softer nudge for stuck guessers — **Hint** chip                            |
+| `definition`              | Short definition for terms/places — **Definition** chip                    |
+| `emoji`                   | Quick visual on the card face                                              |
+| `imageUrl`                | Bundled or resolved still image                                            |
+| `giphyId` / `imageSearch` | Loads a still from Giphy when `VITE_GIPHY_API_KEY` is set — **Image** chip |
+
+Legacy `actHint` on quotes still maps to **Context**. Acting instructions come from card type (e.g. “Mouth the line silently”).
+
+Universal packs (animals, actions, etc.) omit `generations` and suit every player. Other packs fall back to difficulty-based defaults when `generations` is omitted — prefer setting it explicitly on pop-culture cards.
 
 Mobile layout is tested at **iPhone 13 Pro Max** portrait and landscape (see root `AGENTS.md` → Mobile UI testing); CSS must work in both orientations.

@@ -11,12 +11,37 @@ export const moviesPack: CharadesPack = {
   ageMax: null,
   cards: [
     // Titles — easy
-    card('mov-t-001', 'Frozen', 'title', 'easy'),
-    card('mov-t-002', 'Toy Story', 'title', 'easy'),
-    card('mov-t-003', 'The Lion King', 'title', 'easy'),
-    card('mov-t-004', 'Shrek', 'title', 'easy'),
-    card('mov-t-005', 'Finding Nemo', 'title', 'easy'),
-    card('mov-t-006', 'Moana', 'title', 'easy'),
+    card('mov-t-001', 'Frozen', 'title', 'easy', {
+      emoji: '❄️',
+      context: 'Disney animated film, 2013',
+      imageSearch: 'frozen elsa disney',
+      guessHint: 'Let it go…',
+    }),
+    card('mov-t-002', 'Toy Story', 'title', 'easy', {
+      emoji: '🤠',
+      context: 'Pixar, 1995',
+      imageSearch: 'toy story woody buzz',
+    }),
+    card('mov-t-003', 'The Lion King', 'title', 'easy', {
+      emoji: '🦁',
+      context: 'Disney animated film, 1994',
+      imageSearch: 'lion king simba',
+    }),
+    card('mov-t-004', 'Shrek', 'title', 'easy', {
+      emoji: '🧅',
+      context: 'DreamWorks, 2001',
+      imageSearch: 'shrek ogre',
+    }),
+    card('mov-t-005', 'Finding Nemo', 'title', 'easy', {
+      emoji: '🐠',
+      context: 'Pixar, 2003',
+      imageSearch: 'finding nemo clownfish',
+    }),
+    card('mov-t-006', 'Moana', 'title', 'easy', {
+      emoji: '🌊',
+      context: 'Disney, 2016',
+      imageSearch: 'moana disney',
+    }),
     // Titles — medium
     card('mov-t-007', 'Jurassic Park', 'title', 'medium'),
     card('mov-t-008', 'The Matrix', 'title', 'medium'),
@@ -34,146 +59,148 @@ export const moviesPack: CharadesPack = {
 
     // Quotes — easy
     card('mov-q-001', 'May the Force be with you', 'quote', 'easy', {
-      actHint: 'Star Wars',
+      context: 'Star Wars',
       generations: GENS_ALL,
+      imageSearch: 'star wars lightsaber',
+      guessHint: 'Space opera with Jedi',
     }),
     card('mov-q-002', 'To infinity and beyond', 'quote', 'easy', {
-      actHint: 'Toy Story',
+      context: 'Toy Story',
       generations: GENS_ALL,
     }),
     card('mov-q-003', 'Just keep swimming', 'quote', 'easy', {
-      actHint: 'Finding Nemo',
+      context: 'Finding Nemo',
       generations: GENS_ALL,
     }),
     card('mov-q-004', 'Hakuna matata', 'quote', 'easy', {
-      actHint: 'The Lion King',
+      context: 'The Lion King',
       generations: GENS_ALL,
     }),
     card('mov-q-005', 'I am Iron Man', 'quote', 'easy', {
-      actHint: 'Iron Man',
+      context: 'Iron Man',
       generations: GENS_ALL,
     }),
     card('mov-q-006', "I'll be back", 'quote', 'easy', {
-      actHint: 'The Terminator',
+      context: 'The Terminator',
       generations: GENS_ALL,
     }),
     card('mov-q-019', 'You shall not pass', 'quote', 'easy', {
-      actHint: 'The Lord of the Rings',
+      context: 'The Lord of the Rings',
       generations: GENS_ALL,
     }),
     card('mov-q-020', 'Houston, we have a problem', 'quote', 'easy', {
-      actHint: 'Apollo 13',
+      context: 'Apollo 13',
       generations: GENS_ALL,
     }),
     card('mov-q-021', 'I see dead people', 'quote', 'easy', {
-      actHint: 'The Sixth Sense',
+      context: 'The Sixth Sense',
       generations: GENS_ALL,
     }),
     card('mov-q-022', 'Life is like a box of chocolates', 'quote', 'easy', {
-      actHint: 'Forrest Gump',
+      context: 'Forrest Gump',
       generations: GENS_ALL,
     }),
     card('mov-q-023', 'You talking to me?', 'quote', 'easy', {
-      actHint: 'Taxi Driver',
+      context: 'Taxi Driver',
       generations: GENS_ALL,
     }),
     // Quotes — medium
     card('mov-q-007', 'You had me at hello', 'quote', 'medium', {
-      actHint: 'Jerry Maguire',
+      context: 'Jerry Maguire',
       generations: GENS_ALL,
     }),
     card('mov-q-008', 'I am the king of the world', 'quote', 'medium', {
-      actHint: 'Titanic',
+      context: 'Titanic',
       generations: GENS_ALL,
     }),
     card('mov-q-009', 'Why so serious?', 'quote', 'medium', {
-      actHint: 'The Dark Knight',
+      context: 'The Dark Knight',
       generations: GENS_ALL,
     }),
     card('mov-q-010', 'Wakanda forever', 'quote', 'medium', {
-      actHint: 'Black Panther',
+      context: 'Black Panther',
       generations: GENS_RECENT,
     }),
     card('mov-q-011', 'Show me the money', 'quote', 'medium', {
-      actHint: 'Jerry Maguire',
+      context: 'Jerry Maguire',
       generations: GENS_ALL,
     }),
     card('mov-q-012', 'There is no spoon', 'quote', 'medium', {
-      actHint: 'The Matrix',
+      context: 'The Matrix',
       generations: GENS_ALL,
     }),
     card('mov-q-024', 'With great power comes great responsibility', 'quote', 'medium', {
-      actHint: 'Spider-Man',
+      context: 'Spider-Man',
       generations: GENS_ALL,
     }),
     card('mov-q-025', 'Nobody puts Baby in a corner', 'quote', 'medium', {
-      actHint: 'Dirty Dancing',
+      context: 'Dirty Dancing',
       generations: GENS_ALL,
     }),
     card('mov-q-026', 'I am Groot', 'quote', 'medium', {
-      actHint: 'Guardians of the Galaxy',
+      context: 'Guardians of the Galaxy',
       generations: GENS_RECENT,
     }),
     card('mov-q-027', 'On Wednesdays we wear pink', 'quote', 'medium', {
-      actHint: 'Mean Girls',
+      context: 'Mean Girls',
       generations: GENS_ALL,
     }),
     card('mov-q-028', 'You cannot handle the truth', 'quote', 'medium', {
-      actHint: 'A Few Good Men',
+      context: 'A Few Good Men',
       generations: GENS_ALL,
     }),
     // Quotes — hard
     card('mov-q-013', 'Rosebud', 'quote', 'hard', {
-      actHint: 'Citizen Kane',
+      context: 'Citizen Kane',
       generations: GENS_CLASSIC,
     }),
     card('mov-q-014', 'Here is looking at you, kid', 'quote', 'hard', {
-      actHint: 'Casablanca',
+      context: 'Casablanca',
       generations: GENS_CLASSIC,
     }),
     card('mov-q-015', 'I coulda been a contender', 'quote', 'hard', {
-      actHint: 'On the Waterfront',
+      context: 'On the Waterfront',
       generations: GENS_CLASSIC,
     }),
     card('mov-q-016', 'Open the pod bay doors, HAL', 'quote', 'hard', {
-      actHint: '2001: A Space Odyssey',
+      context: '2001: A Space Odyssey',
       generations: GENS_CLASSIC,
     }),
     card('mov-q-017', 'Bond. James Bond', 'quote', 'hard', {
-      actHint: 'James Bond',
+      context: 'James Bond',
       generations: GENS_CLASSIC,
     }),
     card('mov-q-018', 'I am your father', 'quote', 'hard', {
-      actHint: 'The Empire Strikes Back',
+      context: 'The Empire Strikes Back',
       generations: GENS_ALL,
     }),
     card('mov-q-029', 'E.T. phone home', 'quote', 'hard', {
-      actHint: 'E.T.',
+      context: 'E.T.',
       generations: GENS_ALL,
     }),
     card('mov-q-030', 'I volunteer as tribute', 'quote', 'hard', {
-      actHint: 'The Hunger Games',
+      context: 'The Hunger Games',
       generations: GENS_RECENT,
     }),
     card('mov-q-031', 'Frankly, my dear, I do not give a damn', 'quote', 'hard', {
-      actHint: 'Gone with the Wind',
+      context: 'Gone with the Wind',
       generations: GENS_CLASSIC,
     }),
     card('mov-q-032', 'Elementary, my dear Watson', 'quote', 'hard', {
-      actHint: 'Sherlock Holmes',
+      context: 'Sherlock Holmes',
       generations: GENS_CLASSIC,
     }),
     card('mov-q-033', 'I have a particular set of skills', 'quote', 'hard', {
-      actHint: 'Taken',
+      context: 'Taken',
       generations: GENS_ALL,
     }),
 
     // Characters — easy
-    card('mov-c-001', 'Elsa', 'character', 'easy', { actHint: 'Frozen' }),
-    card('mov-c-002', 'Woody', 'character', 'easy', { actHint: 'Toy Story' }),
+    card('mov-c-001', 'Elsa', 'character', 'easy', { context: 'Frozen' }),
+    card('mov-c-002', 'Woody', 'character', 'easy', { context: 'Toy Story' }),
     card('mov-c-003', 'Buzz Lightyear', 'character', 'easy'),
     card('mov-c-004', 'Simba', 'character', 'easy'),
-    card('mov-c-005', 'Donkey', 'character', 'easy', { actHint: 'Shrek' }),
+    card('mov-c-005', 'Donkey', 'character', 'easy', { context: 'Shrek' }),
     card('mov-c-006', 'Nemo', 'character', 'easy'),
     // Characters — medium
     card('mov-c-007', 'Indiana Jones', 'character', 'medium'),
@@ -185,8 +212,8 @@ export const moviesPack: CharadesPack = {
     // Characters — hard
     card('mov-c-013', 'Don Corleone', 'character', 'hard'),
     card('mov-c-014', 'Hannibal Lecter', 'character', 'hard'),
-    card('mov-c-015', 'Rick Blaine', 'character', 'hard', { actHint: 'Casablanca' }),
-    card('mov-c-016', 'Travis Bickle', 'character', 'hard', { actHint: 'Taxi Driver' }),
+    card('mov-c-015', 'Rick Blaine', 'character', 'hard', { context: 'Casablanca' }),
+    card('mov-c-016', 'Travis Bickle', 'character', 'hard', { context: 'Taxi Driver' }),
     card('mov-c-017', 'Norman Bates', 'character', 'hard'),
     card('mov-c-018', "Scarlett O'Hara", 'character', 'hard'),
 

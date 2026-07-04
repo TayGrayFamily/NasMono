@@ -89,6 +89,35 @@
   box-shadow: none;
 }
 
+.charades-page button.card-reveal-extras__chip {
+  background-color: var(--bg-secondary);
+  color: var(--text-color);
+  transform: none;
+  width: auto;
+  min-height: 2rem;
+  padding: 0.35rem 0.75rem;
+  font-size: 0.78rem;
+  font-weight: 600;
+  box-shadow: none;
+}
+
+.charades-page button.card-reveal-extras__chip--open {
+  background: rgba(6, 182, 212, 0.12);
+  color: var(--primary-cyan);
+  border-color: var(--primary-cyan);
+}
+
+.charades-page button.card-reveal-extras__chip:hover:not(:disabled),
+.charades-page button.card-reveal-extras__chip:active:not(:disabled) {
+  background-color: var(--bg-secondary);
+  transform: none;
+}
+
+.charades-page button.card-reveal-extras__chip--open:hover:not(:disabled),
+.charades-page button.card-reveal-extras__chip--open:active:not(:disabled) {
+  background: rgba(6, 182, 212, 0.18);
+}
+
 .charades-page button.charades-pack-card:hover:not(:disabled),
 .charades-page button.charades-pack-card:active:not(:disabled),
 .charades-page button.charades-toggle-filter:hover:not(:disabled),

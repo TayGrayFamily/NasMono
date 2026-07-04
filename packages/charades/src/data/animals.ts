@@ -21,7 +21,11 @@ export const animalsPack: CharadesPack = {
     card('anm-011', 'Rabbit', 'word', 'easy'),
     card('anm-012', 'Mouse', 'word', 'easy'),
     card('anm-013', 'Frog', 'word', 'easy'),
-    card('anm-014', 'Lion', 'word', 'easy'),
+    card('anm-014', 'Lion', 'word', 'easy', {
+      emoji: '🦁',
+      definition: 'Large wild cat, king of the jungle',
+      imageSearch: 'lion roar',
+    }),
     card('anm-015', 'Elephant', 'word', 'easy'),
     card('anm-016', 'Giraffe', 'word', 'easy'),
     card('anm-017', 'Monkey', 'word', 'easy'),

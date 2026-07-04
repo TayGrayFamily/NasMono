@@ -1,5 +1,6 @@
 import type { CharadesCard } from '../types.js';
 import { CARD_TYPE_PLAY_HINT, formatCardType } from '../lib/cardTypes.js';
+import { CardRevealExtras } from './CardRevealExtras.js';
 import './CardFace.css';
 
 interface CardFaceProps {
@@ -16,7 +17,7 @@ export function CardFace({ card, revealed }: CardFaceProps) {
     );
   }
 
-  const playHint = card.actHint ?? CARD_TYPE_PLAY_HINT[card.type];
+  const actInstruction = CARD_TYPE_PLAY_HINT[card.type];
 
   return (
     <div
@@ -26,9 +27,15 @@ export function CardFace({ card, revealed }: CardFaceProps) {
     >
       {revealed ? (
         <div className="card-face__content">
+          {card.emoji && (
+            <span className="card-face__emoji" aria-hidden="true">
+              {card.emoji}
+            </span>
+          )}
           <span className="card-face__type">{formatCardType(card.type)}</span>
           <p className="card-face__text">{card.text}</p>
-          {playHint && <span className="card-face__hint">{playHint}</span>}
+          {actInstruction && <span className="card-face__hint">{actInstruction}</span>}
+          <CardRevealExtras card={card} revealed={revealed} />
         </div>
       ) : (
         <div className="card-face__cover">

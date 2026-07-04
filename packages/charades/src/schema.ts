@@ -21,6 +21,14 @@ export const charadesCardSchema = z.object({
   difficulty: difficultySchema,
   actHint: z.string().min(1).optional(),
   generations: z.array(generationSchema).min(1).optional(),
+  context: z.string().min(1).optional(),
+  guessHint: z.string().min(1).optional(),
+  definition: z.string().min(1).optional(),
+  emoji: z.string().min(1).optional(),
+  imageUrl: z.string().url().optional(),
+  imageAlt: z.string().min(1).optional(),
+  giphyId: z.string().min(1).optional(),
+  imageSearch: z.string().min(1).optional(),
 });
 
 export const charadesPackSchema = z.object({

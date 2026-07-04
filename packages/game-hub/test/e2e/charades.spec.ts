@@ -88,6 +88,26 @@ test.describe('Charades solo play', () => {
     await page.waitForURL('**/play/charades/game');
   });
 
+  test('reveal extras show context chip for movie quotes', async ({ page }) => {
+    await page.goto('/play/charades');
+
+    await page
+      .locator('.charades-pack-card')
+      .filter({ hasText: /^Movies/ })
+      .click();
+    await openCharadesFilters(page);
+    await page.getByRole('button', { name: 'Titles', exact: true }).click();
+    await page.getByRole('button', { name: 'Characters', exact: true }).click();
+    await page.getByRole('button', { name: 'Actors', exact: true }).click();
+    await page.getByRole('button', { name: /^Start/ }).click();
+    await page.waitForURL('**/play/charades/game');
+
+    await page.getByRole('button', { name: 'Reveal', exact: true }).click();
+    await expect(page.getByRole('toolbar', { name: 'Extra clues' })).toBeVisible();
+    await page.getByRole('button', { name: 'Context', exact: true }).click();
+    await expect(page.getByRole('region', { name: 'Context' })).toBeVisible();
+  });
+
   test('filters summary shows difficulty and generations', async ({ page }) => {
     await page.goto('/play/charades');
     await page.getByRole('button', { name: 'Animals' }).click();

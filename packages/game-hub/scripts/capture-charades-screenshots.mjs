@@ -13,14 +13,14 @@ async function capture() {
   fs.mkdirSync(OUT_DIR, { recursive: true });
 
   const browser = await chromium.launch();
-  const desktop = await browser.newContext({ viewport: { width: 1280, height: 800 } });
-  const page = await desktop.newPage();
+  const mobile = await browser.newContext({ ...devices['iPhone 13 Pro Max'] });
+  const page = await mobile.newPage();
 
   await page.goto(`${BASE}/`);
   await page.getByRole('heading', { name: 'Play', exact: true }).waitFor();
   await page.waitForTimeout(400);
   await page.screenshot({
-    path: path.join(OUT_DIR, '01-play-home-desktop.png'),
+    path: path.join(OUT_DIR, 'mobile-01-play-home.png'),
     fullPage: true,
   });
 
@@ -28,19 +28,22 @@ async function capture() {
   await page.waitForURL('**/play/charades');
   await page.waitForTimeout(400);
   await page.screenshot({
-    path: path.join(OUT_DIR, '02-charades-setup-desktop.png'),
+    path: path.join(OUT_DIR, 'mobile-02-setup-generations.png'),
     fullPage: true,
   });
 
   await page
     .locator('.charades-pack-card')
-    .filter({ hasText: 'Titles, quotes, characters, and actors' })
+    .filter({ hasText: /^Movies/ })
     .click();
   await page.getByRole('button', { name: 'Easy', exact: true }).click();
+  await page.getByRole('button', { name: /^Gen Z/ }).click();
+  await page.getByRole('button', { name: /^Millennials/ }).click();
+  await page.getByRole('button', { name: /^Gen X\+/ }).click();
   await page.getByRole('button', { name: 'Actors', exact: true }).click();
   await page.waitForTimeout(400);
   await page.screenshot({
-    path: path.join(OUT_DIR, '03-movies-type-toggles-desktop.png'),
+    path: path.join(OUT_DIR, 'mobile-03-movies-filters.png'),
     fullPage: true,
   });
 
@@ -48,35 +51,14 @@ async function capture() {
   await page.waitForURL('**/play/charades/game');
   await page.waitForTimeout(400);
   await page.screenshot({
-    path: path.join(OUT_DIR, '04-charades-hidden-card-desktop.png'),
+    path: path.join(OUT_DIR, 'mobile-04-hidden-card.png'),
     fullPage: true,
   });
 
   await page.getByRole('button', { name: 'Reveal', exact: true }).click();
   await page.waitForTimeout(400);
   await page.screenshot({
-    path: path.join(OUT_DIR, '05-charades-revealed-card-desktop.png'),
-    fullPage: true,
-  });
-
-  const mobile = await browser.newContext({ ...devices['iPhone 13'] });
-  const mobilePage = await mobile.newPage();
-
-  await mobilePage.goto(`${BASE}/play/charades`);
-  await mobilePage.locator('.charades-pack-card').filter({ hasText: 'Animals' }).first().click();
-  await mobilePage.getByRole('button', { name: 'Easy', exact: true }).click();
-  await mobilePage.waitForTimeout(400);
-  await mobilePage.screenshot({
-    path: path.join(OUT_DIR, '06-charades-setup-mobile.png'),
-    fullPage: true,
-  });
-
-  await mobilePage.getByRole('button', { name: 'Start' }).click();
-  await mobilePage.waitForURL('**/play/charades/game');
-  await mobilePage.getByRole('button', { name: 'Reveal', exact: true }).click();
-  await mobilePage.waitForTimeout(400);
-  await mobilePage.screenshot({
-    path: path.join(OUT_DIR, '07-charades-play-mobile.png'),
+    path: path.join(OUT_DIR, 'mobile-05-revealed-card.png'),
     fullPage: true,
   });
 

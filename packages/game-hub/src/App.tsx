@@ -201,7 +201,9 @@ function AppContent({
     onSignOut();
   };
 
-  const headerSubtitle = location.pathname.startsWith('/play/charades')
+  const isCharadesRoute = location.pathname.startsWith('/play/charades');
+
+  const headerSubtitle = isCharadesRoute
     ? 'Pick a card. Pass the phone.'
     : 'Join a lobby or start a game.';
 
@@ -216,7 +218,7 @@ function AppContent({
         onManageUser={() => navigate('/manage-profile')}
       />
 
-      <main className="main-content">
+      <main className={`main-content${isCharadesRoute ? ' main-content--charades' : ''}`}>
         <Routes>
           <Route path="/" element={<PlayHome currentUser={currentUser} />} />
           <Route path="/play/charades/*" element={<CharadesRoutes />} />
@@ -258,7 +260,9 @@ function AppContent({
         </Routes>
       </main>
 
-      <footer className="app-footer">v{__APP_VERSION__}</footer>
+      <footer className={`app-footer${isCharadesRoute ? ' app-footer--charades' : ''}`}>
+        v{__APP_VERSION__}
+      </footer>
     </div>
   );
 }

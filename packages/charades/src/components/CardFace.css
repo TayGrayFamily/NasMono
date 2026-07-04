@@ -80,9 +80,11 @@
 
 .card-face__text {
   margin: 0;
-  font-size: clamp(1.5rem, 5vw, 2.25rem);
+  font-size: clamp(1.35rem, 4.5vw, 2.25rem);
   font-weight: 700;
   line-height: 1.2;
+  word-break: break-word;
+  overflow-wrap: anywhere;
 }
 
 .card-face__meta,
@@ -99,6 +101,14 @@
 
 @media (max-width: 768px) {
   .card-face {
-    min-height: 320px;
+    min-height: 280px;
+  }
+
+  .card-face__cover-icon {
+    font-size: 3.5rem;
+  }
+
+  .card-face__cover-text {
+    font-size: 1.35rem;
   }
 }

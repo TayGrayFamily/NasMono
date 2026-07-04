@@ -217,20 +217,105 @@
   text-align: center;
 }
 
+/* Portrait phones — tuned for iPhone 13 Pro Max (428×926) and similar */
 @media (max-width: 768px) {
-  .charades-action-bar {
-    position: sticky;
-    bottom: 0;
-    background: var(--panel-bg);
-    padding-bottom: calc(1rem + var(--safe-bottom));
-    margin-left: -1.5rem;
-    margin-right: -1.5rem;
-    padding-left: 1.5rem;
-    padding-right: 1.5rem;
-    box-shadow: 0 -4px 12px rgba(0, 0, 0, 0.2);
+  .charades-page {
+    gap: 1.25rem;
+    min-height: 0;
+  }
+
+  .charades-header__title {
+    font-size: 1.5rem;
+  }
+
+  .charades-header__subtitle {
+    font-size: 0.95rem;
+  }
+
+  .charades-pack-grid {
+    grid-template-columns: repeat(auto-fill, minmax(min(100%, 10.5rem), 1fr));
+    gap: 0.75rem;
+  }
+
+  .charades-pack-card {
+    padding: 0.875rem;
+  }
+
+  .charades-pack-card__desc {
+    font-size: 0.85rem;
+    display: -webkit-box;
+    -webkit-line-clamp: 3;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+  }
+
+  .charades-toggle-filters {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .charades-toggle-filter {
+    padding: 0.55rem 0.65rem;
+  }
+
+  .charades-toggle-filter__hint {
+    font-size: 0.7rem;
   }
 
   .charades-difficulty {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+
+  .charades-action-bar {
+    position: sticky;
+    bottom: 0;
+    z-index: 10;
+    background: var(--panel-bg);
+    padding-bottom: calc(1rem + var(--safe-bottom));
+    margin-left: calc(-1 * var(--space-page) - var(--safe-left));
+    margin-right: calc(-1 * var(--space-page) - var(--safe-right));
+    padding-left: calc(var(--space-page) + var(--safe-left));
+    padding-right: calc(var(--space-page) + var(--safe-right));
+    box-shadow: 0 -4px 12px rgba(0, 0, 0, 0.2);
+  }
+
+  .charades-page.charades-play {
+    gap: 0.75rem;
+    min-height: calc(100dvh - 5.5rem - var(--safe-top));
+  }
+
+  .charades-play .charades-header {
+    flex-shrink: 0;
+  }
+
+  .charades-play .charades-header__subtitle {
+    display: none;
+  }
+
+  .charades-play .card-face {
+    flex: 1 1 auto;
+    min-height: clamp(220px, 46dvh, 460px);
+    padding: 1.5rem 1rem;
+  }
+
+  .charades-play__hint {
+    flex-shrink: 0;
+    font-size: 0.85rem;
+    padding: 0 0.25rem;
+  }
+
+  .charades-play .charades-action-bar {
+    flex-shrink: 0;
+    margin-top: 0;
+  }
+}
+
+/* Narrow portrait — stack difficulty if needed */
+@media (max-width: 360px) {
+  .charades-difficulty {
+    grid-template-columns: 1fr;
+  }
+
+  .charades-pack-grid {
     grid-template-columns: 1fr;
   }
 }

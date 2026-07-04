@@ -3,15 +3,11 @@ import { useNavigate } from 'react-router-dom';
 import { allPacks } from '../data/index.js';
 import type { Difficulty } from '../types.js';
 import { CARD_TYPE_LABELS } from '../lib/cardTypes.js';
+import { ALL_GENERATIONS, GENERATION_HINTS, GENERATION_LABELS } from '../lib/generations.js';
 import { useCharadesSetup } from '../hooks/useCharadesSession.js';
 import './charades.css';
 
 const difficulties: Difficulty[] = ['easy', 'medium', 'hard'];
-
-function formatAgeRange(ageMin: number, ageMax: number | null): string {
-  if (ageMax === null) return `Ages ${ageMin}+`;
-  return `Ages ${ageMin}–${ageMax}`;
-}
 
 export function CharadesSetup() {
   const navigate = useNavigate();
@@ -20,6 +16,8 @@ export function CharadesSetup() {
     setPackId,
     difficulty,
     setDifficulty,
+    enabledGenerations,
+    toggleGeneration,
     availableTypes,
     enabledTypes,
     toggleType,
@@ -35,7 +33,7 @@ export function CharadesSetup() {
     }
   };
 
-  const showTypeFilters = availableTypes.length > 1;
+  const showPackFilters = availableTypes.length > 1;
 
   return (
     <div className="charades-page">
@@ -45,9 +43,36 @@ export function CharadesSetup() {
         </button>
         <h2 className="charades-header__title">Charades</h2>
         <p className="charades-header__subtitle">
-          Pick a pack, difficulty, and card types. Pass the phone to act it out.
+          Choose who is playing, pick a pack, and pass the phone to act it out.
         </p>
       </header>
+
+      <section>
+        <h3 className="charades-section-title">Who is playing?</h3>
+        <p className="charades-filter-hint">
+          Optional — all generations are on by default. Turn off any group that is not at the table.
+        </p>
+        <div className="charades-toggle-filters" role="group" aria-label="Generations playing">
+          {ALL_GENERATIONS.map((generation) => {
+            const on = enabledGenerations.includes(generation);
+            return (
+              <button
+                key={generation}
+                type="button"
+                className={`charades-toggle-filter ${on ? 'charades-toggle-filter--on' : 'charades-toggle-filter--off'}`}
+                onClick={() => toggleGeneration(generation)}
+                aria-pressed={on}
+                title={GENERATION_HINTS[generation]}
+              >
+                <span className="charades-toggle-filter__label">
+                  {GENERATION_LABELS[generation]}
+                </span>
+                <span className="charades-toggle-filter__hint">{GENERATION_HINTS[generation]}</span>
+              </button>
+            );
+          })}
+        </div>
+      </section>
 
       <section>
         <h3 className="charades-section-title">Choose a pack</h3>
@@ -62,9 +87,6 @@ export function CharadesSetup() {
             >
               <h4 className="charades-pack-card__name">{pack.name}</h4>
               <p className="charades-pack-card__desc">{pack.description}</p>
-              <span className="charades-pack-card__age">
-                {formatAgeRange(pack.ageMin, pack.ageMax)}
-              </span>
             </button>
           ))}
         </div>
@@ -87,25 +109,25 @@ export function CharadesSetup() {
         </div>
       </section>
 
-      {showTypeFilters && (
+      {showPackFilters && (
         <section>
-          <h3 className="charades-section-title">Card types</h3>
-          <p className="charades-type-hint">
-            Turn off anything your group does not want — skip actors, quotes, or titles. At least
-            one type must stay on.
+          <h3 className="charades-section-title">Pack filters</h3>
+          <p className="charades-filter-hint">
+            Optional — turn off card types you do not want, such as actors or quotes. At least one
+            type must stay on.
           </p>
-          <div className="charades-type-filters" role="group" aria-label="Card types">
+          <div className="charades-toggle-filters" role="group" aria-label="Card types">
             {availableTypes.map((type) => {
               const on = enabledTypes.includes(type);
               return (
                 <button
                   key={type}
                   type="button"
-                  className={`charades-type-filter ${on ? 'charades-type-filter--on' : 'charades-type-filter--off'}`}
+                  className={`charades-toggle-filter charades-toggle-filter--compact ${on ? 'charades-toggle-filter--on' : 'charades-toggle-filter--off'}`}
                   onClick={() => toggleType(type)}
                   aria-pressed={on}
                 >
-                  {CARD_TYPE_LABELS[type]}
+                  <span className="charades-toggle-filter__label">{CARD_TYPE_LABELS[type]}</span>
                 </button>
               );
             })}

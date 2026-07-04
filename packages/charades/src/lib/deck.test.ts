@@ -9,10 +9,14 @@ import {
   createShuffledDeck,
   drawCurrent,
   filterByDifficulty,
+  filterByGenerations,
   filterByTypes,
   filterCards,
   shuffleDeck,
 } from './deck.js';
+import { ALL_GENERATIONS } from './generations.js';
+
+const allGens = [...ALL_GENERATIONS];
 
 function seededRandom(seed: number) {
   let value = seed;
@@ -38,11 +42,20 @@ describe('deck', () => {
     expect(titles.every((card) => card.type === 'title')).toBe(true);
   });
 
-  it('filters by difficulty and types together', () => {
+  it('filters cards by generation', () => {
+    const movies = getPackById('movies')!;
+    const genAlphaOnly = filterByGenerations(movies.cards, ['gen-alpha']);
+    const allSelected = filterByGenerations(movies.cards, allGens);
+    expect(genAlphaOnly.length).toBeLessThan(allSelected.length);
+    expect(genAlphaOnly.every((card) => cardMatchesGenAlpha(card))).toBe(true);
+  });
+
+  it('filters by difficulty, types, and generations together', () => {
     const movies = getPackById('movies')!;
     const filtered = filterCards(movies.cards, {
       difficulty: 'easy',
       types: ['actor'],
+      generations: allGens,
     });
     expect(filtered.every((c) => c.difficulty === 'easy' && c.type === 'actor')).toBe(true);
   });
@@ -51,12 +64,12 @@ describe('deck', () => {
     const pack = allPacks[0];
     const first = createShuffledDeck(
       pack.cards,
-      { difficulty: 'easy', types: getTypesInPack(pack) },
+      { difficulty: 'easy', types: getTypesInPack(pack), generations: allGens },
       seededRandom(42),
     );
     const second = createShuffledDeck(
       pack.cards,
-      { difficulty: 'easy', types: getTypesInPack(pack) },
+      { difficulty: 'easy', types: getTypesInPack(pack), generations: allGens },
       seededRandom(42),
     );
     expect(first.map((c) => c.id)).toEqual(second.map((c) => c.id));
@@ -66,7 +79,7 @@ describe('deck', () => {
     const pack = allPacks[0];
     let state = createDeckState(
       pack.cards,
-      { difficulty: 'easy', types: getTypesInPack(pack) },
+      { difficulty: 'easy', types: getTypesInPack(pack), generations: allGens },
       seededRandom(7),
     );
     const seen = new Set<string>();
@@ -116,8 +129,21 @@ describe('pack data', () => {
     const withoutActors = filterCards(movies.cards, {
       difficulty: 'easy',
       types: ['title', 'quote', 'character'],
+      generations: allGens,
     });
     expect(withoutActors.length).toBeGreaterThanOrEqual(15);
+  });
+
+  it('gen-alpha filter excludes pre-1970 movie quotes', () => {
+    const movies = getPackById('movies')!;
+    const filtered = filterCards(movies.cards, {
+      difficulty: 'hard',
+      types: ['quote'],
+      generations: ['gen-alpha'],
+    });
+    const texts = filtered.map((card) => card.text);
+    expect(texts).not.toContain('Rosebud');
+    expect(texts).not.toContain('Frankly, my dear, I do not give a damn');
   });
 });
 
@@ -129,3 +155,8 @@ describe('cardTypes', () => {
     expect(types).toEqual(expected);
   });
 });
+
+function cardMatchesGenAlpha(card: { generations?: string[] }) {
+  if (!card.generations?.length) return true;
+  return card.generations.includes('gen-alpha');
+}

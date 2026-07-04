@@ -1,8 +1,10 @@
-import type { CardType, CharadesCard, Difficulty } from '../types.js';
+import type { CardType, CharadesCard, Difficulty, Generation } from '../types.js';
+import { cardMatchesGenerations } from './generations.js';
 
 export interface DeckFilter {
   difficulty: Difficulty;
   types: CardType[];
+  generations: Generation[];
 }
 
 export function filterByDifficulty(cards: CharadesCard[], difficulty: Difficulty): CharadesCard[] {
@@ -14,8 +16,18 @@ export function filterByTypes(cards: CharadesCard[], types: CardType[]): Charade
   return cards.filter((c) => allowed.has(c.type));
 }
 
+export function filterByGenerations(
+  cards: CharadesCard[],
+  generations: Generation[],
+): CharadesCard[] {
+  return cards.filter((card) => cardMatchesGenerations(card, generations));
+}
+
 export function filterCards(cards: CharadesCard[], filter: DeckFilter): CharadesCard[] {
-  return filterByTypes(filterByDifficulty(cards, filter.difficulty), filter.types);
+  return filterByGenerations(
+    filterByTypes(filterByDifficulty(cards, filter.difficulty), filter.types),
+    filter.generations,
+  );
 }
 
 export function shuffleDeck<T>(items: T[], random: () => number = Math.random): T[] {

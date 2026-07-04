@@ -15,6 +15,7 @@ import { placesPack } from './places.js';
 import { sportsPack } from './sports.js';
 import { tvShowsPack } from './tv-shows.js';
 import { videoGameCharactersPack } from './video-game-characters.js';
+import { enrichPack } from '../lib/generations.js';
 import type { CharadesPack } from '../types.js';
 
 /** Packs ordered for the setup screen: family-friendly first, niche last. */
@@ -37,7 +38,7 @@ const rawPacks: CharadesPack[] = [
   animeCharactersPack,
 ];
 
-export const allPacks: CharadesPack[] = rawPacks.map((pack) => validatePack(pack));
+export const allPacks: CharadesPack[] = rawPacks.map((pack) => enrichPack(validatePack(pack)));
 
 export function getPackById(id: string): CharadesPack | undefined {
   return allPacks.find((pack) => pack.id === id);

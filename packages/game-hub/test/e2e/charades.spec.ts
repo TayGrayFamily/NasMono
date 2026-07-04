@@ -43,4 +43,32 @@ test.describe('Charades solo play', () => {
     await page.getByRole('button', { name: 'Reveal', exact: true }).click();
     await expect(page.getByText('Actor', { exact: true })).not.toBeVisible();
   });
+
+  test('gen-alpha filter narrows movies and still starts', async ({ page }) => {
+    await page.goto('/play/charades');
+
+    await page
+      .locator('.charades-pack-card')
+      .filter({ hasText: /^Movies/ })
+      .click();
+    await page.getByRole('button', { name: 'Hard', exact: true }).click();
+
+    const allGensCount = Number(
+      (await page.getByText(/cards in this round/).textContent())?.match(/\d+/)?.[0],
+    );
+    expect(allGensCount).toBeGreaterThan(0);
+
+    await page.getByRole('button', { name: /^Gen Z/ }).click();
+    await page.getByRole('button', { name: /^Millennials/ }).click();
+    await page.getByRole('button', { name: /^Gen X\+/ }).click();
+
+    const genAlphaCount = Number(
+      (await page.getByText(/cards in this round/).textContent())?.match(/\d+/)?.[0],
+    );
+    expect(genAlphaCount).toBeGreaterThan(0);
+    expect(genAlphaCount).toBeLessThan(allGensCount);
+
+    await page.getByRole('button', { name: 'Start' }).click();
+    await page.waitForURL('**/play/charades/game');
+  });
 });

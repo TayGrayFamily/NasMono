@@ -2,6 +2,8 @@ export type CardType = 'word' | 'term' | 'quote' | 'person' | 'title' | 'charact
 
 export type Difficulty = 'easy' | 'medium' | 'hard';
 
+export type Generation = 'gen-alpha' | 'gen-z' | 'millennial' | 'gen-x-plus';
+
 export interface CharadesCard {
   id: string;
   text: string;
@@ -9,6 +11,8 @@ export interface CharadesCard {
   difficulty: Difficulty;
   year?: number;
   actHint?: string;
+  /** When omitted after load, the card is suitable for every generation. */
+  generations?: Generation[];
 }
 
 export interface CharadesPack {
@@ -23,5 +27,6 @@ export interface CharadesPack {
 export interface CharadesSessionConfig {
   packId: string;
   difficulty: Difficulty;
+  enabledGenerations: Generation[];
   enabledTypes: CardType[];
 }

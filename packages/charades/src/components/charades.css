@@ -74,20 +74,66 @@
 }
 
 .charades-pack-card__desc {
-  margin: 0 0 0.75rem;
+  margin: 0;
   color: var(--text-muted);
   font-size: 0.9rem;
   line-height: 1.4;
 }
 
-.charades-pack-card__age {
-  display: inline-block;
-  font-size: 0.75rem;
+.charades-toggle-filters {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+  gap: 0.5rem;
+}
+
+.charades-toggle-filter {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 0.15rem;
+  min-height: var(--touch-min);
+  border: 2px solid var(--border-color);
+  border-radius: var(--radius-md);
+  background: var(--bg-secondary);
+  color: var(--text-color);
   font-weight: 600;
-  color: var(--primary-cyan);
-  background: rgba(6, 182, 212, 0.12);
-  padding: 0.2rem 0.6rem;
+  padding: 0.6rem 0.75rem;
+  cursor: pointer;
+  text-align: left;
+  transition: var(--transition);
+}
+
+.charades-toggle-filter--compact {
+  align-items: center;
   border-radius: 999px;
+  padding: 0.4rem 0.9rem;
+}
+
+.charades-toggle-filter--on {
+  border-color: var(--primary-cyan);
+  background: rgba(6, 182, 212, 0.15);
+}
+
+.charades-toggle-filter--off {
+  opacity: 0.55;
+}
+
+.charades-toggle-filter__label {
+  font-size: 0.9rem;
+}
+
+.charades-toggle-filter__hint {
+  font-size: 0.75rem;
+  font-weight: 500;
+  color: var(--text-muted);
+  line-height: 1.3;
+}
+
+.charades-filter-hint {
+  margin: 0 0 0.75rem;
+  color: var(--text-muted);
+  font-size: 0.9rem;
+  line-height: 1.4;
 }
 
 .charades-difficulty {
@@ -110,41 +156,6 @@
 .charades-difficulty__btn--selected {
   border-color: var(--primary-cyan);
   background: rgba(6, 182, 212, 0.15);
-}
-
-.charades-type-filters {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 0.5rem;
-}
-
-.charades-type-filter {
-  min-height: var(--touch-min);
-  border: 2px solid var(--border-color);
-  border-radius: 999px;
-  background: var(--bg-secondary);
-  color: var(--text-color);
-  font-weight: 600;
-  font-size: 0.9rem;
-  padding: 0.4rem 0.9rem;
-  cursor: pointer;
-  transition: var(--transition);
-}
-
-.charades-type-filter--on {
-  border-color: var(--primary-cyan);
-  background: rgba(6, 182, 212, 0.15);
-}
-
-.charades-type-filter--off {
-  opacity: 0.55;
-}
-
-.charades-type-hint {
-  margin: 0 0 0.75rem;
-  color: var(--text-muted);
-  font-size: 0.9rem;
-  line-height: 1.4;
 }
 
 .charades-meta {

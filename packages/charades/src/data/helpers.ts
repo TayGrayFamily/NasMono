@@ -5,7 +5,7 @@ export function card(
   text: string,
   type: CardType,
   difficulty: Difficulty,
-  extra?: Pick<CharadesCard, 'year' | 'actHint'>,
+  extra?: Pick<CharadesCard, 'year' | 'actHint' | 'generations'>,
 ): CharadesCard {
   return { id, text, type, difficulty, ...extra };
 }

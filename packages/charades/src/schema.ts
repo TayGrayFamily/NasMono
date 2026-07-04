@@ -12,6 +12,8 @@ export const cardTypeSchema = z.enum([
 
 export const difficultySchema = z.enum(['easy', 'medium', 'hard']);
 
+export const generationSchema = z.enum(['gen-alpha', 'gen-z', 'millennial', 'gen-x-plus']);
+
 export const charadesCardSchema = z.object({
   id: z.string().min(1),
   text: z.string().min(1),
@@ -19,6 +21,7 @@ export const charadesCardSchema = z.object({
   difficulty: difficultySchema,
   year: z.number().int().min(1888).max(2100).optional(),
   actHint: z.string().min(1).optional(),
+  generations: z.array(generationSchema).min(1).optional(),
 });
 
 export const charadesPackSchema = z.object({

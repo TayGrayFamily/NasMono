@@ -4,6 +4,14 @@
   gap: 1.5rem;
   width: 100%;
   min-height: 60vh;
+  user-select: none;
+  -webkit-user-select: none;
+  -webkit-touch-callout: none;
+}
+
+.charades-page--sheet-open .charades-page__body,
+.charades-page--sheet-open .charades-fab-dock {
+  pointer-events: none;
 }
 
 .charades-header {
@@ -52,8 +60,7 @@
 .charades-page button.charades-toggle-filter,
 .charades-page button.charades-difficulty__btn,
 .charades-page button.charades-fab,
-.charades-page button.charades-sheet__done,
-.charades-page button.charades-sheet__backdrop {
+.charades-page button.charades-sheet__done {
   transform: none;
   font-weight: inherit;
   gap: 0;
@@ -79,14 +86,6 @@
 .charades-page button.charades-sheet__done {
   background-color: transparent;
   color: var(--primary-cyan);
-}
-
-.charades-page button.charades-sheet__backdrop {
-  background-color: rgba(0, 0, 0, 0.55);
-  border-radius: 0;
-  padding: 0;
-  min-height: 0;
-  box-shadow: none;
 }
 
 .charades-page button.card-reveal-extras__chip {
@@ -532,24 +531,33 @@
   display: flex;
   flex-direction: column;
   justify-content: flex-end;
+  user-select: none;
+  -webkit-user-select: none;
+  -webkit-touch-callout: none;
 }
 
 .charades-sheet__backdrop {
   position: absolute;
   inset: 0;
   border: none;
+  margin: 0;
+  padding: 0;
   background: rgba(0, 0, 0, 0.55);
   cursor: pointer;
+  touch-action: none;
+  -webkit-tap-highlight-color: transparent;
 }
 
 .charades-sheet__panel {
   position: relative;
   max-height: min(78dvh, 640px);
   overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
   background: var(--panel-bg);
   border-radius: var(--radius-lg) var(--radius-lg) 0 0;
   padding: 1rem 1rem calc(1rem + var(--safe-bottom));
   box-shadow: 0 -8px 24px rgba(0, 0, 0, 0.35);
+  touch-action: pan-y;
 }
 
 .charades-sheet__header {

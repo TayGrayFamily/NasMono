@@ -11,7 +11,9 @@ export function getPacksByIds(packIds: string[]): CharadesPack[] {
 export function mergePackCards(packIds: string[]): CharadesCard[] {
   const cards: CharadesCard[] = [];
   for (const pack of getPacksByIds(packIds)) {
-    cards.push(...pack.cards);
+    for (const card of pack.cards) {
+      cards.push({ ...card, packId: pack.id });
+    }
   }
   return cards;
 }

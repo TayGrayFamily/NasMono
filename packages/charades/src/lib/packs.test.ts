@@ -10,6 +10,12 @@ describe('packs', () => {
     expect(cards.length).toBe((animals?.cards.length ?? 0) + (movies?.cards.length ?? 0));
   });
 
+  it('stamps packId when merging cards', () => {
+    const cards = mergePackCards(['animals', 'movies']);
+    expect(cards.some((card) => card.packId === 'animals')).toBe(true);
+    expect(cards.some((card) => card.packId === 'movies')).toBe(true);
+  });
+
   it('unions card types across packs', () => {
     const packs = [getPackById('animals'), getPackById('movies')].filter(Boolean);
     const types = getTypesInPacks(packs as NonNullable<(typeof packs)[number]>[]);

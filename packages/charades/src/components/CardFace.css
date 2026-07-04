@@ -15,8 +15,28 @@
 }
 
 .card-face--revealed {
-  border-color: var(--primary-cyan);
   box-shadow: var(--shadow-lg);
+}
+
+.card-face--revealed.card-face--difficulty-easy {
+  border-color: rgba(34, 197, 94, 0.45);
+  box-shadow:
+    var(--shadow-lg),
+    0 0 0 1px rgba(34, 197, 94, 0.08);
+}
+
+.card-face--revealed.card-face--difficulty-medium {
+  border-color: rgba(234, 179, 8, 0.45);
+  box-shadow:
+    var(--shadow-lg),
+    0 0 0 1px rgba(234, 179, 8, 0.08);
+}
+
+.card-face--revealed.card-face--difficulty-hard {
+  border-color: rgba(244, 63, 94, 0.45);
+  box-shadow:
+    var(--shadow-lg),
+    0 0 0 1px rgba(244, 63, 94, 0.08);
 }
 
 .card-face--empty {

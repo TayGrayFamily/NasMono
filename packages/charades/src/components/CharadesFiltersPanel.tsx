@@ -1,18 +1,13 @@
 import type { CardType, Difficulty, Generation } from '../types.js';
 import { CARD_TYPE_LABELS } from '../lib/cardTypes.js';
+import { ALL_DIFFICULTIES, DIFFICULTY_LABELS } from '../lib/difficulties.js';
 import { ALL_GENERATIONS, GENERATION_LABELS } from '../lib/generations.js';
-
-const difficulties: Difficulty[] = ['easy', 'medium', 'hard'];
-
-function formatDifficulty(level: Difficulty): string {
-  return level.charAt(0).toUpperCase() + level.slice(1);
-}
 
 interface CharadesFiltersPanelProps {
   multiPack: boolean;
   setMultiPackMode: (enabled: boolean) => void;
-  difficulty: Difficulty;
-  setDifficulty: (level: Difficulty) => void;
+  enabledDifficulties: Difficulty[];
+  toggleDifficulty: (level: Difficulty) => void;
   enabledGenerations: Generation[];
   toggleGeneration: (generation: Generation) => void;
   availableTypes: CardType[];
@@ -24,8 +19,8 @@ interface CharadesFiltersPanelProps {
 export function CharadesFiltersPanel({
   multiPack,
   setMultiPackMode,
-  difficulty,
-  setDifficulty,
+  enabledDifficulties,
+  toggleDifficulty,
   enabledGenerations,
   toggleGeneration,
   availableTypes,
@@ -54,18 +49,24 @@ export function CharadesFiltersPanel({
 
       <div className="charades-filters__group">
         <h4 className="charades-filters__label">Difficulty</h4>
+        <p className="charades-filter-hint">
+          All difficulties are on by default. Turn off any level you do not want in the round.
+        </p>
         <div className="charades-difficulty" role="group" aria-label="Difficulty">
-          {difficulties.map((level) => (
-            <button
-              key={level}
-              type="button"
-              className={`charades-difficulty__btn ${difficulty === level ? 'charades-difficulty__btn--selected' : ''}`}
-              onClick={() => setDifficulty(level)}
-              aria-pressed={difficulty === level}
-            >
-              {formatDifficulty(level)}
-            </button>
-          ))}
+          {ALL_DIFFICULTIES.map((level) => {
+            const on = enabledDifficulties.includes(level);
+            return (
+              <button
+                key={level}
+                type="button"
+                className={`charades-difficulty__btn charades-difficulty__btn--${level} ${on ? 'charades-difficulty__btn--selected' : ''}`}
+                onClick={() => toggleDifficulty(level)}
+                aria-pressed={on}
+              >
+                {DIFFICULTY_LABELS[level]}
+              </button>
+            );
+          })}
         </div>
       </div>
 

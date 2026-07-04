@@ -21,7 +21,7 @@ export function CardFace({ card, revealed }: CardFaceProps) {
 
   return (
     <div
-      className={`card-face ${revealed ? 'card-face--revealed' : 'card-face--hidden'}`}
+      className={`card-face ${revealed ? 'card-face--revealed' : 'card-face--hidden'} card-face--difficulty-${card.difficulty}`}
       aria-live={revealed ? 'polite' : 'off'}
       aria-label={revealed ? `Charades card: ${card.text}` : 'Charades card hidden'}
     >
@@ -35,7 +35,7 @@ export function CardFace({ card, revealed }: CardFaceProps) {
           <span className="card-face__type">{formatCardType(card.type)}</span>
           <p className="card-face__text">{card.text}</p>
           {actInstruction && <span className="card-face__hint">{actInstruction}</span>}
-          <CardRevealExtras card={card} revealed={revealed} />
+          <CardRevealExtras key={card.id} card={card} revealed={revealed} />
         </div>
       ) : (
         <div className="card-face__cover">

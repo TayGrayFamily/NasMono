@@ -113,13 +113,28 @@ test.describe('Charades solo play', () => {
     await page.getByRole('button', { name: 'Animals' }).click();
 
     const summary = page.locator('.charades-fab__hint, .charades-filters__value').first();
-    await expect(summary).toHaveText('Easy · All players');
+    await expect(summary).toHaveText('Single pack · Easy · All players');
 
     await openCharadesFilters(page);
     await page.getByRole('button', { name: 'Hard', exact: true }).click();
     await page.getByRole('button', { name: /^Gen Alpha/ }).click();
 
-    await expect(summary).toHaveText('Hard · Gen Z, Millennials, Gen X+');
+    await expect(summary).toHaveText('Single pack · Hard · Gen Z, Millennials, Gen X+');
+  });
+
+  test('multi-pack mode mixes animals and movies', async ({ page }) => {
+    await page.goto('/play/charades');
+
+    await openCharadesFilters(page);
+    await page.getByRole('button', { name: 'Multi-pack off', exact: true }).click();
+
+    await page.getByRole('button', { name: 'Animals' }).click();
+    await page.getByRole('button', { name: /^Movies/ }).click();
+    await expect(page.getByText(/\d+ cards in this round · 2 packs/)).toBeVisible();
+
+    await page.getByRole('button', { name: /^Start/ }).click();
+    await page.waitForURL('**/play/charades/game');
+    await expect(page.getByRole('heading', { name: 'Mixed · 2 packs' })).toBeVisible();
   });
 
   test('portrait iPhone 13 Pro Max shows floating action buttons', async ({ browser }) => {

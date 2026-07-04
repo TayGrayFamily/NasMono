@@ -6,6 +6,7 @@ Client-side charades card picker for Game Hub.
 - **Data:** hardcoded packs in `src/data/` (16 packs)
 - **Generation filter:** optional “Who is playing?” toggles (Gen Alpha, Gen Z, Millennials, Gen X+); all on by default
 - **Pack filters:** optional card-type toggles when a pack has multiple types (e.g. Movies actors/quotes)
+- **Multi-pack:** optional Filters toggle to mix cards from multiple packs in one round
 - **Future:** lobby multiplayer at `/lobbies/:id/game/charades` can reuse `CharadesPlay` with server-dealt cards
 
 ## Pack overview

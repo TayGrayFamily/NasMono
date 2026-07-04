@@ -6,7 +6,7 @@ import './charades.css';
 
 export function CharadesPlay() {
   const navigate = useNavigate();
-  const { pack, currentCard, revealed, reveal, nextCard, isReady } = useCharadesPlay();
+  const { roundTitle, currentCard, revealed, reveal, nextCard, isReady } = useCharadesPlay();
 
   useEffect(() => {
     if (!isReady) {
@@ -19,7 +19,7 @@ export function CharadesPlay() {
     navigate('/play/charades');
   };
 
-  if (!isReady || !pack) {
+  if (!isReady || !currentCard) {
     return null;
   }
 
@@ -30,7 +30,7 @@ export function CharadesPlay() {
     <div className="charades-page charades-play charades-page--fab">
       <div className="charades-page__body">
         <header className="charades-header">
-          <h2 className="charades-header__title">{pack.name}</h2>
+          <h2 className="charades-header__title">{roundTitle}</h2>
           <p className="charades-header__subtitle">Act it out. Others guess.</p>
         </header>
 

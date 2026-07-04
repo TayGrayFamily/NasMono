@@ -15,8 +15,10 @@ export function CharadesSetup() {
   const navigate = useNavigate();
   const [filtersOpen, setFiltersOpen] = useState(false);
   const {
-    packId,
-    setPackId,
+    multiPack,
+    setMultiPackMode,
+    selectedPackIds,
+    handlePackPress,
     difficulty,
     setDifficulty,
     enabledGenerations,
@@ -37,8 +39,9 @@ export function CharadesSetup() {
       enabledGenerations.length === ALL_GENERATIONS.length
         ? 'All players'
         : enabledGenerations.map((g) => GENERATION_LABELS[g]).join(', ');
-    return `${difficultyLabel} · ${generationLabel}`;
-  }, [difficulty, enabledGenerations]);
+    const mixLabel = multiPack ? 'Multi-pack' : 'Single pack';
+    return `${mixLabel} · ${difficultyLabel} · ${generationLabel}`;
+  }, [multiPack, difficulty, enabledGenerations]);
 
   const handleStart = () => {
     const config = startSession();
@@ -49,6 +52,8 @@ export function CharadesSetup() {
 
   const filterPanel = (
     <CharadesFiltersPanel
+      multiPack={multiPack}
+      setMultiPackMode={setMultiPackMode}
       difficulty={difficulty}
       setDifficulty={setDifficulty}
       enabledGenerations={enabledGenerations}
@@ -69,25 +74,36 @@ export function CharadesSetup() {
           </button>
           <h2 className="charades-header__title">Charades</h2>
           <p className="charades-header__subtitle">
-            Pick a pack, adjust filters if needed, then start the round.
+            {multiPack
+              ? 'Turn on multi-pack in Filters, then choose the packs to mix.'
+              : 'Pick a pack, adjust filters if needed, then start the round.'}
           </p>
         </header>
 
         <section>
-          <h3 className="charades-section-title">Choose a pack</h3>
-          <div className="charades-pack-grid">
-            {allPacks.map((pack) => (
-              <button
-                key={pack.id}
-                type="button"
-                className={`charades-pack-card ${packId === pack.id ? 'charades-pack-card--selected' : ''}`}
-                onClick={() => setPackId(pack.id)}
-                aria-pressed={packId === pack.id}
-              >
-                <span className="charades-pack-card__name">{pack.name}</span>
-                <span className="charades-pack-card__desc">{pack.description}</span>
-              </button>
-            ))}
+          <h3 className="charades-section-title">
+            {multiPack ? 'Choose packs to mix' : 'Choose a pack'}
+          </h3>
+          <div
+            className={`charades-pack-grid${multiPack ? ' charades-pack-grid--multi' : ''}`}
+            role={multiPack ? 'group' : undefined}
+            aria-label={multiPack ? 'Packs to mix' : undefined}
+          >
+            {allPacks.map((pack) => {
+              const selected = selectedPackIds.includes(pack.id);
+              return (
+                <button
+                  key={pack.id}
+                  type="button"
+                  className={`charades-pack-card ${selected ? 'charades-pack-card--selected' : ''}`}
+                  onClick={() => handlePackPress(pack.id)}
+                  aria-pressed={selected}
+                >
+                  <span className="charades-pack-card__name">{pack.name}</span>
+                  <span className="charades-pack-card__desc">{pack.description}</span>
+                </button>
+              );
+            })}
           </div>
         </section>
 
@@ -99,9 +115,10 @@ export function CharadesSetup() {
           {filterPanel}
         </details>
 
-        {packId && (
+        {selectedPackIds.length > 0 && (
           <p className="charades-meta" aria-live="polite">
             {filteredCount} cards in this round
+            {multiPack && selectedPackIds.length > 1 ? ` · ${selectedPackIds.length} packs` : ''}
           </p>
         )}
 
@@ -134,7 +151,7 @@ export function CharadesSetup() {
           disabled={!canStart}
           onClick={handleStart}
         >
-          {packId ? `Start · ${filteredCount}` : 'Start'}
+          {selectedPackIds.length > 0 ? `Start · ${filteredCount}` : 'Start'}
         </button>
       </div>
 

@@ -9,6 +9,8 @@ function formatDifficulty(level: Difficulty): string {
 }
 
 interface CharadesFiltersPanelProps {
+  multiPack: boolean;
+  setMultiPackMode: (enabled: boolean) => void;
   difficulty: Difficulty;
   setDifficulty: (level: Difficulty) => void;
   enabledGenerations: Generation[];
@@ -20,6 +22,8 @@ interface CharadesFiltersPanelProps {
 }
 
 export function CharadesFiltersPanel({
+  multiPack,
+  setMultiPackMode,
   difficulty,
   setDifficulty,
   enabledGenerations,
@@ -31,6 +35,23 @@ export function CharadesFiltersPanel({
 }: CharadesFiltersPanelProps) {
   return (
     <div className="charades-filters__body">
+      <div className="charades-filters__group">
+        <h4 className="charades-filters__label">Mix packs</h4>
+        <p className="charades-filter-hint">
+          Turn on to combine cards from multiple packs in one round.
+        </p>
+        <button
+          type="button"
+          className={`charades-toggle-filter charades-toggle-filter--compact charades-toggle-filter--switch ${multiPack ? 'charades-toggle-filter--on' : 'charades-toggle-filter--off'}`}
+          onClick={() => setMultiPackMode(!multiPack)}
+          aria-pressed={multiPack}
+        >
+          <span className="charades-toggle-filter__label">
+            {multiPack ? 'Multi-pack on' : 'Multi-pack off'}
+          </span>
+        </button>
+      </div>
+
       <div className="charades-filters__group">
         <h4 className="charades-filters__label">Difficulty</h4>
         <div className="charades-difficulty" role="group" aria-label="Difficulty">

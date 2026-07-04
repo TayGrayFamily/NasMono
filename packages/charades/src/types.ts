@@ -42,7 +42,8 @@ export interface CharadesPack {
 }
 
 export interface CharadesSessionConfig {
-  packId: string;
+  packIds: string[];
+  multiPack: boolean;
   difficulty: Difficulty;
   enabledGenerations: Generation[];
   enabledTypes: CardType[];

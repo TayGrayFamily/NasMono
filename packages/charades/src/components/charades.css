@@ -163,6 +163,15 @@
   border-color: var(--primary-cyan);
 }
 
+.charades-pack-grid--multi .charades-pack-card--selected {
+  background: rgba(6, 182, 212, 0.08);
+}
+
+.charades-toggle-filter--switch {
+  width: 100%;
+  align-items: center;
+}
+
 .charades-pack-card__name {
   margin: 0;
   font-size: 1rem;

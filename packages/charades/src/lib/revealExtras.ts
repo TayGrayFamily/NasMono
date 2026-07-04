@@ -1,13 +1,42 @@
-import type { CharadesCard, RevealExtraKey } from '../types.js';
+import type { CardType, CharadesCard, RevealExtraKey } from '../types.js';
+
+const IMAGE_SEARCH_TYPES = new Set<CardType>(['title', 'quote', 'character', 'actor', 'person']);
 
 export function getCardContext(card: CharadesCard): string | undefined {
   if (card.context) return card.context;
-  if (card.type === 'quote' && card.actHint) return card.actHint;
+  if (card.actHint) return card.actHint;
   return undefined;
 }
 
+/** Giphy query for this card — explicit `imageSearch` or inferred from type, title, and source. */
+export function getCardImageSearch(card: CharadesCard): string | undefined {
+  if (card.imageSearch) return card.imageSearch;
+  if (card.imageUrl || card.giphyId) return undefined;
+  if (!IMAGE_SEARCH_TYPES.has(card.type)) return undefined;
+
+  const source = getCardContext(card);
+
+  if (card.type === 'quote') {
+    return source;
+  }
+
+  if (card.type === 'actor') {
+    return `${card.text} actor`;
+  }
+
+  if (card.type === 'title') {
+    return card.text;
+  }
+
+  if (source) {
+    return `${card.text} ${source}`;
+  }
+
+  return card.text;
+}
+
 export function cardHasImageSource(card: CharadesCard): boolean {
-  return Boolean(card.imageUrl || card.giphyId || card.imageSearch);
+  return Boolean(card.imageUrl || card.giphyId || getCardImageSearch(card));
 }
 
 export function getAvailableRevealExtras(card: CharadesCard): RevealExtraKey[] {

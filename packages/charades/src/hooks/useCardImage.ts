@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useState } from 'react';
 import type { CharadesCard } from '../types.js';
 import { isGiphyConfigured, resolveGiphyStillById, searchGiphyStill } from '../lib/giphy.js';
-import { cardHasImageSource } from '../lib/revealExtras.js';
+import { cardHasImageSource, getCardImageSearch } from '../lib/revealExtras.js';
 
 export type CardImageState =
   | { status: 'idle' }
@@ -12,7 +12,8 @@ export type CardImageState =
 async function resolveCardImage(card: CharadesCard): Promise<string | undefined> {
   if (card.imageUrl) return card.imageUrl;
   if (card.giphyId) return resolveGiphyStillById(card.giphyId);
-  if (card.imageSearch) return searchGiphyStill(card.imageSearch);
+  const query = getCardImageSearch(card);
+  if (query) return searchGiphyStill(query);
   return undefined;
 }
 
@@ -26,7 +27,7 @@ export function useCardImage(card: CharadesCard, enabled: boolean): CardImageSta
         alt: card.imageAlt ?? card.text,
       };
     }
-    if (!card.giphyId && !card.imageSearch) return { status: 'idle' };
+    if (!card.giphyId && !getCardImageSearch(card)) return { status: 'idle' };
     if (!isGiphyConfigured()) return { status: 'unavailable', reason: 'missing-key' };
     return 'async';
   }, [card, enabled]);

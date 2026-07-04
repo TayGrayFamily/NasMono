@@ -1,12 +1,19 @@
 import { describe, expect, it } from 'vitest';
 import { card } from '../data/helpers.js';
-import { cardHasImageSource, getAvailableRevealExtras, getCardContext } from './revealExtras.js';
+import {
+  cardHasImageSource,
+  getAvailableRevealExtras,
+  getCardContext,
+  getCardImageSearch,
+} from './revealExtras.js';
 
 describe('revealExtras', () => {
-  it('falls back to actHint as context for quotes', () => {
+  it('falls back to actHint as context', () => {
     const sample = card('q-1', 'Hello there', 'quote', 'easy', { actHint: 'Star Wars' });
     expect(getCardContext(sample)).toBe('Star Wars');
     expect(getAvailableRevealExtras(sample)).toContain('context');
+    expect(getCardImageSearch(sample)).toBe('Star Wars');
+    expect(cardHasImageSource(sample)).toBe(true);
   });
 
   it('lists optional reveal chips when data is present', () => {
@@ -25,5 +32,54 @@ describe('revealExtras', () => {
       'guessHint',
       'definition',
     ]);
+  });
+
+  it('infers image search for actors and titles', () => {
+    expect(getCardImageSearch(card('a-1', 'Tom Hanks', 'actor', 'easy'))).toBe('Tom Hanks actor');
+    expect(getCardImageSearch(card('t-1', 'Jurassic Park', 'title', 'medium'))).toBe(
+      'Jurassic Park',
+    );
+  });
+
+  it('infers image search for characters using source material', () => {
+    expect(
+      getCardImageSearch(card('c-1', 'Woody', 'character', 'easy', { context: 'Toy Story' })),
+    ).toBe('Woody Toy Story');
+    expect(getCardImageSearch(card('c-2', 'Goku', 'person', 'easy'))).toBe('Goku');
+  });
+
+  it('prefers explicit imageSearch over inference', () => {
+    expect(
+      getCardImageSearch(
+        card('c-1', 'Elsa', 'character', 'easy', {
+          context: 'Frozen',
+          imageSearch: 'elsa frozen disney',
+        }),
+      ),
+    ).toBe('elsa frozen disney');
+  });
+
+  it('does not infer images for word cards', () => {
+    const sample = card('w-1', 'Elephant', 'word', 'easy');
+    expect(getCardImageSearch(sample)).toBeUndefined();
+    expect(cardHasImageSource(sample)).toBe(false);
+  });
+
+  it('infers images for anime and video game person cards', async () => {
+    const { animeCharactersPack } = await import('../data/anime-characters.js');
+    const { videoGameCharactersPack } = await import('../data/video-game-characters.js');
+
+    for (const personCard of [...animeCharactersPack.cards, ...videoGameCharactersPack.cards]) {
+      expect(cardHasImageSource(personCard)).toBe(true);
+    }
+  });
+
+  it('movies pack exposes images on titles, characters, actors, and quotes', async () => {
+    const { moviesPack } = await import('../data/movies.js');
+    const visualTypes = new Set(['title', 'quote', 'character', 'actor']);
+
+    for (const movieCard of moviesPack.cards.filter((c) => visualTypes.has(c.type))) {
+      expect(cardHasImageSource(movieCard)).toBe(true);
+    }
   });
 });

@@ -4,6 +4,9 @@
   justify-content: space-between;
   align-items: center;
   padding: 1rem 1.5rem;
+  padding-top: calc(1rem + var(--safe-top));
+  padding-left: calc(1.5rem + var(--safe-left));
+  padding-right: calc(1.5rem + var(--safe-right));
   border-bottom: 1px solid var(--border-color);
   box-sizing: border-box;
   background-color: var(--bg-secondary);

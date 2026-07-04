@@ -1,0 +1,34 @@
+# Charades (solo PoC)
+
+Client-side charades card picker for Game Hub.
+
+- **Solo / pass-and-play:** `/play/charades` — no login or lobby required
+- **Data:** hardcoded packs in `src/data/` (16 packs)
+- **Generation filter:** optional “Who is playing?” toggles (Gen Alpha, Gen Z, Millennials, Gen X+); all on by default
+- **Pack filters:** optional card-type toggles when a pack has multiple types (e.g. Movies actors/quotes)
+- **Future:** lobby multiplayer at `/lobbies/:id/game/charades` can reuse `CharadesPlay` with server-dealt cards
+
+## Pack overview
+
+| Pack                  | Types                                            |
+| --------------------- | ------------------------------------------------ |
+| Actions & Activities  | terms                                            |
+| Animals               | words                                            |
+| Around the House      | words, terms                                     |
+| Disney & Family       | titles, characters, quotes                       |
+| Emotions & Feelings   | words, terms                                     |
+| Food & Drink          | words, terms                                     |
+| Jobs & Professions    | terms                                            |
+| Movies                | titles, quotes, characters, actors (toggle each) |
+| Music                 | titles, people, words                            |
+| Books & Stories       | titles, characters, people                       |
+| Places & Landmarks    | words, terms                                     |
+| Sports & Games        | words, terms, people                             |
+| TV Shows              | titles, characters, quotes                       |
+| Nintendo Games        | terms                                            |
+| Video Game Characters | people                                           |
+| Anime Characters      | people                                           |
+
+Cards may include a `generations` array (who is likely to know the reference) and an optional `actHint` (shown on the revealed card, e.g. source film). Universal packs (animals, actions, etc.) omit `generations` and suit every player. Other packs fall back to difficulty-based defaults when `generations` is omitted — prefer setting it explicitly on pop-culture cards.
+
+Mobile layout is tested at **iPhone 13 Pro Max** portrait and landscape (see root `AGENTS.md` → Mobile UI testing); CSS must work in both orientations.

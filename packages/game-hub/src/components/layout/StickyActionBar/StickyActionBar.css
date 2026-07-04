@@ -22,10 +22,10 @@
     bottom: 0;
     background: var(--panel-bg);
     padding-bottom: calc(1rem + var(--safe-bottom));
-    margin-left: -1.5rem;
-    margin-right: -1.5rem;
-    padding-left: 1.5rem;
-    padding-right: 1.5rem;
+    margin-left: calc(-1 * var(--space-page) - var(--safe-left));
+    margin-right: calc(-1 * var(--space-page) - var(--safe-right));
+    padding-left: calc(var(--space-page) + var(--safe-left));
+    padding-right: calc(var(--space-page) + var(--safe-right));
     border-top: 1px solid var(--border-color);
     box-shadow: 0 -4px 12px rgba(0, 0, 0, 0.2);
   }

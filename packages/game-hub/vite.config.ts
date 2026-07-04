@@ -17,6 +17,7 @@ export default defineConfig({
   resolve: {
     alias: {
       '@': path.resolve(__dirname, './src'),
+      charades: path.resolve(__dirname, '../charades/src/index.ts'),
     },
   },
   // Define application-wide constants

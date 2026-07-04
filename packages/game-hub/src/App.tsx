@@ -14,6 +14,8 @@ import PlayerSetup from './components/PlayerSetup';
 import LobbyList from './components/LobbyList';
 import LobbyDetail from './components/LobbyDetail';
 import ManageUser from './components/ManageUser';
+import { PlayHome } from './components/PlayHome';
+import { CharadesRoutes } from 'charades';
 import { SocketProvider, useSocket } from './components/SocketContext';
 import { Header } from './components/layout/Header';
 import { apiFetch } from './lib/api';
@@ -35,6 +37,10 @@ function loadStoredUser(): User | null {
     // ignore corrupt storage
   }
   return null;
+}
+
+function isPublicPath(pathname: string): boolean {
+  return pathname === '/' || pathname.startsWith('/play/charades');
 }
 
 function LobbyDetailRoute({
@@ -112,7 +118,7 @@ function AppContent({
   }, [currentUser, socket]);
 
   useEffect(() => {
-    if (!currentUser && location.pathname !== '/login') {
+    if (!currentUser && !isPublicPath(location.pathname) && location.pathname !== '/login') {
       navigate('/login');
     } else if (currentUser && location.pathname === '/login') {
       navigate('/lobbies');
@@ -195,19 +201,28 @@ function AppContent({
     onSignOut();
   };
 
+  const isCharadesRoute = location.pathname.startsWith('/play/charades');
+
+  const headerSubtitle = isCharadesRoute
+    ? 'Pick a card. Pass the phone.'
+    : 'Join a lobby or start a game.';
+
   return (
     <div className="app-container">
       <Header
         title="Game Hub"
-        subtitle="Join a lobby or start a game."
+        subtitle={headerSubtitle}
         currentUser={currentUser}
         isConnected={isConnected}
         onSignOut={handleSignOut}
         onManageUser={() => navigate('/manage-profile')}
       />
 
-      <main className="main-content">
+      <main className={`main-content${isCharadesRoute ? ' main-content--charades' : ''}`}>
         <Routes>
+          <Route path="/" element={<PlayHome currentUser={currentUser} />} />
+          <Route path="/play/charades/*" element={<CharadesRoutes />} />
+
           <Route
             path="/login"
             element={
@@ -241,11 +256,13 @@ function AppContent({
             </>
           )}
 
-          <Route path="*" element={<Navigate to={currentUser ? '/lobbies' : '/login'} replace />} />
+          <Route path="*" element={<Navigate to="/" replace />} />
         </Routes>
       </main>
 
-      <footer className="app-footer">v{__APP_VERSION__}</footer>
+      <footer className={`app-footer${isCharadesRoute ? ' app-footer--charades' : ''}`}>
+        v{__APP_VERSION__}
+      </footer>
     </div>
   );
 }

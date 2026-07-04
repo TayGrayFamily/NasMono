@@ -1,4 +1,4 @@
-import { defineConfig, loadEnv } from 'vite';
+import { defineConfig } from 'vite';
 import react from '@vitejs/plugin-react';
 import path from 'path';
 import fs from 'fs'; // Import the fs module
@@ -9,11 +9,9 @@ const packageJsonPath = path.join(rootDir, 'package.json');
 const packageJson = JSON.parse(fs.readFileSync(packageJsonPath, 'utf-8'));
 const appVersion = packageJson.version;
 
-// Load environment variables
-const env = loadEnv('development', process.cwd()); // Load environment variables
-
 export default defineConfig({
   plugins: [react()],
+  envDir: path.resolve(__dirname, '../../'),
   resolve: {
     alias: {
       '@': path.resolve(__dirname, './src'),

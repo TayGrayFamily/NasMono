@@ -30,5 +30,7 @@ FROM nginx:alpine AS runtime
 COPY --from=build /app/packages/game-hub/dist /usr/share/nginx/html
 # Copy our custom nginx config to route /api requests to the game-server container
 COPY packages/game-hub/nginx.conf /etc/nginx/conf.d/default.conf
+COPY packages/game-hub/docker-entrypoint.sh /docker-entrypoint.sh
+RUN chmod +x /docker-entrypoint.sh
 EXPOSE 80
-CMD ["nginx", "-g", "daemon off;"]
+ENTRYPOINT ["/docker-entrypoint.sh"]

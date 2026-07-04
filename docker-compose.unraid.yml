@@ -72,6 +72,9 @@ services:
     depends_on:
       game-server:
         condition: service_healthy
+    environment:
+      # Runtime-injected into /env-config.js by the container entrypoint (Charades Giphy images).
+      VITE_GIPHY_API_KEY: ${VITE_GIPHY_API_KEY:-}
     healthcheck:
       test: ['CMD', 'curl', '-f', 'http://localhost']
       interval: 30s

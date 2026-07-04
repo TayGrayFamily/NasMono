@@ -1,3 +1,5 @@
+import { getViteEnv } from './runtimeEnv.js';
+
 const GIPHY_API = 'https://api.giphy.com/v1/gifs';
 
 type GiphyImageSet = {
@@ -20,11 +22,20 @@ type GiphyResponse = {
   data: GiphyGif | GiphyGif[];
 };
 
+export class GiphyFetchError extends Error {
+  readonly status: number;
+
+  constructor(status: number) {
+    super(`Giphy request failed (${status})`);
+    this.name = 'GiphyFetchError';
+    this.status = status;
+  }
+}
+
 const imageCache = new Map<string, string>();
 
 function getApiKey(): string | undefined {
-  const key = import.meta.env.VITE_GIPHY_API_KEY;
-  return typeof key === 'string' && key.trim().length > 0 ? key.trim() : undefined;
+  return getViteEnv('VITE_GIPHY_API_KEY');
 }
 
 function pickStillUrl(gif: GiphyGif): string | undefined {
@@ -38,7 +49,7 @@ function pickStillUrl(gif: GiphyGif): string | undefined {
 async function fetchJson(url: string): Promise<GiphyResponse> {
   const response = await fetch(url);
   if (!response.ok) {
-    throw new Error(`Giphy request failed (${response.status})`);
+    throw new GiphyFetchError(response.status);
   }
   return (await response.json()) as GiphyResponse;
 }

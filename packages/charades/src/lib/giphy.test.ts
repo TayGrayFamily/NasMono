@@ -1,5 +1,6 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import {
+  GiphyFetchError,
   clearGiphyCacheForTests,
   isGiphyConfigured,
   resolveGiphyStillById,
@@ -68,5 +69,18 @@ describe('giphy', () => {
     await expect(searchGiphyStill('lion king')).resolves.toBe(
       'https://media.giphy.com/search-still.jpg',
     );
+  });
+
+  it('throws GiphyFetchError with HTTP status on failure', async () => {
+    vi.stubGlobal(
+      'fetch',
+      vi.fn().mockResolvedValue({
+        ok: false,
+        status: 403,
+      }),
+    );
+
+    await expect(searchGiphyStill('lion king')).rejects.toMatchObject({ status: 403 });
+    await expect(searchGiphyStill('lion king')).rejects.toBeInstanceOf(GiphyFetchError);
   });
 });

@@ -41,6 +41,19 @@ Cards may include a `generations` array (who is likely to know the reference) an
 | `imageUrl`                | Bundled or resolved still image                                            |
 | `giphyId` / `imageSearch` | Loads a still from Giphy when `VITE_GIPHY_API_KEY` is set — **Image** chip |
 
+### Giphy images
+
+Set `VITE_GIPHY_API_KEY` in the repo root `.env` (see `.env.example`). Restart `pnpm dev:game-hub` after changing it.
+
+On Docker/Unraid, the same variable in your compose `.env` is injected at **container start** into `/env-config.js` — restart `game-hub` after updating.
+
+UI messages distinguish:
+
+- **No key detected** — variable missing or server/container not restarted
+- **Giphy rejected the API key** — key present but unauthorized (401/403)
+- **No image found** — API succeeded but no match for this card
+- **Could not reach Giphy** — network or other API error
+
 Legacy `actHint` on quotes still maps to **Context**. Acting instructions come from card type (e.g. “Mouth the line silently”).
 
 Universal packs (animals, actions, etc.) omit `generations` and suit every player. Other packs fall back to difficulty-based defaults when `generations` is omitted — prefer setting it explicitly on pop-culture cards.

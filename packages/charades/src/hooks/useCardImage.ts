@@ -1,13 +1,21 @@
 import { useEffect, useMemo, useState } from 'react';
 import type { CharadesCard } from '../types.js';
-import { isGiphyConfigured, resolveGiphyStillById, searchGiphyStill } from '../lib/giphy.js';
+import {
+  GiphyFetchError,
+  isGiphyConfigured,
+  resolveGiphyStillById,
+  searchGiphyStill,
+} from '../lib/giphy.js';
 import { cardHasImageSource, getCardImageSearch } from '../lib/revealExtras.js';
 
 export type CardImageState =
   | { status: 'idle' }
   | { status: 'loading' }
   | { status: 'ready'; url: string; alt: string }
-  | { status: 'unavailable'; reason: 'missing-key' | 'not-found' | 'error' };
+  | {
+      status: 'unavailable';
+      reason: 'missing-key' | 'invalid-key' | 'not-found' | 'error';
+    };
 
 async function resolveCardImage(card: CharadesCard): Promise<string | undefined> {
   if (card.imageUrl) return card.imageUrl;
@@ -59,10 +67,12 @@ export function useCardImage(card: CharadesCard, enabled: boolean): CardImageSta
           },
         });
       })
-      .catch(() => {
-        if (!cancelled) {
-          setFetchResult({ cardId, state: { status: 'unavailable', reason: 'error' } });
-        }
+      .catch((error: unknown) => {
+        if (cancelled) return;
+        const status = error instanceof GiphyFetchError ? error.status : undefined;
+        const reason =
+          status === 401 || status === 403 ? 'invalid-key' : ('error' as const);
+        setFetchResult({ cardId, state: { status: 'unavailable', reason } });
       });
 
     return () => {

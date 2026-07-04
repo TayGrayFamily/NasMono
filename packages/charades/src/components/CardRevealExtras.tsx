@@ -66,14 +66,23 @@ export function CardRevealExtras({ card, revealed }: CardRevealExtrasProps) {
           )}
           {imageState.status === 'unavailable' && imageState.reason === 'missing-key' && (
             <p className="card-reveal-extras__status">
-              Add <code>VITE_GIPHY_API_KEY</code> to load images from Giphy.
+              No Giphy API key detected. Set <code>VITE_GIPHY_API_KEY</code> in your{' '}
+              <code>.env</code> and restart the dev server or game-hub container.
+            </p>
+          )}
+          {imageState.status === 'unavailable' && imageState.reason === 'invalid-key' && (
+            <p className="card-reveal-extras__status">
+              Giphy rejected the API key (unauthorized). Check <code>VITE_GIPHY_API_KEY</code>{' '}
+              and restart.
             </p>
           )}
           {imageState.status === 'unavailable' && imageState.reason === 'not-found' && (
             <p className="card-reveal-extras__status">No image found for this card.</p>
           )}
           {imageState.status === 'unavailable' && imageState.reason === 'error' && (
-            <p className="card-reveal-extras__status">Could not load image. Try again later.</p>
+            <p className="card-reveal-extras__status">
+              Could not reach Giphy. Check your connection and try again.
+            </p>
           )}
           {imageState.status === 'idle' && card.emoji && (
             <p className="card-reveal-extras__emoji-fallback" aria-hidden="true">
@@ -103,7 +112,8 @@ export function CardRevealExtras({ card, revealed }: CardRevealExtrasProps) {
 
       {!isGiphyConfigured() && card.imageSearch && !card.imageUrl && !card.giphyId && (
         <p className="card-reveal-extras__footnote">
-          Images search Giphy when <code>VITE_GIPHY_API_KEY</code> is set.
+          Giphy images need <code>VITE_GIPHY_API_KEY</code> in <code>.env</code> (local dev) or on
+          the game-hub container (Docker).
         </p>
       )}
     </div>

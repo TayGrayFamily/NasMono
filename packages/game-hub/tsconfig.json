@@ -12,8 +12,9 @@
     "jsx": "react-jsx",
     "baseUrl": ".",
     "paths": {
-      "@/*": ["./src/*"]
+      "@/*": ["./src/*"],
+      "charades": ["../charades/src/index.ts"]
     }
   },
-  "include": ["src"]
+  "include": ["src", "../charades/src"]
 }

@@ -48,5 +48,12 @@
     "probeUrl": "http://pihole.tower/api/docs/",
     "iconUrl": "/static/pihole.webp",
     "containerMatch": "binhex-official-pihole|pihole"
+  },
+  {
+    "id": "game-hub",
+    "displayName": "Game Hub",
+    "url": "http://games.tower",
+    "iconUrl": "/static/game_hub_logo.svg",
+    "containerMatch": "^game_hub_ui$|game_server"
   }
 ]

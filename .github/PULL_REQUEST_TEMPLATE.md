@@ -2,6 +2,10 @@
 
 Please include a summary of the change and which issue is fixed. Also include relevant motivation and context. List any dependencies that are required for this change.
 
+## Linked issues
+
+Closes #
+
 ### Release type (select one)
 
 Please check one of the boxes below to indicate the semver bump you expect for this PR. The release workflow will use this selection (or PR labels) to determine the version bump.

@@ -65,15 +65,23 @@ body {
   width: 100%;
   max-width: 800px;
   margin: 0 auto;
-  padding: 1.5rem;
+  padding: var(--space-page);
+  padding-left: calc(var(--space-page) + var(--safe-left));
+  padding-right: calc(var(--space-page) + var(--safe-right));
   display: flex;
   flex-direction: column;
 }
 
-@media (max-width: 640px) {
-  .main-content {
-    padding: 1rem;
-  }
+.main-content--charades {
+  padding-bottom: 0.5rem;
+  min-height: 0;
+}
+
+.main-content--charades > * {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
 }
 
 /* UI Components */
@@ -86,10 +94,24 @@ body {
   width: 100%;
 }
 
-@media (max-width: 640px) {
+@media (max-width: 768px) {
   .panel {
     padding: 1.5rem;
   }
+}
+
+.app-footer {
+  padding: 1.5rem;
+  padding-bottom: calc(1.5rem + var(--safe-bottom));
+  font-size: 0.875rem;
+  text-align: center;
+  color: var(--text-muted);
+  border-top: 1px solid var(--border-color);
+  margin-top: auto;
+}
+
+.app-footer--charades {
+  display: none;
 }
 
 /* Typography */

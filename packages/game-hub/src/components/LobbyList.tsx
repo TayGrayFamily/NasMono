@@ -1,27 +1,23 @@
 import React, { useState } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { LoadingButton } from './ui/LoadingButton';
-import { useScreenMode } from '../hooks/useScreenMode';
 import { useSocket } from './SocketContext';
 import { apiFetch } from '../lib/api';
-
-interface Lobby {
-  id: string;
-  name: string;
-  playerCount: number;
-}
+import { Page, PageHeader } from './layout/Page';
+import { LobbyCard, LobbyGrid, type LobbyCardData } from './lobby/LobbyCard';
+import './LobbyList.css';
 
 interface LobbyListProps {
   currentUserId: string;
-  onSelectLobby: (id: string) => void;
+  onJoinLobby: (id: string) => void;
 }
 
-function LobbyList({ currentUserId, onSelectLobby }: LobbyListProps) {
+function LobbyList({ currentUserId, onJoinLobby }: LobbyListProps) {
   const socket = useSocket();
   const [newLobbyName, setNewLobbyName] = useState('');
   const [error, setError] = useState<string | null>(null);
+  const [joiningId, setJoiningId] = useState<string | null>(null);
   const queryClient = useQueryClient();
-  const mode = useScreenMode();
 
   const {
     data: lobbies = [],
@@ -32,7 +28,7 @@ function LobbyList({ currentUserId, onSelectLobby }: LobbyListProps) {
     queryFn: async () => {
       const response = await fetch('/api/lobbies');
       if (!response.ok) throw new Error('Failed to fetch lobbies');
-      return response.json();
+      return response.json() as Promise<LobbyCardData[]>;
     },
   });
 
@@ -48,11 +44,11 @@ function LobbyList({ currentUserId, onSelectLobby }: LobbyListProps) {
         socket.id,
       );
       if (!res.ok) throw new Error('Failed to create lobby');
-      return res.json();
+      return res.json() as Promise<{ lobbyId: string }>;
     },
     onSuccess: (data) => {
       queryClient.invalidateQueries({ queryKey: ['lobbies'] });
-      onSelectLobby(data.lobbyId);
+      onJoinLobby(data.lobbyId);
       setNewLobbyName('');
       setError(null);
     },
@@ -61,12 +57,45 @@ function LobbyList({ currentUserId, onSelectLobby }: LobbyListProps) {
     },
   });
 
-  const createLobby = () => {
+  const handleCreateLobby = () => {
     if (!newLobbyName.trim()) {
       setError('Lobby name cannot be empty.');
       return;
     }
     createLobbyMutation.mutate(newLobbyName);
+  };
+
+  const handleJoinLobby = async (lobbyId: string) => {
+    setJoiningId(lobbyId);
+    setError(null);
+    try {
+      const response = await apiFetch(
+        `/api/lobbies/${lobbyId}/join`,
+        {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ userId: currentUserId }),
+        },
+        socket?.id,
+      );
+      if (!response.ok) {
+        const text = await response.text();
+        let message = 'Failed to join lobby';
+        try {
+          const parsed = JSON.parse(text) as { error?: string };
+          if (parsed.error) message = parsed.error;
+        } catch {
+          if (text) message = text;
+        }
+        throw new Error(message);
+      }
+      queryClient.invalidateQueries({ queryKey: ['lobbies'] });
+      onJoinLobby(lobbyId);
+    } catch (err: unknown) {
+      setError(err instanceof Error ? err.message : 'Failed to join lobby');
+    } finally {
+      setJoiningId(null);
+    }
   };
 
   if (isLoading) return <div className="panel">Loading lobbies...</div>;
@@ -78,119 +107,48 @@ function LobbyList({ currentUserId, onSelectLobby }: LobbyListProps) {
     );
 
   return (
-    <div className="panel" style={{ display: 'flex', flexDirection: 'column', gap: '2rem' }}>
-      <header>
-        <h2>Game Lobbies</h2>
-        <p className="text-muted">Join an existing game or start a new one.</p>
-      </header>
+    <div className="panel lobby-list">
+      <Page>
+        <PageHeader title="Game Lobbies" subtitle="Join an existing game or start a new one." />
 
-      <section
-        style={{
-          display: 'flex',
-          gap: '0.75rem',
-          flexDirection: mode === 'mobile' ? 'column' : 'row',
-          padding: '1.25rem',
-          backgroundColor: 'rgba(255, 255, 255, 0.03)',
-          borderRadius: 'var(--radius-lg)',
-          border: '1px dashed var(--border-color)',
-        }}
-      >
-        <input
-          placeholder="Enter lobby name..."
-          value={newLobbyName}
-          onChange={(e) => setNewLobbyName(e.target.value)}
-          onKeyDown={(e) => e.key === 'Enter' && createLobby()}
-          style={{ flexGrow: 1 }}
-        />
-        <LoadingButton
-          onClick={createLobby}
-          isLoading={createLobbyMutation.isPending}
-          style={{ minWidth: mode === 'mobile' ? '100%' : '140px' }}
-        >
-          Create Lobby
-        </LoadingButton>
-      </section>
+        <section className="lobby-list__create">
+          <input
+            placeholder="Enter lobby name..."
+            value={newLobbyName}
+            onChange={(e) => setNewLobbyName(e.target.value)}
+            onKeyDown={(e) =>
+              e.key === 'Enter' && !createLobbyMutation.isPending && handleCreateLobby()
+            }
+            aria-label="Lobby name"
+          />
+          <LoadingButton
+            className="lobby-list__create-btn"
+            onClick={handleCreateLobby}
+            isLoading={createLobbyMutation.isPending}
+          >
+            Create Lobby
+          </LoadingButton>
+        </section>
 
-      {error && (
-        <p style={{ color: 'var(--error-color)', fontSize: '0.875rem', margin: 0 }}>{error}</p>
-      )}
+        {error && <p className="lobby-list__error">{error}</p>}
 
-      <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
-        <h3 style={{ fontSize: '1.125rem', color: 'var(--text-muted)' }}>Active Lobbies</h3>
-        <div
-          style={{
-            display: 'grid',
-            gridTemplateColumns:
-              mode === 'mobile' ? '1fr' : 'repeat(auto-fill, minmax(300px, 1fr))',
-            gap: '1rem',
-          }}
-        >
-          {lobbies.length === 0 && (
-            <div
-              style={{
-                gridColumn: '1/-1',
-                padding: '3rem',
-                textAlign: 'center',
-                color: 'var(--text-muted)',
-                border: '1px solid var(--border-color)',
-                borderRadius: 'var(--radius-lg)',
-              }}
-            >
-              No active lobbies found. Create one above!
-            </div>
-          )}
-          {lobbies.map((l: Lobby) => (
-            <div
-              key={l.id}
-              style={{
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'space-between',
-                padding: '1.25rem',
-                backgroundColor: 'rgba(255, 255, 255, 0.02)',
-                border: '1px solid var(--border-color)',
-                borderRadius: 'var(--radius-lg)',
-                transition: 'var(--transition)',
-                cursor: 'pointer',
-              }}
-              onClick={() => onSelectLobby(l.id)}
-              onMouseEnter={(e) => (e.currentTarget.style.borderColor = 'var(--primary-cyan)')}
-              onMouseLeave={(e) => (e.currentTarget.style.borderColor = 'var(--border-color)')}
-            >
-              <div style={{ flex: 1 }}>
-                <div style={{ fontWeight: 600, fontSize: '1.1rem', marginBottom: '0.25rem' }}>
-                  {l.name}
-                </div>
-                <div
-                  style={{
-                    fontSize: '0.875rem',
-                    color: 'var(--text-muted)',
-                    display: 'flex',
-                    alignItems: 'center',
-                    gap: '0.5rem',
-                  }}
-                >
-                  <span
-                    style={{
-                      width: 8,
-                      height: 8,
-                      borderRadius: '50%',
-                      backgroundColor: 'var(--primary-green)',
-                    }}
-                  ></span>
-                  {l.playerCount} {l.playerCount === 1 ? 'Player' : 'Players'}
-                </div>
-              </div>
-              <button
-                className="secondary"
-                style={{ padding: '0.5rem 1rem', fontSize: '0.875rem' }}
-              >
-                Join
-              </button>
-            </div>
-          ))}
-        </div>
-      </div>
+        <section className="lobby-list__section">
+          <h3 className="lobby-list__section-title">Active Lobbies</h3>
+          <LobbyGrid>
+            {lobbies.length === 0 && (
+              <div className="lobby-list-empty">No active lobbies found. Create one above!</div>
+            )}
+            {lobbies.map((lobby) => (
+              <LobbyCard
+                key={lobby.id}
+                lobby={lobby}
+                onJoin={handleJoinLobby}
+                disabled={joiningId === lobby.id}
+              />
+            ))}
+          </LobbyGrid>
+        </section>
+      </Page>
     </div>
   );
 }

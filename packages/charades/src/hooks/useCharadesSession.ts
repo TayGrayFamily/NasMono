@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo, useState } from 'react';
+import { useCallback, useMemo, useState } from 'react';
 import type {
   CharadesSessionConfig,
   CharadesCard,
@@ -281,30 +281,6 @@ export function useCharadesPlay() {
     setDeckState((prev) => (prev ? applyNextCardPick(prev, pick) : prev));
   }, []);
 
-  const revealOrNext = useCallback(() => {
-    if (!revealed) {
-      reveal();
-    } else {
-      nextCard();
-    }
-  }, [revealed, reveal, nextCard]);
-
-  useEffect(() => {
-    const handleKeyDown = (event: KeyboardEvent) => {
-      if (event.code === 'Space') {
-        event.preventDefault();
-        revealOrNext();
-      }
-      if (event.code === 'ArrowRight' && revealed) {
-        event.preventDefault();
-        nextCard();
-      }
-    };
-
-    window.addEventListener('keydown', handleKeyDown);
-    return () => window.removeEventListener('keydown', handleKeyDown);
-  }, [revealed, revealOrNext, nextCard]);
-
   return {
     config,
     roundTitle,
@@ -314,7 +290,6 @@ export function useCharadesPlay() {
     reveal,
     nextCard,
     pickNextCard,
-    revealOrNext,
     isReady: Boolean(config && mergedCards.length > 0 && deckState && currentCard),
   };
 }

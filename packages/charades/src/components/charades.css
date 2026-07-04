@@ -392,6 +392,104 @@
   display: none;
 }
 
+/* Play screen — always-visible difficulty filter FABs (pass-and-play) */
+.charades-play-filters {
+  display: flex;
+  flex-direction: column;
+  gap: 0.65rem;
+  padding: 0.75rem;
+  border-radius: var(--radius-md);
+  background: rgba(0, 0, 0, 0.2);
+  border: 1px solid var(--border-color);
+}
+
+.charades-play-filters__prompt {
+  margin: 0;
+  font-size: 0.95rem;
+  font-weight: 600;
+  text-align: center;
+  color: var(--text-color);
+  line-height: 1.35;
+}
+
+.charades-play-filters__difficulty {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 0.5rem;
+}
+
+.charades-play-filters__packs {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.4rem;
+  justify-content: center;
+}
+
+.charades-play-filters__packs-label {
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: var(--text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.charades-filter-fab {
+  min-height: var(--touch-min);
+  padding: 0.55rem 0.75rem;
+  border-radius: 999px;
+  border: 2px solid var(--border-color);
+  background: var(--bg-secondary);
+  color: var(--text-color);
+  font-weight: 700;
+  font-size: 0.95rem;
+  cursor: pointer;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+  transition:
+    border-color 0.15s ease,
+    background-color 0.15s ease,
+    transform 0.1s ease;
+}
+
+.charades-filter-fab:active {
+  transform: scale(0.98);
+}
+
+.charades-filter-fab--difficulty.charades-filter-fab--easy.charades-filter-fab--active {
+  border-color: #22c55e;
+  background: rgba(34, 197, 94, 0.2);
+  color: #86efac;
+}
+
+.charades-filter-fab--difficulty.charades-filter-fab--medium.charades-filter-fab--active {
+  border-color: #eab308;
+  background: rgba(234, 179, 8, 0.2);
+  color: #fde047;
+}
+
+.charades-filter-fab--difficulty.charades-filter-fab--hard.charades-filter-fab--active {
+  border-color: #f43f5e;
+  background: rgba(244, 63, 94, 0.2);
+  color: #fda4af;
+}
+
+.charades-filter-fab--difficulty.charades-filter-fab--suggested:not(.charades-filter-fab--active) {
+  border-style: dashed;
+  border-color: var(--primary-cyan);
+}
+
+.charades-filter-fab--pack {
+  font-size: 0.82rem;
+  font-weight: 600;
+  padding: 0.45rem 0.85rem;
+}
+
+.charades-filter-fab--pack.charades-filter-fab--active {
+  border-color: var(--primary-cyan);
+  background: rgba(6, 182, 212, 0.15);
+  color: var(--primary-cyan);
+}
+
 .charades-meta {
   color: var(--text-muted);
   font-size: 0.95rem;
@@ -685,6 +783,21 @@
 
   .charades-play .charades-page__body {
     gap: 0.75rem;
+    grid-template-rows: auto minmax(0, 1fr) auto;
+  }
+
+  .charades-page--play-filters .charades-play-filters {
+    position: fixed;
+    left: calc(var(--space-page) + var(--safe-left));
+    right: calc(var(--space-page) + var(--safe-right));
+    bottom: calc(4.85rem + var(--safe-bottom));
+    z-index: 99;
+    margin: 0;
+    pointer-events: auto;
+  }
+
+  .charades-page--play-filters.charades-page--fab .charades-page__body {
+    padding-bottom: calc(9.5rem + var(--safe-bottom));
   }
 
   .charades-play .charades-header {

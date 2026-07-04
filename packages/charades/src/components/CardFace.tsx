@@ -6,9 +6,11 @@ import './CardFace.css';
 interface CardFaceProps {
   card: CharadesCard | null;
   revealed: boolean;
+  /** Player has not drawn a card for this turn yet — show pick-difficulty prompt. */
+  awaitingDraw?: boolean;
 }
 
-export function CardFace({ card, revealed }: CardFaceProps) {
+export function CardFace({ card, revealed, awaitingDraw = false }: CardFaceProps) {
   if (!card) {
     return (
       <div className="card-face card-face--empty">
@@ -40,10 +42,16 @@ export function CardFace({ card, revealed }: CardFaceProps) {
       ) : (
         <div className="card-face__cover">
           <span className="card-face__cover-icon" aria-hidden="true">
-            ?
+            {awaitingDraw ? '1' : '?'}
           </span>
-          <p className="card-face__cover-text">Card hidden</p>
-          <p className="card-face__cover-sub">Pass the phone to the actor</p>
+          <p className="card-face__cover-text">
+            {awaitingDraw ? 'Pick a difficulty first' : 'Card hidden'}
+          </p>
+          <p className="card-face__cover-sub">
+            {awaitingDraw
+              ? 'Tap Easy, Normal, or Hard below'
+              : 'Pass the phone to the actor'}
+          </p>
         </div>
       )}
     </div>

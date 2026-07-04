@@ -5,12 +5,15 @@ import type {
   CardType,
   Difficulty,
   Generation,
+  NextCardPick,
 } from '../types.js';
+import { ALL_DIFFICULTIES } from '../lib/difficulties.js';
 import { getTypesInPack } from '../lib/cardTypes.js';
 import { ALL_GENERATIONS } from '../lib/generations.js';
 import { formatRoundTitle, getPacksByIds, getTypesInPacks, mergePackCards } from '../lib/packs.js';
 import {
   advanceDeck,
+  applyNextCardPick,
   createDeckState,
   drawCurrent,
   filterCards,
@@ -20,22 +23,31 @@ import {
 const SESSION_KEY = 'charades-session';
 
 const DEFAULT_GENERATIONS: Generation[] = [...ALL_GENERATIONS];
+const DEFAULT_DIFFICULTIES: Difficulty[] = [...ALL_DIFFICULTIES];
 
 function normalizeSessionConfig(raw: unknown): CharadesSessionConfig | null {
   if (!raw || typeof raw !== 'object') return null;
-  const parsed = raw as Partial<CharadesSessionConfig> & { packId?: string };
+  const parsed = raw as Partial<CharadesSessionConfig> & { packId?: string; difficulty?: Difficulty };
   const packIds =
     Array.isArray(parsed.packIds) && parsed.packIds.length > 0
       ? parsed.packIds.filter((id): id is string => typeof id === 'string' && id.length > 0)
       : typeof parsed.packId === 'string' && parsed.packId.length > 0
         ? [parsed.packId]
         : [];
-  if (packIds.length === 0 || !parsed.difficulty || !parsed.enabledTypes?.length) return null;
+  const enabledDifficulties =
+    parsed.enabledDifficulties?.length
+      ? parsed.enabledDifficulties
+      : parsed.difficulty
+        ? [parsed.difficulty]
+        : DEFAULT_DIFFICULTIES;
+  if (packIds.length === 0 || enabledDifficulties.length === 0 || !parsed.enabledTypes?.length) {
+    return null;
+  }
 
   return {
     packIds,
     multiPack: Boolean(parsed.multiPack ?? packIds.length > 1),
-    difficulty: parsed.difficulty,
+    enabledDifficulties,
     enabledGenerations: parsed.enabledGenerations?.length
       ? parsed.enabledGenerations
       : DEFAULT_GENERATIONS,
@@ -72,7 +84,7 @@ function typesForPackIds(packIds: string[]): CardType[] {
 export function useCharadesSetup() {
   const [multiPack, setMultiPack] = useState(false);
   const [selectedPackIds, setSelectedPackIds] = useState<string[]>([]);
-  const [difficulty, setDifficulty] = useState<Difficulty>('easy');
+  const [enabledDifficulties, setEnabledDifficulties] = useState<Difficulty[]>(DEFAULT_DIFFICULTIES);
   const [enabledGenerations, setEnabledGenerations] = useState<Generation[]>(DEFAULT_GENERATIONS);
   const [enabledTypes, setEnabledTypes] = useState<CardType[]>([]);
 
@@ -125,16 +137,17 @@ export function useCharadesSetup() {
     if (
       selectedPackIds.length === 0 ||
       enabledTypes.length === 0 ||
-      enabledGenerations.length === 0
+      enabledGenerations.length === 0 ||
+      enabledDifficulties.length === 0
     ) {
       return 0;
     }
     return filterCards(mergedCards, {
-      difficulty,
+      difficulties: enabledDifficulties,
       types: enabledTypes,
       generations: enabledGenerations,
     }).length;
-  }, [mergedCards, selectedPackIds.length, difficulty, enabledTypes, enabledGenerations]);
+  }, [mergedCards, selectedPackIds.length, enabledDifficulties, enabledTypes, enabledGenerations]);
 
   const canStart = selectedPackIds.length > 0 && filteredCount > 0;
 
@@ -145,13 +158,23 @@ export function useCharadesSetup() {
     const config: CharadesSessionConfig = {
       packIds: selectedPackIds,
       multiPack,
-      difficulty,
+      enabledDifficulties,
       enabledGenerations,
       enabledTypes,
     };
     saveSessionConfig(config);
     return config;
-  }, [selectedPackIds, multiPack, difficulty, enabledGenerations, enabledTypes, canStart]);
+  }, [selectedPackIds, multiPack, enabledDifficulties, enabledGenerations, enabledTypes, canStart]);
+
+  const toggleDifficulty = useCallback((difficulty: Difficulty) => {
+    setEnabledDifficulties((prev) => {
+      if (prev.includes(difficulty)) {
+        if (prev.length <= 1) return prev;
+        return prev.filter((level) => level !== difficulty);
+      }
+      return [...prev, difficulty];
+    });
+  }, []);
 
   const toggleGeneration = useCallback((generation: Generation) => {
     setEnabledGenerations((prev) => {
@@ -178,8 +201,8 @@ export function useCharadesSetup() {
     setMultiPackMode,
     selectedPackIds,
     handlePackPress,
-    difficulty,
-    setDifficulty,
+    enabledDifficulties,
+    toggleDifficulty,
     selectedPacks,
     roundTitle,
     enabledGenerations,
@@ -197,11 +220,12 @@ export function useCharadesPlay() {
   const config = useMemo(() => loadSessionConfig(), []);
   const roundTitle = config ? formatRoundTitle(config.packIds) : 'Charades';
   const mergedCards = config ? mergePackCards(config.packIds) : [];
+  const sessionPacks = config ? getPacksByIds(config.packIds) : [];
 
   const [deckState, setDeckState] = useState<DeckState | null>(() => {
     if (!config || mergedCards.length === 0) return null;
     return createDeckState(mergedCards, {
-      difficulty: config.difficulty,
+      difficulties: config.enabledDifficulties,
       types: config.enabledTypes,
       generations: config.enabledGenerations,
     });
@@ -218,6 +242,10 @@ export function useCharadesPlay() {
   const nextCard = useCallback(() => {
     setDeckState((prev) => (prev ? advanceDeck(prev) : prev));
     setRevealed(false);
+  }, []);
+
+  const pickNextCard = useCallback((pick: NextCardPick) => {
+    setDeckState((prev) => (prev ? applyNextCardPick(prev, pick) : prev));
   }, []);
 
   const revealOrNext = useCallback(() => {
@@ -247,10 +275,12 @@ export function useCharadesPlay() {
   return {
     config,
     roundTitle,
+    sessionPacks,
     currentCard,
     revealed,
     reveal,
     nextCard,
+    pickNextCard,
     revealOrNext,
     isReady: Boolean(config && mergedCards.length > 0 && deckState && currentCard),
   };

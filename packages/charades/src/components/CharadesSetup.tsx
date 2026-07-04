@@ -1,15 +1,11 @@
 import { useMemo, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { allPacks } from '../data/index.js';
-import type { Difficulty } from '../types.js';
+import { formatDifficultySummary } from '../lib/difficulties.js';
 import { ALL_GENERATIONS, GENERATION_LABELS } from '../lib/generations.js';
 import { useCharadesSetup } from '../hooks/useCharadesSession.js';
 import { CharadesFiltersPanel } from './CharadesFiltersPanel.js';
 import './charades.css';
-
-function formatDifficulty(level: Difficulty): string {
-  return level.charAt(0).toUpperCase() + level.slice(1);
-}
 
 export function CharadesSetup() {
   const navigate = useNavigate();
@@ -19,8 +15,8 @@ export function CharadesSetup() {
     setMultiPackMode,
     selectedPackIds,
     handlePackPress,
-    difficulty,
-    setDifficulty,
+    enabledDifficulties,
+    toggleDifficulty,
     enabledGenerations,
     toggleGeneration,
     availableTypes,
@@ -34,14 +30,14 @@ export function CharadesSetup() {
   const showPackFilters = availableTypes.length > 1;
 
   const filterSummary = useMemo(() => {
-    const difficultyLabel = formatDifficulty(difficulty);
+    const difficultyLabel = formatDifficultySummary(enabledDifficulties);
     const generationLabel =
       enabledGenerations.length === ALL_GENERATIONS.length
         ? 'All players'
         : enabledGenerations.map((g) => GENERATION_LABELS[g]).join(', ');
     const mixLabel = multiPack ? 'Multi-pack' : 'Single pack';
     return `${mixLabel} · ${difficultyLabel} · ${generationLabel}`;
-  }, [multiPack, difficulty, enabledGenerations]);
+  }, [multiPack, enabledDifficulties, enabledGenerations]);
 
   const handleStart = () => {
     const config = startSession();
@@ -54,8 +50,8 @@ export function CharadesSetup() {
     <CharadesFiltersPanel
       multiPack={multiPack}
       setMultiPackMode={setMultiPackMode}
-      difficulty={difficulty}
-      setDifficulty={setDifficulty}
+      enabledDifficulties={enabledDifficulties}
+      toggleDifficulty={toggleDifficulty}
       enabledGenerations={enabledGenerations}
       toggleGeneration={toggleGeneration}
       availableTypes={availableTypes}

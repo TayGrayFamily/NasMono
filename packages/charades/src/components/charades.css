@@ -344,8 +344,53 @@
 }
 
 .charades-difficulty__btn--selected {
-  border-color: var(--primary-cyan);
-  background: rgba(6, 182, 212, 0.12);
+  font-weight: 700;
+}
+
+.charades-difficulty__btn--easy.charades-difficulty__btn--selected {
+  border-color: var(--primary-green);
+  background: rgba(34, 197, 94, 0.12);
+  color: var(--primary-green);
+}
+
+.charades-difficulty__btn--medium.charades-difficulty__btn--selected {
+  border-color: #eab308;
+  background: rgba(234, 179, 8, 0.12);
+  color: #eab308;
+}
+
+.charades-difficulty__btn--hard.charades-difficulty__btn--selected {
+  border-color: var(--error-color);
+  background: rgba(244, 63, 94, 0.12);
+  color: var(--error-color);
+}
+
+.charades-difficulty__btn--easy:not(.charades-difficulty__btn--selected):hover {
+  border-color: rgba(34, 197, 94, 0.35);
+}
+
+.charades-difficulty__btn--medium:not(.charades-difficulty__btn--selected):hover {
+  border-color: rgba(234, 179, 8, 0.35);
+}
+
+.charades-difficulty__btn--hard:not(.charades-difficulty__btn--selected):hover {
+  border-color: rgba(244, 63, 94, 0.35);
+}
+
+.charades-pick-card-bar {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  flex-wrap: wrap;
+}
+
+.charades-pick-card-bar__hint {
+  color: var(--text-muted);
+  font-size: 0.85rem;
+}
+
+.charades-pick-card-bar--desktop {
+  display: none;
 }
 
 .charades-meta {

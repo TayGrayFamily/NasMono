@@ -5,9 +5,12 @@ import type { CardType } from '../types.js';
 import { getTypesInPack } from './cardTypes.js';
 import {
   advanceDeck,
+  applyNextCardPick,
+  cardMatchesPick,
   createDeckState,
   createShuffledDeck,
   drawCurrent,
+  filterByDifficulties,
   filterByDifficulty,
   filterByGenerations,
   filterByTypes,
@@ -50,10 +53,19 @@ describe('deck', () => {
     expect(genAlphaOnly.every((card) => cardMatchesGenAlpha(card))).toBe(true);
   });
 
+  it('filters cards by multiple difficulties', () => {
+    const pack = allPacks[0];
+    const filtered = filterByDifficulties(pack.cards, ['easy', 'hard']);
+    expect(filtered.length).toBeGreaterThan(0);
+    expect(filtered.every((card) => card.difficulty === 'easy' || card.difficulty === 'hard')).toBe(
+      true,
+    );
+  });
+
   it('filters by difficulty, types, and generations together', () => {
     const movies = getPackById('movies')!;
     const filtered = filterCards(movies.cards, {
-      difficulty: 'easy',
+      difficulties: ['easy'],
       types: ['actor'],
       generations: allGens,
     });
@@ -64,12 +76,12 @@ describe('deck', () => {
     const pack = allPacks[0];
     const first = createShuffledDeck(
       pack.cards,
-      { difficulty: 'easy', types: getTypesInPack(pack), generations: allGens },
+      { difficulties: ['easy'], types: getTypesInPack(pack), generations: allGens },
       seededRandom(42),
     );
     const second = createShuffledDeck(
       pack.cards,
-      { difficulty: 'easy', types: getTypesInPack(pack), generations: allGens },
+      { difficulties: ['easy'], types: getTypesInPack(pack), generations: allGens },
       seededRandom(42),
     );
     expect(first.map((c) => c.id)).toEqual(second.map((c) => c.id));
@@ -79,7 +91,7 @@ describe('deck', () => {
     const pack = allPacks[0];
     let state = createDeckState(
       pack.cards,
-      { difficulty: 'easy', types: getTypesInPack(pack), generations: allGens },
+      { difficulties: ['easy'], types: getTypesInPack(pack), generations: allGens },
       seededRandom(7),
     );
     const seen = new Set<string>();
@@ -93,6 +105,35 @@ describe('deck', () => {
     }
 
     expect(drawCurrent(state)?.id).toBeDefined();
+  });
+
+  it('applies next-card pick by difficulty and pack', () => {
+    const movies = getPackById('movies')!;
+    const animals = getPackById('animals')!;
+    const easyAnimal = animals.cards.find((card) => card.difficulty === 'easy')!;
+    const hardMovie = movies.cards.find((card) => card.difficulty === 'hard')!;
+    const state = {
+      deck: [
+        { ...easyAnimal, packId: 'animals' },
+        { ...hardMovie, packId: 'movies' },
+      ],
+      index: 0,
+    };
+    const next = applyNextCardPick(
+      state,
+      { difficulties: ['hard'], packIds: ['movies'] },
+      () => 0,
+    );
+    const picked = drawCurrent(next)!;
+    expect(picked.id).toBe(hardMovie.id);
+    expect(picked.difficulty).toBe('hard');
+    expect(picked.packId).toBe('movies');
+  });
+
+  it('cardMatchesPick respects empty pack filter', () => {
+    const card = { ...allPacks[0].cards[0], packId: 'animals' };
+    expect(cardMatchesPick(card, { difficulties: ['easy'], packIds: [] })).toBe(true);
+    expect(cardMatchesPick(card, { difficulties: ['hard'], packIds: [] })).toBe(false);
   });
 
   it('reshuffles when the deck is exhausted', () => {
@@ -127,7 +168,7 @@ describe('pack data', () => {
   it('movies pack supports turning off actors while keeping enough easy cards', () => {
     const movies = getPackById('movies')!;
     const withoutActors = filterCards(movies.cards, {
-      difficulty: 'easy',
+      difficulties: ['easy'],
       types: ['title', 'quote', 'character'],
       generations: allGens,
     });
@@ -137,7 +178,7 @@ describe('pack data', () => {
   it('gen-alpha filter excludes pre-1970 movie quotes', () => {
     const movies = getPackById('movies')!;
     const filtered = filterCards(movies.cards, {
-      difficulty: 'hard',
+      difficulties: ['hard'],
       types: ['quote'],
       generations: ['gen-alpha'],
     });

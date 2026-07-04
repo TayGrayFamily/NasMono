@@ -11,6 +11,8 @@ export interface CharadesCard {
   text: string;
   type: CardType;
   difficulty: Difficulty;
+  /** Set when packs are merged at runtime — used for next-card pack filters. */
+  packId?: string;
   /** Optional clue on the revealed card (legacy — prefer `context` for source material). */
   actHint?: string;
   /** Who is likely to know this reference. Omit on universal cards (animals, actions, …). */
@@ -44,7 +46,12 @@ export interface CharadesPack {
 export interface CharadesSessionConfig {
   packIds: string[];
   multiPack: boolean;
-  difficulty: Difficulty;
+  enabledDifficulties: Difficulty[];
   enabledGenerations: Generation[];
   enabledTypes: CardType[];
+}
+
+export interface NextCardPick {
+  difficulties: Difficulty[];
+  packIds: string[];
 }

@@ -1,14 +1,23 @@
 import type { CardType, CharadesCard, Difficulty, Generation } from '../types.js';
+import type { NextCardPick } from '../types.js';
 import { cardMatchesGenerations } from './generations.js';
 
 export interface DeckFilter {
-  difficulty: Difficulty;
+  difficulties: Difficulty[];
   types: CardType[];
   generations: Generation[];
 }
 
 export function filterByDifficulty(cards: CharadesCard[], difficulty: Difficulty): CharadesCard[] {
   return cards.filter((c) => c.difficulty === difficulty);
+}
+
+export function filterByDifficulties(
+  cards: CharadesCard[],
+  difficulties: Difficulty[],
+): CharadesCard[] {
+  const allowed = new Set(difficulties);
+  return cards.filter((c) => allowed.has(c.difficulty));
 }
 
 export function filterByTypes(cards: CharadesCard[], types: CardType[]): CharadesCard[] {
@@ -25,7 +34,7 @@ export function filterByGenerations(
 
 export function filterCards(cards: CharadesCard[], filter: DeckFilter): CharadesCard[] {
   return filterByGenerations(
-    filterByTypes(filterByDifficulty(cards, filter.difficulty), filter.types),
+    filterByTypes(filterByDifficulties(cards, filter.difficulties), filter.types),
     filter.generations,
   );
 }
@@ -78,4 +87,33 @@ export function advanceDeck(state: DeckState): DeckState {
 
 export function remainingCards(state: DeckState): number {
   return Math.max(0, state.deck.length - state.index);
+}
+
+export function cardMatchesPick(card: CharadesCard, pick: NextCardPick): boolean {
+  if (pick.difficulties.length > 0 && !pick.difficulties.includes(card.difficulty)) {
+    return false;
+  }
+  if (pick.packIds.length > 0) {
+    if (!card.packId || !pick.packIds.includes(card.packId)) return false;
+  }
+  return true;
+}
+
+export function applyNextCardPick(
+  state: DeckState,
+  pick: NextCardPick,
+  random: () => number = Math.random,
+): DeckState {
+  const { deck, index } = state;
+  const remaining = deck.slice(index);
+  const matches = remaining.filter((card) => cardMatchesPick(card, pick));
+  if (matches.length === 0) return state;
+
+  const chosen = matches[Math.floor(random() * matches.length)]!;
+  const chosenIndex = deck.findIndex((card, i) => i >= index && card.id === chosen.id);
+  if (chosenIndex < 0 || chosenIndex === index) return state;
+
+  const nextDeck = [...deck];
+  [nextDeck[index], nextDeck[chosenIndex]] = [nextDeck[chosenIndex]!, nextDeck[index]!];
+  return { deck: nextDeck, index };
 }

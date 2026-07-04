@@ -1,0 +1,15 @@
+{
+  "upstreamHost": "192.168.1.50",
+  "routes": [
+    { "hostname": "home.tower", "port": 8888 },
+    { "hostname": "immich.tower", "port": 2283 },
+    { "hostname": "jellyfin.tower", "port": 8096 },
+    { "hostname": "frame.tower", "port": 3000 },
+    { "hostname": "radarr.tower", "port": 7878 },
+    { "hostname": "sonarr.tower", "port": 8989 },
+    { "hostname": "torrent.tower", "port": 8080 },
+    { "hostname": "pihole.tower", "port": 5380 },
+    { "hostname": "games.tower", "port": 8000 },
+    { "hostname": "unraid.tower", "port": 80 }
+  ]
+}

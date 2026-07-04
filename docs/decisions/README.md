@@ -31,4 +31,5 @@ Skip ADRs for routine fixes, dependency bumps, and formatting.
 | [0005](./0005-ghcr-image-names-web-prefix.md)      | GHCR image names use `nasmono-*` prefix (GitHub repo name) | Accepted | docker        |
 | [0006](./0006-minimal-unraid-compose-env.md)       | Minimal Unraid compose env (secrets only)                  | Accepted | docker        |
 | [0007](./0007-game-hub-lobby-first-roadmap.md)     | Game Hub lobby-first roadmap and product direction         | Accepted | game-hub      |
+| [0008](./0008-caddy-domains-in-home.md)            | Caddy Domains editor in packages/home                      | Accepted | packages/home |
 | [0009](./0009-game-hub-lobby-ux.md)                | Game Hub lobby UX and presence model                       | Accepted | game-hub      |

@@ -17,10 +17,11 @@ Living plans for **what we intend to build** and in what order. This is not the 
 
 ## Product roadmaps
 
-| Roadmap                     | Status              | ADR                                                                                                  |
-| --------------------------- | ------------------- | ---------------------------------------------------------------------------------------------------- |
-| [Game Hub](./game-hub.md)   | Active — P0 next    | [ADR-0007](../decisions/0007-game-hub-lobby-first-roadmap.md)                                        |
-| LaunchPad (`packages/home`) | Maintained via ADRs | [0001](../decisions/0001-launchpad-hybrid-config.md)–[0004](../decisions/0004-port-8888-home-app.md) |
+| Roadmap                             | Status                | ADR                                                                                                  |
+| ----------------------------------- | --------------------- | ---------------------------------------------------------------------------------------------------- |
+| [Game Hub](./game-hub.md)           | Active — P0 next      | [ADR-0007](../decisions/0007-game-hub-lobby-first-roadmap.md)                                        |
+| LaunchPad (`packages/home`)         | Maintained via ADRs   | [0001](../decisions/0001-launchpad-hybrid-config.md)–[0004](../decisions/0004-port-8888-home-app.md) |
+| [Caddy Domains](./caddy-domains.md) | P0 complete — P1 next | [ADR-0008](../decisions/0008-caddy-domains-in-home.md)                                               |
 
 ## GitHub Project setup
 

@@ -24,25 +24,22 @@ Homelab services use Caddy on Unraid for `*.tower` reverse-proxy routes. The Dom
 **Owner action before P1:** Share your existing files so we match your patterns exactly:
 
 1. ~~**Caddyfile**~~ — **confirmed:** `/mnt/user/appdata/caddy/Caddyfile`
-2. **Pi-hole DNS** — confirm path + line format (see below)
+2. ~~**Pi-hole DNS**~~ — **confirmed:** `/mnt/user/appdata/official-pihole/pihole/hosts/custom.list`
 
-On tower:
+On tower (remaining):
 
 ```bash
 # Caddy — confirmed
 ls -la /mnt/user/appdata/caddy/Caddyfile
 
-# Pi-hole — most likely (binhex-official-pihole container in LaunchPad)
-ls -la /mnt/user/appdata/binhex-official-pihole/etc-pihole/custom.list
-
-# If missing, search appdata:
-find /mnt/user/appdata -iname 'custom.list' 2>/dev/null
+# Pi-hole — confirmed (Pi-hole v6 hosts layout)
+ls -la /mnt/user/appdata/official-pihole/pihole/hosts/custom.list
 
 # Caddy container name for restarts
 docker ps --format '{{.Names}}' | grep -i caddy
 ```
 
-Expected DNS line format (what the editor generates): `192.168.x.x hostname.tower` — one per line. Open `custom.list` and confirm your existing `*.tower` entries look like that.
+Expected DNS line format (what the editor generates): `192.168.x.x hostname.tower` — one per line. Confirm your existing `*.tower` entries in `custom.list` match that pattern.
 
 ### P1 — Domains editor (v1)
 

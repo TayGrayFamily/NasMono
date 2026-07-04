@@ -69,7 +69,7 @@ Canonical model: `packages/home/server/domainRoutesSchema.ts` + `domainRoutes.ts
 | --------------------- | ------------------------------------------------------- | --------------------------------------------------------------------------------------- |
 | Host Caddyfile        | `/mnt/user/appdata/caddy/Caddyfile`                     | **Confirmed** by owner                                                                    |
 | Domains config        | `/mnt/user/appdata/nasmono-home/domains.json`           | Canonical editor state (hostname + port + upstream IP)                                  |
-| Pi-hole DNS file      | `/mnt/user/appdata/binhex-official-pihole/etc-pihole/custom.list` | **Default for binhex template** — owner to confirm on tower (see below)              |
+| Pi-hole DNS file      | `/mnt/user/appdata/official-pihole/pihole/hosts/custom.list` | **Confirmed** by owner (Pi-hole v6 `hosts/` layout)                                    |
 | `nasmono-home` mount  | `/mnt/user/appdata/caddy/Caddyfile:/caddy/Caddyfile:rw` | Match actual Caddy container host path                                                  |
 | `CADDYFILE_PATH`      | `/caddy/Caddyfile`                                      | Generated output inside `nasmono-home` container                                        |
 | `DOMAINS_CONFIG_PATH` | `/config/domains.json`                                  | RW via existing `/config` volume                                                        |
@@ -88,7 +88,7 @@ environment:
   DOCKER_SOCKET_PATH: /var/run/docker.sock
 volumes:
   - /mnt/user/appdata/caddy/Caddyfile:/caddy/Caddyfile
-  - /mnt/user/appdata/binhex-official-pihole/etc-pihole/custom.list:/pihole-dns/custom.list
+  - /mnt/user/appdata/official-pihole/pihole/hosts/custom.list:/pihole-dns/custom.list
   - /var/run/docker.sock:/var/run/docker.sock
 ```
 
@@ -143,7 +143,7 @@ Mirror `DOCKER_FIXTURE_PATH` pattern:
 
 - P1: `/system/domains` structured editor + save + Caddy/DNS generation + restart
 - P2: backup-before-write, `caddy validate` gate, drift column vs LaunchPad, optional raw Caddyfile mode
-- Owner: share existing **Caddyfile** and **Pi-hole DNS file** so we match exact format; confirm `CADDY_CONTAINER_NAME` and paths on tower
+- Owner: confirm `CADDY_CONTAINER_NAME` on tower; Caddyfile + Pi-hole paths confirmed
 
 ## Links
 

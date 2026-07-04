@@ -65,12 +65,15 @@ describe('revealExtras', () => {
     expect(cardHasImageSource(sample)).toBe(false);
   });
 
-  it('infers images for anime and video game person cards', async () => {
-    const { animeCharactersPack } = await import('../data/anime-characters.js');
+  it('infers images for anime and video game character cards', async () => {
+    const { animePack } = await import('../data/anime.js');
     const { videoGameCharactersPack } = await import('../data/video-game-characters.js');
 
-    for (const personCard of [...animeCharactersPack.cards, ...videoGameCharactersPack.cards]) {
-      expect(cardHasImageSource(personCard)).toBe(true);
+    for (const characterCard of [
+      ...animePack.cards.filter((c) => c.type === 'character'),
+      ...videoGameCharactersPack.cards,
+    ]) {
+      expect(cardHasImageSource(characterCard)).toBe(true);
     }
   });
 

@@ -119,11 +119,7 @@ describe('deck', () => {
       ],
       index: 0,
     };
-    const next = applyNextCardPick(
-      state,
-      { difficulties: ['hard'], packIds: ['movies'] },
-      () => 0,
-    );
+    const next = applyNextCardPick(state, { difficulties: ['hard'], packIds: ['movies'] }, () => 0);
     const picked = drawCurrent(next)!;
     expect(picked.id).toBe(hardMovie.id);
     expect(picked.difficulty).toBe('hard');

@@ -22,16 +22,12 @@ export function CharadesPlay() {
   } = useCharadesPlay();
 
   const [pickOpen, setPickOpen] = useState(false);
-  const [pickDifficulties, setPickDifficulties] = useState<Difficulty[]>([]);
-  const [pickPackIds, setPickPackIds] = useState<string[]>([]);
+  const [pickDifficulties, setPickDifficulties] = useState<Difficulty[]>(
+    () => config?.enabledDifficulties ?? [],
+  );
+  const [pickPackIds, setPickPackIds] = useState<string[]>(() => config?.packIds ?? []);
 
   const showPackPick = Boolean(config?.multiPack && config.packIds.length > 1);
-
-  useEffect(() => {
-    if (!config) return;
-    setPickDifficulties([...config.enabledDifficulties]);
-    setPickPackIds([...config.packIds]);
-  }, [config]);
 
   useEffect(() => {
     if (!isReady) {
@@ -117,11 +113,7 @@ export function CharadesPlay() {
 
         {!revealed && (
           <div className="charades-pick-card-bar charades-pick-card-bar--desktop">
-            <button
-              type="button"
-              className="charades-btn-ghost"
-              onClick={() => setPickOpen(true)}
-            >
+            <button type="button" className="charades-btn-ghost" onClick={() => setPickOpen(true)}>
               Pick card
             </button>
             <span className="charades-pick-card-bar__hint">{pickSummary}</span>
@@ -131,7 +123,11 @@ export function CharadesPlay() {
         <footer className="charades-action-bar charades-action-bar--play charades-action-bar--desktop">
           {!revealed ? (
             <>
-              <button type="button" className="charades-btn-ghost" onClick={() => setPickOpen(true)}>
+              <button
+                type="button"
+                className="charades-btn-ghost"
+                onClick={() => setPickOpen(true)}
+              >
                 Pick card
               </button>
               <button type="button" className="charades-btn-primary" onClick={reveal}>

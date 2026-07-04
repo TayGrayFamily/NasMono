@@ -27,19 +27,21 @@ const DEFAULT_DIFFICULTIES: Difficulty[] = [...ALL_DIFFICULTIES];
 
 function normalizeSessionConfig(raw: unknown): CharadesSessionConfig | null {
   if (!raw || typeof raw !== 'object') return null;
-  const parsed = raw as Partial<CharadesSessionConfig> & { packId?: string; difficulty?: Difficulty };
+  const parsed = raw as Partial<CharadesSessionConfig> & {
+    packId?: string;
+    difficulty?: Difficulty;
+  };
   const packIds =
     Array.isArray(parsed.packIds) && parsed.packIds.length > 0
       ? parsed.packIds.filter((id): id is string => typeof id === 'string' && id.length > 0)
       : typeof parsed.packId === 'string' && parsed.packId.length > 0
         ? [parsed.packId]
         : [];
-  const enabledDifficulties =
-    parsed.enabledDifficulties?.length
-      ? parsed.enabledDifficulties
-      : parsed.difficulty
-        ? [parsed.difficulty]
-        : DEFAULT_DIFFICULTIES;
+  const enabledDifficulties = parsed.enabledDifficulties?.length
+    ? parsed.enabledDifficulties
+    : parsed.difficulty
+      ? [parsed.difficulty]
+      : DEFAULT_DIFFICULTIES;
   if (packIds.length === 0 || enabledDifficulties.length === 0 || !parsed.enabledTypes?.length) {
     return null;
   }
@@ -84,7 +86,8 @@ function typesForPackIds(packIds: string[]): CardType[] {
 export function useCharadesSetup() {
   const [multiPack, setMultiPack] = useState(false);
   const [selectedPackIds, setSelectedPackIds] = useState<string[]>([]);
-  const [enabledDifficulties, setEnabledDifficulties] = useState<Difficulty[]>(DEFAULT_DIFFICULTIES);
+  const [enabledDifficulties, setEnabledDifficulties] =
+    useState<Difficulty[]>(DEFAULT_DIFFICULTIES);
   const [enabledGenerations, setEnabledGenerations] = useState<Generation[]>(DEFAULT_GENERATIONS);
   const [enabledTypes, setEnabledTypes] = useState<CardType[]>([]);
 

@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import type { CharadesCard } from '../types.js';
 import { isGiphyConfigured, resolveGiphyStillById, searchGiphyStill } from '../lib/giphy.js';
 import { cardHasImageSource } from '../lib/revealExtras.js';
@@ -17,57 +17,59 @@ async function resolveCardImage(card: CharadesCard): Promise<string | undefined>
 }
 
 export function useCardImage(card: CharadesCard, enabled: boolean): CardImageState {
-  const [state, setState] = useState<CardImageState>({ status: 'idle' });
-
-  useEffect(() => {
-    if (!enabled || !cardHasImageSource(card)) {
-      setState({ status: 'idle' });
-      return;
-    }
-
+  const staticState = useMemo((): CardImageState | 'async' => {
+    if (!enabled || !cardHasImageSource(card)) return { status: 'idle' };
     if (card.imageUrl) {
-      setState({
+      return {
         status: 'ready',
         url: card.imageUrl,
         alt: card.imageAlt ?? card.text,
-      });
-      return;
+      };
     }
+    if (!card.giphyId && !card.imageSearch) return { status: 'idle' };
+    if (!isGiphyConfigured()) return { status: 'unavailable', reason: 'missing-key' };
+    return 'async';
+  }, [card, enabled]);
 
-    if (!card.giphyId && !card.imageSearch) {
-      setState({ status: 'idle' });
-      return;
-    }
+  const [fetchResult, setFetchResult] = useState<{
+    cardId: string;
+    state: CardImageState;
+  } | null>(null);
 
-    if (!isGiphyConfigured()) {
-      setState({ status: 'unavailable', reason: 'missing-key' });
-      return;
-    }
+  useEffect(() => {
+    if (staticState !== 'async') return;
 
     let cancelled = false;
-    setState({ status: 'loading' });
+    const cardId = card.id;
 
     resolveCardImage(card)
       .then((url) => {
         if (cancelled) return;
         if (!url) {
-          setState({ status: 'unavailable', reason: 'not-found' });
+          setFetchResult({ cardId, state: { status: 'unavailable', reason: 'not-found' } });
           return;
         }
-        setState({
-          status: 'ready',
-          url,
-          alt: card.imageAlt ?? card.text,
+        setFetchResult({
+          cardId,
+          state: {
+            status: 'ready',
+            url,
+            alt: card.imageAlt ?? card.text,
+          },
         });
       })
       .catch(() => {
-        if (!cancelled) setState({ status: 'unavailable', reason: 'error' });
+        if (!cancelled) {
+          setFetchResult({ cardId, state: { status: 'unavailable', reason: 'error' } });
+        }
       });
 
     return () => {
       cancelled = true;
     };
-  }, [card, enabled]);
+  }, [card, staticState]);
 
-  return state;
+  if (staticState !== 'async') return staticState;
+  if (fetchResult?.cardId === card.id) return fetchResult.state;
+  return { status: 'loading' };
 }

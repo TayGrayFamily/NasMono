@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useState } from 'react';
 import type { CharadesCard, RevealExtraKey } from '../types.js';
 import { useCardImage } from '../hooks/useCardImage.js';
 import {
@@ -18,10 +18,6 @@ export function CardRevealExtras({ card, revealed }: CardRevealExtrasProps) {
   const extras = getAvailableRevealExtras(card);
   const [open, setOpen] = useState<Set<RevealExtraKey>>(() => new Set());
   const imageState = useCardImage(card, revealed && extras.includes('image'));
-
-  useEffect(() => {
-    setOpen(new Set());
-  }, [card.id]);
 
   if (!revealed || extras.length === 0) {
     return null;

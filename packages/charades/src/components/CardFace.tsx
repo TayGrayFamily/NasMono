@@ -35,7 +35,7 @@ export function CardFace({ card, revealed }: CardFaceProps) {
           <span className="card-face__type">{formatCardType(card.type)}</span>
           <p className="card-face__text">{card.text}</p>
           {actInstruction && <span className="card-face__hint">{actInstruction}</span>}
-          <CardRevealExtras card={card} revealed={revealed} />
+          <CardRevealExtras key={card.id} card={card} revealed={revealed} />
         </div>
       ) : (
         <div className="card-face__cover">

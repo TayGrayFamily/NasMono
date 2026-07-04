@@ -70,8 +70,7 @@ export function useCardImage(card: CharadesCard, enabled: boolean): CardImageSta
       .catch((error: unknown) => {
         if (cancelled) return;
         const status = error instanceof GiphyFetchError ? error.status : undefined;
-        const reason =
-          status === 401 || status === 403 ? 'invalid-key' : ('error' as const);
+        const reason = status === 401 || status === 403 ? 'invalid-key' : ('error' as const);
         setFetchResult({ cardId, state: { status: 'unavailable', reason } });
       });
 

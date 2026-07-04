@@ -72,8 +72,8 @@ export function CardRevealExtras({ card, revealed }: CardRevealExtrasProps) {
           )}
           {imageState.status === 'unavailable' && imageState.reason === 'invalid-key' && (
             <p className="card-reveal-extras__status">
-              Giphy rejected the API key (unauthorized). Check <code>VITE_GIPHY_API_KEY</code>{' '}
-              and restart.
+              Giphy rejected the API key (unauthorized). Check <code>VITE_GIPHY_API_KEY</code> and
+              restart.
             </p>
           )}
           {imageState.status === 'unavailable' && imageState.reason === 'not-found' && (

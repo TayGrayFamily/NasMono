@@ -67,9 +67,9 @@ Canonical model: `packages/home/server/domainRoutesSchema.ts` + `domainRoutes.ts
 
 | Item                  | Proposed value                                          | Verify on NAS                                                                           |
 | --------------------- | ------------------------------------------------------- | --------------------------------------------------------------------------------------- |
-| Host Caddyfile        | `/mnt/user/appdata/caddy/Caddyfile`                     | Confirm file exists (not a directory mount mistake)                                     |
+| Host Caddyfile        | `/mnt/user/appdata/caddy/Caddyfile`                     | **Confirmed** by owner                                                                    |
 | Domains config        | `/mnt/user/appdata/nasmono-home/domains.json`           | Canonical editor state (hostname + port + upstream IP)                                  |
-| Pi-hole DNS file      | **TBD** — owner to share existing DNS file              | Likely `custom.list` or `local.list` under Pi-hole appdata                              |
+| Pi-hole DNS file      | `/mnt/user/appdata/binhex-official-pihole/etc-pihole/custom.list` | **Default for binhex template** — owner to confirm on tower (see below)              |
 | `nasmono-home` mount  | `/mnt/user/appdata/caddy/Caddyfile:/caddy/Caddyfile:rw` | Match actual Caddy container host path                                                  |
 | `CADDYFILE_PATH`      | `/caddy/Caddyfile`                                      | Generated output inside `nasmono-home` container                                        |
 | `DOMAINS_CONFIG_PATH` | `/config/domains.json`                                  | RW via existing `/config` volume                                                        |
@@ -84,11 +84,11 @@ environment:
   CADDYFILE_PATH: /caddy/Caddyfile
   CADDY_CONTAINER_NAME: caddy
   DOMAINS_CONFIG_PATH: /config/domains.json
-  PIHOLE_DNS_PATH: /pihole-dns/custom.list # TBD — confirm path after owner shares DNS file
+  PIHOLE_DNS_PATH: /pihole-dns/custom.list
   DOCKER_SOCKET_PATH: /var/run/docker.sock
 volumes:
   - /mnt/user/appdata/caddy/Caddyfile:/caddy/Caddyfile
-  - /mnt/user/appdata/binhex-official-pihole/etc-pihole/custom.list:/pihole-dns/custom.list # TBD
+  - /mnt/user/appdata/binhex-official-pihole/etc-pihole/custom.list:/pihole-dns/custom.list
   - /var/run/docker.sock:/var/run/docker.sock
 ```
 

@@ -29,4 +29,4 @@ Client-side charades card picker for Game Hub.
 | Video Game Characters | people                                           |
 | Anime Characters      | people                                           |
 
-Cards may include a `generations` array. When omitted, universal packs (animals, actions, etc.) suit every generation; pop-culture packs infer generations from `year` and difficulty at load time.
+Cards may include a `generations` array (who is likely to know the reference) and an optional `actHint` (shown on the revealed card, e.g. source film). Universal packs (animals, actions, etc.) omit `generations` and suit every player. Other packs fall back to difficulty-based defaults when `generations` is omitted — prefer setting it explicitly on pop-culture cards.

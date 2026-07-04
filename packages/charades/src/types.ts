@@ -9,9 +9,9 @@ export interface CharadesCard {
   text: string;
   type: CardType;
   difficulty: Difficulty;
-  year?: number;
+  /** Optional clue on the revealed card (e.g. source film). */
   actHint?: string;
-  /** When omitted after load, the card is suitable for every generation. */
+  /** Who is likely to know this reference. Omit on universal cards (animals, actions, …). */
   generations?: Generation[];
 }
 

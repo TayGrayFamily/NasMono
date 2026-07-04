@@ -43,7 +43,6 @@ export function CardFace({
         <div className="card-face__content" aria-live="polite">
           <span className="card-face__type">{formatCardType(card.type)}</span>
           <p className="card-face__text">{card.text}</p>
-          {card.year && <span className="card-face__meta">{card.year}</span>}
           {playHint && <span className="card-face__hint">{playHint}</span>}
           {showSwipeHint && <span className="card-face__swipe-hint">Swipe for next card</span>}
         </div>

@@ -34,20 +34,12 @@ const UNIVERSAL_PACK_IDS = new Set([
 ]);
 
 /**
- * Map a release year to generations likely to recognize the reference.
- * Pre-1970 classics skew older; most post-1970 pop culture is shared across ages.
+ * Default generations for pop-culture cards when authors omit an explicit tag.
+ * Prefer setting `generations` in pack data; this is a fallback heuristic only.
  */
-export function generationsFromYear(year: number): Generation[] {
-  if (year < 1970) return ['millennial', 'gen-x-plus'];
-  if (year < 2010) return ['gen-alpha', 'gen-z', 'millennial', 'gen-x-plus'];
-  return ['gen-alpha', 'gen-z', 'millennial'];
-}
-
 export function inferCardGenerations(card: CharadesCard, packId: string): Generation[] | undefined {
   if (card.generations?.length) return card.generations;
   if (UNIVERSAL_PACK_IDS.has(packId)) return undefined;
-
-  if (card.year !== undefined) return generationsFromYear(card.year);
 
   if (packId === 'disney' || packId === 'nintendo-games') {
     if (card.difficulty === 'hard') return ['gen-z', 'millennial', 'gen-x-plus'];

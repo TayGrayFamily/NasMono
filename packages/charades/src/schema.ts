@@ -19,7 +19,6 @@ export const charadesCardSchema = z.object({
   text: z.string().min(1),
   type: cardTypeSchema,
   difficulty: difficultySchema,
-  year: z.number().int().min(1888).max(2100).optional(),
   actHint: z.string().min(1).optional(),
   generations: z.array(generationSchema).min(1).optional(),
 });

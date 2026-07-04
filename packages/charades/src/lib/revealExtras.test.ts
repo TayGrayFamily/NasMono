@@ -52,7 +52,7 @@ describe('revealExtras', () => {
           packId: 'anime',
         }),
       ),
-    ).toBe('Madoka Kaname Puella Magi Madoka Magica anime');
+    ).toBe('Madoka Kaname Madoka Magica');
     expect(getCardImageSearch(card('c-2', 'Goku', 'person', 'easy'))).toBe('Goku');
   });
 

@@ -244,11 +244,11 @@ export const animePack: CharadesPack = {
     card('anm-c-052', 'Simon', 'character', 'hard', { context: 'Gurren Lagann' }),
     card('anm-c-053', 'Homura Akemi', 'character', 'hard', {
       context: 'Puella Magi Madoka Magica',
-      imageSearch: 'homura akemi madoka magica anime',
+      imageSearch: 'homura akemi madoka magica',
     }),
     card('anm-c-054', 'Madoka Kaname', 'character', 'hard', {
       context: 'Puella Magi Madoka Magica',
-      imageSearch: 'madoka kaname madoka magica anime',
+      imageSearch: 'madoka kaname madoka magica',
     }),
     card('anm-c-055', 'Shinji Ikari', 'character', 'hard', { context: 'Neon Genesis Evangelion' }),
     card('anm-c-056', 'Rei Ayanami', 'character', 'hard', { context: 'Neon Genesis Evangelion' }),

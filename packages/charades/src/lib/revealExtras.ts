@@ -1,4 +1,5 @@
 import type { CardType, CharadesCard, RevealExtraKey } from '../types.js';
+import { buildAnimeCharacterImageSearch, truncateGiphyQuery } from './giphyQuery.js';
 
 const IMAGE_SEARCH_TYPES = new Set<CardType>(['title', 'quote', 'character', 'actor', 'person']);
 
@@ -29,21 +30,20 @@ export function getCardImageSearch(card: CharadesCard): string | undefined {
   }
 
   if (card.type === 'character') {
+    if (card.packId === 'anime' && source) {
+      return buildAnimeCharacterImageSearch(card.text, source);
+    }
     if (source) {
-      const animeTag = card.packId === 'anime' ? ' anime' : '';
-      return `${card.text} ${source}${animeTag}`;
+      return truncateGiphyQuery(`${card.text} ${source}`);
     }
-    if (card.packId === 'anime') {
-      return `${card.text} anime`;
-    }
-    return card.text;
+    return truncateGiphyQuery(card.text);
   }
 
   if (source) {
-    return `${card.text} ${source}`;
+    return truncateGiphyQuery(`${card.text} ${source}`);
   }
 
-  return card.text;
+  return truncateGiphyQuery(card.text);
 }
 
 export function cardHasImageSource(card: CharadesCard): boolean {

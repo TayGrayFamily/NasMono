@@ -47,6 +47,15 @@ Set `VITE_GIPHY_API_KEY` in the repo root `.env` (see `.env.example`). Restart `
 
 On Docker/Unraid, the same variable in your compose `.env` is injected at **container start** into `/env-config.js` — restart `game-hub` after updating.
 
+**How Giphy search works (and how we query it):**
+
+- The API takes one `q` string (max **50 characters**) — not separate tags. Giphy ranks results using titles, slugs, alt text, and popularity; we do not control their ranking.
+- **Fewer, specific English words work better** than long titles or generic suffixes like `anime` (which matches any anime GIF, including the wrong show).
+- Anime characters use **character + shortened series** (e.g. `Madoka Kaname Madoka Magica`, not `Puella Magi… anime`).
+- We fetch 10 results and pick the one whose metadata best matches distinctive query terms; unrelated hits are rejected.
+
+For stubborn cards, set an explicit `imageSearch` or pin a `giphyId`.
+
 UI messages distinguish:
 
 - **No key detected** — variable missing or server/container not restarted

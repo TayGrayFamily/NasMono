@@ -59,6 +59,7 @@ describe('giphy', () => {
           data: [
             {
               id: 'search-1',
+              title: 'lion king simba',
               images: {
                 downsized: { url: 'https://media.giphy.com/search-animated.gif' },
                 downsized_still: { url: 'https://media.giphy.com/search-still.jpg' },
@@ -96,9 +97,20 @@ describe('giphy', () => {
       }),
     );
 
-    await expect(searchGiphyGif('madoka kaname madoka magica anime')).resolves.toBe(
+    await expect(searchGiphyGif('madoka kaname madoka magica')).resolves.toBe(
       'https://media.giphy.com/madoka.gif',
     );
+  });
+
+  it('rejects another anime when only the broad anime tag would match', () => {
+    const picked = pickBestGiphyGif(
+      [
+        { id: 'naruto', title: 'naruto anime fight scene', slug: 'naruto-anime' },
+        { id: 'sailor', title: 'sailor moon anime transformation', slug: 'sailor-moon-anime' },
+      ],
+      'madoka kaname madoka magica',
+    );
+    expect(picked).toBeUndefined();
   });
 
   it('pickBestGiphyGif rejects multiple unrelated results', () => {
@@ -107,7 +119,7 @@ describe('giphy', () => {
         { id: 'a', title: 'random celebrity' },
         { id: 'b', title: 'another unrelated gif' },
       ],
-      'madoka kaname anime',
+      'madoka kaname madoka magica',
     );
     expect(picked).toBeUndefined();
   });

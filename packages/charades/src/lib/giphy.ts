@@ -1,4 +1,5 @@
 import { getViteEnv } from './runtimeEnv.js';
+import { meaningfulGiphyTerms, truncateGiphyQuery } from './giphyQuery.js';
 
 const GIPHY_API = 'https://api.giphy.com/v1/gifs';
 
@@ -11,6 +12,8 @@ type GiphyImageSet = {
 type GiphyGif = {
   id: string;
   title?: string;
+  slug?: string;
+  alt_text?: string;
   images?: {
     fixed_height?: GiphyImageSet;
     downsized?: GiphyImageSet;
@@ -51,25 +54,34 @@ function pickGifUrl(gif: GiphyGif): string | undefined {
   );
 }
 
+function gifSearchText(gif: GiphyGif): string {
+  return [gif.title, gif.slug, gif.alt_text].filter(Boolean).join(' ').toLowerCase();
+}
+
 function scoreGifMatch(gif: GiphyGif, query: string): number {
-  const haystack = (gif.title ?? '').toLowerCase();
-  const terms = query
-    .toLowerCase()
-    .split(/\s+/)
-    .filter((term) => term.length > 2);
+  const haystack = gifSearchText(gif);
+  const terms = meaningfulGiphyTerms(query);
   if (terms.length === 0) return 0;
   return terms.filter((term) => haystack.includes(term)).length;
+}
+
+function minimumMatchScore(query: string): number {
+  const terms = meaningfulGiphyTerms(query);
+  if (terms.length >= 2) return 2;
+  if (terms.length === 1) return 1;
+  return 0;
 }
 
 /** Pick the best-ranked result; avoid returning an unrelated first hit when better matches exist. */
 export function pickBestGiphyGif(gifs: GiphyGif[], query: string): GiphyGif | undefined {
   if (gifs.length === 0) return undefined;
+  const minScore = minimumMatchScore(query);
   const ranked = gifs
     .map((gif) => ({ gif, score: scoreGifMatch(gif, query) }))
     .sort((a, b) => b.score - a.score);
   const best = ranked[0];
-  if (best.score > 0) return best.gif;
-  if (gifs.length === 1) return gifs[0];
+  if (best.score >= minScore && best.score > 0) return best.gif;
+  if (gifs.length === 1 && best.score > 0) return best.gif;
   return undefined;
 }
 
@@ -114,7 +126,7 @@ export async function searchGiphyGif(query: string): Promise<string | undefined>
 
   const params = new URLSearchParams({
     api_key: apiKey,
-    q: query.trim(),
+    q: truncateGiphyQuery(query.trim()),
     limit: '10',
     rating: 'g',
     lang: 'en',

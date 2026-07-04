@@ -46,7 +46,7 @@ export function inferCardGenerations(card: CharadesCard, packId: string): Genera
     return [...ALL_GENERATIONS];
   }
 
-  if (packId === 'anime-characters' || packId === 'video-game-characters') {
+  if (packId === 'anime' || packId === 'video-game-characters') {
     if (card.difficulty === 'hard') return ['gen-alpha', 'gen-z', 'millennial'];
     return [...ALL_GENERATIONS];
   }

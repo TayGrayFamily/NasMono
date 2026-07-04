@@ -8,7 +8,6 @@ import { disneyPack } from './disney.js';
 import { emotionsPack } from './emotions.js';
 import { foodAndDrinkPack } from './food-and-drink.js';
 import { jobsPack } from './jobs.js';
-import { movieQuotesPack } from './movie-quotes.js';
 import { moviesPack } from './movies.js';
 import { musicPack } from './music.js';
 import { nintendoGamesPack } from './nintendo-games.js';
@@ -28,7 +27,6 @@ const rawPacks: CharadesPack[] = [
   foodAndDrinkPack,
   jobsPack,
   moviesPack,
-  movieQuotesPack,
   musicPack,
   booksPack,
   placesPack,

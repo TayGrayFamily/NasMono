@@ -48,7 +48,6 @@ export const videoGameCharactersPack: CharadesPack = {
     card('vgc-038', 'Chell', 'person', 'medium', { actHint: 'Portal' }),
     card('vgc-039', 'Sora', 'person', 'medium', { actHint: 'Kingdom Hearts' }),
     card('vgc-040', 'Ratchet', 'person', 'medium', { actHint: 'Ratchet and Clank' }),
-    card('vgc-041', 'Hollow Knight', 'person', 'hard'),
     card('vgc-042', 'The Knight', 'person', 'hard', { actHint: 'Hollow Knight' }),
     card('vgc-043', 'Madeline', 'person', 'hard', { actHint: 'Celeste' }),
     card('vgc-044', 'Hat Kid', 'person', 'hard', { actHint: 'A Hat in Time' }),

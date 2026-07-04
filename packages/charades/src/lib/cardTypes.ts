@@ -1,4 +1,4 @@
-import type { CardType, CharadesCard, CharadesPack } from '../types.js';
+import type { CardType, CharadesPack } from '../types.js';
 
 export const CARD_TYPE_LABELS: Record<CardType, string> = {
   word: 'Words',
@@ -35,11 +35,6 @@ const TYPE_ORDER: CardType[] = ['title', 'quote', 'character', 'actor', 'person'
 
 export function getTypesInPack(pack: CharadesPack): CardType[] {
   const found = new Set(pack.cards.map((card) => card.type));
-  return TYPE_ORDER.filter((type) => found.has(type));
-}
-
-export function getTypesInCards(cards: CharadesCard[]): CardType[] {
-  const found = new Set(cards.map((card) => card.type));
   return TYPE_ORDER.filter((type) => found.has(type));
 }
 

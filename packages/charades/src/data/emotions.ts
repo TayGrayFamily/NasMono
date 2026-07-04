@@ -41,7 +41,7 @@ export const emotionsPack: CharadesPack = {
     card('emo-031', 'Feeling nostalgic', 'term', 'hard'),
     card('emo-032', 'Second-hand embarrassment', 'term', 'hard'),
     card('emo-033', 'Imposter syndrome', 'term', 'hard'),
-    card('emo-034', 'Schadenfreude', 'term', 'hard'),
+    card('emo-034', 'Gloating', 'word', 'hard'),
     card('emo-035', 'Bittersweet', 'term', 'hard'),
     card('emo-036', 'Homesick', 'term', 'hard'),
     card('emo-037', 'Hangry', 'term', 'hard'),

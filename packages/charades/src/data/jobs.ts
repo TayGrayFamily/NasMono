@@ -30,7 +30,7 @@ export const jobsPack: CharadesPack = {
     card('job-020', 'Plumber', 'term', 'medium'),
     card('job-021', 'Photographer', 'term', 'medium'),
     card('job-022', 'Scientist', 'term', 'medium'),
-    card('job-023', 'Librarian shelving books', 'term', 'medium'),
+    card('job-023', 'School counselor', 'term', 'medium'),
     card('job-024', 'Barber giving a haircut', 'term', 'medium'),
     card('job-025', 'Flight attendant', 'term', 'medium'),
     card('job-026', 'Park ranger', 'term', 'medium'),

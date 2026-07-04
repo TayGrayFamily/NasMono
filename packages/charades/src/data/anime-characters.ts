@@ -9,7 +9,7 @@ export const animeCharactersPack: CharadesPack = {
   ageMax: null,
   cards: [
     card('anm-001', 'Goku', 'person', 'easy'),
-    card('anm-002', 'Pikachu', 'person', 'easy'),
+    card('anm-002', 'Chihiro', 'person', 'easy', { actHint: 'Spirited Away' }),
     card('anm-003', 'Sailor Moon', 'person', 'easy'),
     card('anm-004', 'Naruto Uzumaki', 'person', 'easy'),
     card('anm-005', 'Luffy', 'person', 'easy'),

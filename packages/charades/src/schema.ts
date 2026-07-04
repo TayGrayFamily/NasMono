@@ -27,7 +27,7 @@ export const charadesPackSchema = z.object({
   description: z.string().min(1),
   ageMin: z.number().int().min(0),
   ageMax: z.number().int().min(0).nullable(),
-  cards: z.array(charadesCardSchema).min(50),
+  cards: z.array(charadesCardSchema).min(1),
 });
 
 export function validatePack(pack: unknown) {

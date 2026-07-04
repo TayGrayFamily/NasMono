@@ -3,7 +3,7 @@
 Client-side charades card picker for Game Hub.
 
 - **Solo / pass-and-play:** `/play/charades` — no login or lobby required
-- **Data:** hardcoded packs in `src/data/` (17 packs, 50+ cards each)
+- **Data:** hardcoded packs in `src/data/` (16 packs)
 - **Card type toggles:** packs with multiple types (e.g. Movies) let you turn off actors, quotes, titles, or characters
 - **Future:** lobby multiplayer at `/lobbies/:id/game/charades` can reuse `CharadesPlay` with server-dealt cards
 
@@ -19,7 +19,6 @@ Client-side charades card picker for Game Hub.
 | Food & Drink          | 4+   | words, terms                                     |
 | Jobs & Professions    | 5+   | terms                                            |
 | Movies                | 8+   | titles, quotes, characters, actors (toggle each) |
-| Movie Quotes          | 10+  | quotes                                           |
 | Music                 | 8+   | titles, people, words                            |
 | Books & Stories       | 6+   | titles, characters, people                       |
 | Places & Landmarks    | 8+   | words, terms                                     |

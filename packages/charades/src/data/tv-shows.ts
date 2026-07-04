@@ -44,11 +44,13 @@ export const tvShowsPack: CharadesPack = {
     card('tv-c-015', 'Omar Little', 'character', 'hard', { actHint: 'The Wire' }),
     card('tv-c-016', 'Dale Cooper', 'character', 'hard', { actHint: 'Twin Peaks' }),
     card('tv-c-017', 'Lucille Bluth', 'character', 'hard'),
-    card('tv-c-018', 'Rod Serling', 'character', 'hard', { actHint: 'The Twilight Zone' }),
+    card('tv-c-018', 'Stringer Bell', 'character', 'hard', { actHint: 'The Wire' }),
 
     card('tv-q-001', 'How you doin?', 'quote', 'easy', { actHint: 'Friends' }),
     card('tv-q-002', "That's what she said", 'quote', 'easy', { actHint: 'The Office' }),
-    card('tv-q-003', 'Dunder Mifflin', 'quote', 'easy', { actHint: 'The Office' }),
+    card('tv-q-003', 'Bears. Beets. Battlestar Galactica.', 'quote', 'easy', {
+      actHint: 'The Office',
+    }),
     card('tv-q-004', 'Winter is coming', 'quote', 'easy'),
     card('tv-q-005', 'Bazinga', 'quote', 'easy', { actHint: 'Big Bang Theory' }),
     card('tv-q-006', 'This is the way', 'quote', 'easy'),

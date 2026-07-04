@@ -8,7 +8,7 @@ export const booksPack: CharadesPack = {
   ageMin: 6,
   ageMax: null,
   cards: [
-    card('bk-t-001', 'Harry Potter', 'title', 'easy'),
+    card('bk-t-001', "Harry Potter and the Sorcerer's Stone", 'title', 'easy'),
     card('bk-t-002', 'The Cat in the Hat', 'title', 'easy'),
     card('bk-t-003', "Charlotte's Web", 'title', 'easy'),
     card('bk-t-004', 'Green Eggs and Ham', 'title', 'easy'),

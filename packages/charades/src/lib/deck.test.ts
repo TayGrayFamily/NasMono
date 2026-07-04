@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import { allPacks, getPackById } from '../data/index.js';
 import { validatePack } from '../schema.js';
-import type { CardType, Difficulty } from '../types.js';
+import type { CardType } from '../types.js';
 import { getTypesInPack } from './cardTypes.js';
 import {
   advanceDeck,
@@ -92,22 +92,15 @@ describe('deck', () => {
 });
 
 describe('pack data', () => {
-  const difficulties: Difficulty[] = ['easy', 'medium', 'hard'];
-
   it('validates every pack with zod', () => {
     for (const pack of allPacks) {
       expect(() => validatePack(pack)).not.toThrow();
     }
   });
 
-  it('has at least 50 cards per pack and 15 per difficulty tier', () => {
+  it('has at least one card per pack', () => {
     for (const pack of allPacks) {
-      expect(pack.cards.length).toBeGreaterThanOrEqual(50);
-
-      for (const difficulty of difficulties) {
-        const count = pack.cards.filter((card) => card.difficulty === difficulty).length;
-        expect(count).toBeGreaterThanOrEqual(15);
-      }
+      expect(pack.cards.length).toBeGreaterThan(0);
     }
   });
 

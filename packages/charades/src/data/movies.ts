@@ -38,6 +38,11 @@ export const moviesPack: CharadesPack = {
     card('mov-q-004', 'Hakuna matata', 'quote', 'easy', { year: 1994 }),
     card('mov-q-005', 'I am Iron Man', 'quote', 'easy', { year: 2008 }),
     card('mov-q-006', "I'll be back", 'quote', 'easy', { year: 1984 }),
+    card('mov-q-019', 'You shall not pass', 'quote', 'easy', { year: 2001 }),
+    card('mov-q-020', 'Houston, we have a problem', 'quote', 'easy', { year: 1995 }),
+    card('mov-q-021', 'I see dead people', 'quote', 'easy', { year: 1999 }),
+    card('mov-q-022', 'Life is like a box of chocolates', 'quote', 'easy', { year: 1994 }),
+    card('mov-q-023', 'You talking to me?', 'quote', 'easy', { year: 1976 }),
     // Quotes — medium
     card('mov-q-007', 'You had me at hello', 'quote', 'medium', { year: 1996 }),
     card('mov-q-008', 'I am the king of the world', 'quote', 'medium', { year: 1997 }),
@@ -45,6 +50,13 @@ export const moviesPack: CharadesPack = {
     card('mov-q-010', 'Wakanda forever', 'quote', 'medium', { year: 2018 }),
     card('mov-q-011', 'Show me the money', 'quote', 'medium', { year: 1996 }),
     card('mov-q-012', 'There is no spoon', 'quote', 'medium', { year: 1999 }),
+    card('mov-q-024', 'With great power comes great responsibility', 'quote', 'medium', {
+      year: 2002,
+    }),
+    card('mov-q-025', 'Nobody puts Baby in a corner', 'quote', 'medium', { year: 1987 }),
+    card('mov-q-026', 'I am Groot', 'quote', 'medium', { year: 2014 }),
+    card('mov-q-027', 'On Wednesdays we wear pink', 'quote', 'medium', { year: 2004 }),
+    card('mov-q-028', 'You cannot handle the truth', 'quote', 'medium', { year: 1992 }),
     // Quotes — hard
     card('mov-q-013', 'Rosebud', 'quote', 'hard', { year: 1941 }),
     card('mov-q-014', 'Here is looking at you, kid', 'quote', 'hard', { year: 1942 }),
@@ -52,13 +64,20 @@ export const moviesPack: CharadesPack = {
     card('mov-q-016', 'Open the pod bay doors, HAL', 'quote', 'hard', { year: 1968 }),
     card('mov-q-017', 'Bond. James Bond', 'quote', 'hard', { year: 1962 }),
     card('mov-q-018', 'I am your father', 'quote', 'hard', { year: 1980 }),
+    card('mov-q-029', 'E.T. phone home', 'quote', 'hard', { year: 1982 }),
+    card('mov-q-030', 'I volunteer as tribute', 'quote', 'hard', { year: 2012 }),
+    card('mov-q-031', 'Frankly, my dear, I do not give a damn', 'quote', 'hard', {
+      year: 1939,
+    }),
+    card('mov-q-032', 'Elementary, my dear Watson', 'quote', 'hard', { year: 1939 }),
+    card('mov-q-033', 'I have a particular set of skills', 'quote', 'hard', { year: 2008 }),
 
     // Characters — easy
     card('mov-c-001', 'Elsa', 'character', 'easy', { actHint: 'Frozen' }),
     card('mov-c-002', 'Woody', 'character', 'easy', { actHint: 'Toy Story' }),
     card('mov-c-003', 'Buzz Lightyear', 'character', 'easy'),
     card('mov-c-004', 'Simba', 'character', 'easy'),
-    card('mov-c-005', 'Shrek', 'character', 'easy'),
+    card('mov-c-005', 'Donkey', 'character', 'easy', { actHint: 'Shrek' }),
     card('mov-c-006', 'Nemo', 'character', 'easy'),
     // Characters — medium
     card('mov-c-007', 'Indiana Jones', 'character', 'medium'),

@@ -32,7 +32,7 @@ export const disneyPack: CharadesPack = {
     card('dis-c-003', 'Simba', 'character', 'easy'),
     card('dis-c-004', 'Woody', 'character', 'easy'),
     card('dis-c-005', 'Buzz Lightyear', 'character', 'easy'),
-    card('dis-c-006', 'Moana', 'character', 'easy'),
+    card('dis-c-006', 'Maui', 'character', 'easy', { actHint: 'Moana' }),
     card('dis-c-007', 'Mirabel', 'character', 'medium', { actHint: 'Encanto' }),
     card('dis-c-008', 'Stitch', 'character', 'medium'),
     card('dis-c-009', 'Baymax', 'character', 'medium'),

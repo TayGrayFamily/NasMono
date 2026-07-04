@@ -4,7 +4,13 @@
 import { expect, test, type Page } from '@playwright/test';
 
 async function openCharadesFilters(page: Page) {
-  const filters = page.locator('details.charades-filters');
+  const fabFilters = page.getByRole('button', { name: 'Filters' });
+  if (await fabFilters.isVisible()) {
+    await fabFilters.click();
+    return;
+  }
+
+  const filters = page.locator('details.charades-filters--desktop');
   if ((await filters.getAttribute('open')) === null) {
     await filters.locator('summary').click();
   }
@@ -23,7 +29,7 @@ test.describe('Charades solo play', () => {
     await page.getByRole('button', { name: 'Easy', exact: true }).click();
     await expect(page.getByText(/\d+ cards in this round/)).toBeVisible();
 
-    await page.getByRole('button', { name: 'Start' }).click();
+    await page.getByRole('button', { name: /^Start/ }).click();
     await page.waitForURL('**/play/charades/game');
 
     await expect(page.getByText('Card hidden')).toBeVisible();
@@ -46,7 +52,7 @@ test.describe('Charades solo play', () => {
     await page.getByRole('button', { name: 'Actors', exact: true }).click();
 
     await expect(page.getByText(/cards in this round/)).toBeVisible();
-    await page.getByRole('button', { name: 'Start' }).click();
+    await page.getByRole('button', { name: /^Start/ }).click();
     await page.waitForURL('**/play/charades/game');
 
     await page.getByRole('button', { name: 'Reveal', exact: true }).click();
@@ -78,7 +84,7 @@ test.describe('Charades solo play', () => {
     expect(genAlphaCount).toBeGreaterThan(0);
     expect(genAlphaCount).toBeLessThan(allGensCount);
 
-    await page.getByRole('button', { name: 'Start' }).click();
+    await page.getByRole('button', { name: /^Start/ }).click();
     await page.waitForURL('**/play/charades/game');
   });
 
@@ -86,18 +92,17 @@ test.describe('Charades solo play', () => {
     await page.goto('/play/charades');
     await page.getByRole('button', { name: 'Animals' }).click();
 
-    await expect(page.locator('.charades-filters__value')).toHaveText('Easy · All players');
+    const summary = page.locator('.charades-fab__hint, .charades-filters__value').first();
+    await expect(summary).toHaveText('Easy · All players');
 
     await openCharadesFilters(page);
     await page.getByRole('button', { name: 'Hard', exact: true }).click();
     await page.getByRole('button', { name: /^Gen Alpha/ }).click();
 
-    await expect(page.locator('.charades-filters__value')).toHaveText(
-      'Hard · Gen Z, Millennials, Gen X+',
-    );
+    await expect(summary).toHaveText('Hard · Gen Z, Millennials, Gen X+');
   });
 
-  test('portrait iPhone 13 Pro Max shows action buttons without scrolling', async ({ browser }) => {
+  test('portrait iPhone 13 Pro Max shows floating action buttons', async ({ browser }) => {
     const context = await browser.newContext({
       viewport: { width: 428, height: 926 },
     });
@@ -105,13 +110,20 @@ test.describe('Charades solo play', () => {
 
     await page.goto('/play/charades');
     await page.locator('.charades-pack-card').filter({ hasText: 'Animals' }).first().click();
+    await expect(page.locator('.charades-fab-dock')).toBeVisible();
+
     await openCharadesFilters(page);
     await page.getByRole('button', { name: 'Easy', exact: true }).click();
-    await page.getByRole('button', { name: 'Start' }).click();
+    await page.getByRole('button', { name: 'Done' }).click();
+    await page.getByRole('button', { name: /^Start/ }).click();
     await page.waitForURL('**/play/charades/game');
 
-    const reveal = page.getByRole('button', { name: 'Reveal', exact: true });
-    const endRound = page.getByRole('button', { name: 'End round', exact: true });
+    const reveal = page
+      .locator('.charades-fab-dock')
+      .getByRole('button', { name: 'Reveal', exact: true });
+    const endRound = page
+      .locator('.charades-fab-dock')
+      .getByRole('button', { name: 'End round', exact: true });
     await expect(reveal).toBeVisible();
     await expect(endRound).toBeVisible();
 
@@ -134,10 +146,13 @@ test.describe('Charades solo play', () => {
     await page.locator('.charades-pack-card').filter({ hasText: 'Animals' }).first().click();
     await openCharadesFilters(page);
     await page.getByRole('button', { name: 'Easy', exact: true }).click();
-    await page.getByRole('button', { name: 'Start' }).click();
+    await page.getByRole('button', { name: 'Done' }).click();
+    await page.getByRole('button', { name: /^Start/ }).click();
     await page.waitForURL('**/play/charades/game');
 
-    await expect(page.getByRole('button', { name: 'Reveal', exact: true })).toBeVisible();
+    await expect(
+      page.locator('.charades-fab-dock').getByRole('button', { name: 'Reveal', exact: true }),
+    ).toBeVisible();
     await page.getByRole('button', { name: 'Reveal', exact: true }).click();
     await expect(page.getByText('Word', { exact: true })).toBeVisible();
 

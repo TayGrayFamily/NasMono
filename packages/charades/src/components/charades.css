@@ -50,12 +50,43 @@
 /* Reset game-hub global button styles inside charades setup controls */
 .charades-page button.charades-pack-card,
 .charades-page button.charades-toggle-filter,
-.charades-page button.charades-difficulty__btn {
-  background-color: var(--panel-bg);
-  color: inherit;
+.charades-page button.charades-difficulty__btn,
+.charades-page button.charades-fab,
+.charades-page button.charades-sheet__done,
+.charades-page button.charades-sheet__backdrop {
   transform: none;
   font-weight: inherit;
   gap: 0;
+}
+
+.charades-page button.charades-pack-card,
+.charades-page button.charades-toggle-filter,
+.charades-page button.charades-difficulty__btn {
+  background-color: var(--panel-bg);
+  color: inherit;
+}
+
+.charades-page button.charades-fab--primary {
+  background-color: var(--primary-cyan);
+  color: white;
+}
+
+.charades-page button.charades-fab--secondary {
+  background-color: var(--panel-bg);
+  color: var(--text-color);
+}
+
+.charades-page button.charades-sheet__done {
+  background-color: transparent;
+  color: var(--primary-cyan);
+}
+
+.charades-page button.charades-sheet__backdrop {
+  background-color: rgba(0, 0, 0, 0.55);
+  border-radius: 0;
+  padding: 0;
+  min-height: 0;
+  box-shadow: none;
 }
 
 .charades-page button.charades-pack-card:hover:not(:disabled),
@@ -63,9 +94,19 @@
 .charades-page button.charades-toggle-filter:hover:not(:disabled),
 .charades-page button.charades-toggle-filter:active:not(:disabled),
 .charades-page button.charades-difficulty__btn:hover:not(:disabled),
-.charades-page button.charades-difficulty__btn:active:not(:disabled) {
+.charades-page button.charades-difficulty__btn:active:not(:disabled),
+.charades-page button.charades-fab--secondary:hover:not(:disabled),
+.charades-page button.charades-fab--secondary:active:not(:disabled),
+.charades-page button.charades-sheet__done:hover:not(:disabled),
+.charades-page button.charades-sheet__done:active:not(:disabled) {
   background-color: var(--panel-bg);
   transform: none;
+}
+
+.charades-page button.charades-fab--primary:hover:not(:disabled),
+.charades-page button.charades-fab--primary:active:not(:disabled) {
+  background-color: var(--primary-blue);
+  transform: scale(0.98);
 }
 
 .charades-pack-card {
@@ -226,6 +267,11 @@
   border-top: 1px solid var(--border-color);
 }
 
+.charades-sheet .charades-filters__body {
+  border-top: none;
+  padding: 0;
+}
+
 .charades-filters__group {
   padding-top: 1rem;
 }
@@ -312,14 +358,148 @@
 .charades-play {
   flex: 1;
   min-height: 0;
-  display: grid;
-  grid-template-rows: auto minmax(0, 1fr) auto;
-  gap: 1rem;
   overflow: hidden;
+}
+
+.charades-play .charades-page__body {
+  display: grid;
+  grid-template-rows: auto minmax(0, 1fr);
+  gap: 1rem;
+  min-height: 0;
+  height: 100%;
 }
 
 .charades-action-bar--play {
   margin-top: 0;
+}
+
+/* Floating action buttons — mobile charades setup + play */
+.charades-fab-dock {
+  display: none;
+}
+
+.charades-fab {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 0.1rem;
+  min-height: 3rem;
+  padding: 0.5rem 1rem;
+  border-radius: 999px;
+  font-weight: 600;
+  font-size: 0.95rem;
+  line-height: 1.2;
+  border: none;
+  cursor: pointer;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.35);
+  transition:
+    transform 0.15s ease,
+    opacity 0.15s ease;
+}
+
+.charades-fab:active:not(:disabled) {
+  transform: scale(0.98);
+}
+
+.charades-fab--primary {
+  flex: 1.35;
+  background: var(--primary-cyan);
+  color: white;
+}
+
+.charades-fab--primary:hover:not(:disabled) {
+  background: var(--primary-blue);
+}
+
+.charades-fab--secondary {
+  flex: 1;
+  background: var(--panel-bg);
+  color: var(--text-color);
+  border: 1px solid var(--border-color);
+}
+
+.charades-fab--secondary:hover:not(:disabled) {
+  border-color: var(--primary-cyan);
+}
+
+.charades-fab:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.charades-fab__label {
+  font-size: 0.95rem;
+}
+
+.charades-fab__hint {
+  font-size: 0.68rem;
+  font-weight: 500;
+  color: var(--text-muted);
+  max-width: 9rem;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.charades-sheet {
+  position: fixed;
+  inset: 0;
+  z-index: 200;
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-end;
+}
+
+.charades-sheet__backdrop {
+  position: absolute;
+  inset: 0;
+  border: none;
+  background: rgba(0, 0, 0, 0.55);
+  cursor: pointer;
+}
+
+.charades-sheet__panel {
+  position: relative;
+  max-height: min(78dvh, 640px);
+  overflow-y: auto;
+  background: var(--panel-bg);
+  border-radius: var(--radius-lg) var(--radius-lg) 0 0;
+  padding: 1rem 1rem calc(1rem + var(--safe-bottom));
+  box-shadow: 0 -8px 24px rgba(0, 0, 0, 0.35);
+}
+
+.charades-sheet__header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 1rem;
+  margin-bottom: 0.5rem;
+}
+
+.charades-sheet__title {
+  margin: 0;
+  font-size: 1.1rem;
+}
+
+.charades-sheet__subtitle {
+  margin: 0.25rem 0 0;
+  color: var(--text-muted);
+  font-size: 0.8rem;
+  line-height: 1.3;
+}
+
+.charades-sheet__done {
+  flex-shrink: 0;
+  background: transparent;
+  border: 1px solid var(--border-color);
+  color: var(--primary-cyan);
+  border-radius: 999px;
+  padding: 0.4rem 0.9rem;
+  font-weight: 600;
+  font-size: 0.85rem;
+  min-height: var(--touch-min);
+  cursor: pointer;
 }
 
 /* Touch phones — portrait and landscape (iPhone 13 Pro Max: 428×926 / 926×428) */
@@ -374,23 +554,46 @@
     grid-template-columns: repeat(3, minmax(0, 1fr));
   }
 
-  .charades-action-bar {
-    position: sticky;
+  .charades-filters--desktop,
+  .charades-action-bar--desktop {
+    display: none;
+  }
+
+  .charades-fab-dock {
+    display: flex;
+    position: fixed;
+    left: 0;
+    right: 0;
     bottom: 0;
-    z-index: 10;
-    background: var(--panel-bg);
-    padding-bottom: calc(1rem + var(--safe-bottom));
-    margin-left: calc(-1 * var(--space-page) - var(--safe-left));
-    margin-right: calc(-1 * var(--space-page) - var(--safe-right));
-    padding-left: calc(var(--space-page) + var(--safe-left));
-    padding-right: calc(var(--space-page) + var(--safe-right));
-    box-shadow: 0 -4px 12px rgba(0, 0, 0, 0.2);
+    z-index: 100;
+    gap: 0.5rem;
+    padding: 0.65rem calc(var(--space-page) + var(--safe-right)) calc(0.65rem + var(--safe-bottom))
+      calc(var(--space-page) + var(--safe-left));
+    background: linear-gradient(
+      to top,
+      var(--bg-color) 55%,
+      rgba(15, 23, 42, 0.92) 80%,
+      transparent
+    );
+    pointer-events: none;
+  }
+
+  .charades-fab-dock > * {
+    pointer-events: auto;
+  }
+
+  .charades-page--fab .charades-page__body {
+    padding-bottom: calc(4.75rem + var(--safe-bottom));
   }
 
   .charades-page.charades-play {
-    gap: 0.75rem;
+    gap: 0;
     min-height: 0;
     height: 100%;
+  }
+
+  .charades-play .charades-page__body {
+    gap: 0.75rem;
   }
 
   .charades-play .charades-header {
@@ -406,18 +609,6 @@
     height: 100%;
     padding: 1.25rem 1rem;
     overflow: auto;
-  }
-
-  .charades-play .charades-action-bar--play {
-    position: static;
-    box-shadow: none;
-    margin-left: 0;
-    margin-right: 0;
-    padding-left: 0;
-    padding-right: 0;
-    padding-top: 0.5rem;
-    padding-bottom: var(--safe-bottom);
-    background: transparent;
   }
 }
 

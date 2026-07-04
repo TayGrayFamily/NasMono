@@ -28,7 +28,7 @@ Client-side charades card picker for Game Hub.
 | TV Shows              | titles, characters, quotes                       |
 | Nintendo Games        | terms                                            |
 | Video Game Characters | people                                           |
-| Anime Characters      | people                                           |
+| Anime                 | titles, quotes, characters (toggle each)         |
 
 Cards may include a `generations` array (who is likely to know the reference) and optional reveal extras:
 

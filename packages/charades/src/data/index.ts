@@ -2,7 +2,7 @@ import { validatePack } from '../schema.js';
 import { aroundTheHousePack } from './around-the-house.js';
 import { actionsPack } from './actions.js';
 import { animalsPack } from './animals.js';
-import { animeCharactersPack } from './anime-characters.js';
+import { animePack } from './anime.js';
 import { booksPack } from './books-and-stories.js';
 import { disneyPack } from './disney.js';
 import { emotionsPack } from './emotions.js';
@@ -35,7 +35,7 @@ const rawPacks: CharadesPack[] = [
   tvShowsPack,
   nintendoGamesPack,
   videoGameCharactersPack,
-  animeCharactersPack,
+  animePack,
 ];
 
 export const allPacks: CharadesPack[] = rawPacks.map((pack) => enrichPack(validatePack(pack)));

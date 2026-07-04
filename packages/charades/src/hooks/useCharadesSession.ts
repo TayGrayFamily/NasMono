@@ -10,6 +10,7 @@ import type {
 import { ALL_DIFFICULTIES } from '../lib/difficulties.js';
 import { getTypesInPack } from '../lib/cardTypes.js';
 import { ALL_GENERATIONS } from '../lib/generations.js';
+import { getPackById } from '../data/index.js';
 import { formatRoundTitle, getPacksByIds, getTypesInPacks, mergePackCards } from '../lib/packs.js';
 import {
   advanceDeck,
@@ -25,18 +26,47 @@ const SESSION_KEY = 'charades-session';
 const DEFAULT_GENERATIONS: Generation[] = [...ALL_GENERATIONS];
 const DEFAULT_DIFFICULTIES: Difficulty[] = [...ALL_DIFFICULTIES];
 
+const LEGACY_PACK_IDS: Record<string, string> = {
+  'anime-characters': 'anime',
+};
+
+function normalizePackId(id: string): string {
+  return LEGACY_PACK_IDS[id] ?? id;
+}
+
+function normalizePackIds(packIds: string[]): string[] {
+  return packIds.map(normalizePackId);
+}
+
+function normalizeEnabledTypes(types: CardType[], packIds: string[]): CardType[] {
+  if (!packIds.includes('anime') || !types.includes('person')) return types;
+
+  const otherPacksNeedPerson = packIds.some((id) => {
+    if (id === 'anime') return false;
+    const pack = getPackById(id);
+    return pack !== undefined && getTypesInPack(pack).includes('person');
+  });
+
+  if (otherPacksNeedPerson) {
+    return types.includes('character') ? types : [...types, 'character'];
+  }
+
+  return types.map((type) => (type === 'person' ? 'character' : type));
+}
+
 function normalizeSessionConfig(raw: unknown): CharadesSessionConfig | null {
   if (!raw || typeof raw !== 'object') return null;
   const parsed = raw as Partial<CharadesSessionConfig> & {
     packId?: string;
     difficulty?: Difficulty;
   };
-  const packIds =
+  const rawPackIds =
     Array.isArray(parsed.packIds) && parsed.packIds.length > 0
       ? parsed.packIds.filter((id): id is string => typeof id === 'string' && id.length > 0)
       : typeof parsed.packId === 'string' && parsed.packId.length > 0
         ? [parsed.packId]
         : [];
+  const packIds = normalizePackIds(rawPackIds);
   const enabledDifficulties = parsed.enabledDifficulties?.length
     ? parsed.enabledDifficulties
     : parsed.difficulty
@@ -53,7 +83,7 @@ function normalizeSessionConfig(raw: unknown): CharadesSessionConfig | null {
     enabledGenerations: parsed.enabledGenerations?.length
       ? parsed.enabledGenerations
       : DEFAULT_GENERATIONS,
-    enabledTypes: parsed.enabledTypes,
+    enabledTypes: normalizeEnabledTypes(parsed.enabledTypes, packIds),
   };
 }
 

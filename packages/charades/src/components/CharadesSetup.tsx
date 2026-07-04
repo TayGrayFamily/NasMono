@@ -144,7 +144,9 @@ export function CharadesSetup() {
                       onClick={() => toggleType(type)}
                       aria-pressed={on}
                     >
-                      <span className="charades-toggle-filter__label">{CARD_TYPE_LABELS[type]}</span>
+                      <span className="charades-toggle-filter__label">
+                        {CARD_TYPE_LABELS[type]}
+                      </span>
                     </button>
                   );
                 })}

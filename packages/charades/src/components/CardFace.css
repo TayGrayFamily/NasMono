@@ -99,7 +99,7 @@
   font-size: 0.85rem;
 }
 
-@media (max-width: 768px) {
+@media (max-width: 932px), ((max-height: 480px) and (orientation: landscape)) {
   .card-face {
     min-height: 280px;
   }

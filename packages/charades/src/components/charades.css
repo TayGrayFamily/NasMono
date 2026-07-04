@@ -217,8 +217,8 @@
   text-align: center;
 }
 
-/* Portrait phones — tuned for iPhone 13 Pro Max (428×926) and similar */
-@media (max-width: 768px) {
+/* Touch phones — portrait and landscape (iPhone 13 Pro Max: 428×926 / 926×428) */
+@media (max-width: 932px), ((max-height: 480px) and (orientation: landscape)) {
   .charades-page {
     gap: 1.25rem;
     min-height: 0;
@@ -317,5 +317,42 @@
 
   .charades-pack-grid {
     grid-template-columns: 1fr;
+  }
+}
+
+/* Phone landscape — shorter viewport, more horizontal space */
+@media (max-height: 480px) and (orientation: landscape) {
+  .charades-page {
+    gap: 0.75rem;
+  }
+
+  .charades-header__title {
+    font-size: 1.25rem;
+  }
+
+  .charades-pack-grid {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+
+  .charades-toggle-filters {
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+  }
+
+  .charades-toggle-filter__hint {
+    display: none;
+  }
+
+  .charades-page.charades-play {
+    min-height: auto;
+    gap: 0.5rem;
+  }
+
+  .charades-play .card-face {
+    min-height: clamp(140px, 52dvh, 260px);
+    padding: 1rem 0.75rem;
+  }
+
+  .charades-play__hint {
+    font-size: 0.8rem;
   }
 }

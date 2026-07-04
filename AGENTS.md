@@ -168,3 +168,17 @@ Standard commands live in `README.md` / root `package.json` / `packages/home/REA
 - Schema sync runs automatically when `dev:game` starts the server (admin `sync-db` until P0 startup bootstrap lands).
 
 **Game Hub login** (`PlayerSetup`) calls `VITE_BACKEND_URL` (default `http://localhost:3001`) directly, while Socket.IO connects via the Vite proxy — both must be reachable for the lobby flow to work.
+
+## Mobile UI testing
+
+When changing Game Hub or Charades layouts, verify **portrait and landscape** on a phone-sized viewport. Layouts must not rely on `max-width: 768px` alone — landscape on large phones exceeds that width (e.g. iPhone 13 Pro Max landscape is 926×428).
+
+**Primary reference device (spot-check, not exclusive):** iPhone 13 Pro Max — portrait **428×926**, landscape **926×428**. Presets live in `packages/game-hub/test/mobile-devices.mjs`.
+
+| Check                    | How                                                                               |
+| ------------------------ | --------------------------------------------------------------------------------- |
+| Reference device         | `pnpm --filter game-hub screenshots:charades` (needs preview on port 30900)       |
+| Portrait + landscape e2e | `pnpm --filter game-hub exec playwright test test/e2e/charades.spec.ts`           |
+| Also sanity-check        | iPhone SE portrait (375×667) or a narrow Android width — do not test Pro Max only |
+
+Charades mobile CSS uses `max-width: 932px` and `(max-height: 480px) and (orientation: landscape)` so phone landscape gets touch layouts, sticky actions, and swipe hints.

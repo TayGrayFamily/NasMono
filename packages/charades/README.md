@@ -30,3 +30,5 @@ Client-side charades card picker for Game Hub.
 | Anime Characters      | people                                           |
 
 Cards may include a `generations` array (who is likely to know the reference) and an optional `actHint` (shown on the revealed card, e.g. source film). Universal packs (animals, actions, etc.) omit `generations` and suit every player. Other packs fall back to difficulty-based defaults when `generations` is omitted — prefer setting it explicitly on pop-culture cards.
+
+Mobile layout is tested at **iPhone 13 Pro Max** portrait and landscape (see root `AGENTS.md` → Mobile UI testing); CSS must work in both orientations.

@@ -3,13 +3,14 @@ import { useNavigate } from 'react-router-dom';
 import { CardFace } from './CardFace.js';
 import { clearSessionConfig, useCharadesPlay } from '../hooks/useCharadesSession.js';
 import { useSwipeGesture } from '../hooks/useSwipeGesture.js';
+import { isMobileViewport } from '../lib/viewport.js';
 import './charades.css';
 
 function useIsMobile(): boolean {
-  const [mobile, setMobile] = React.useState(() => window.innerWidth < 768);
+  const [mobile, setMobile] = React.useState(() => isMobileViewport());
 
   useEffect(() => {
-    const onResize = () => setMobile(window.innerWidth < 768);
+    const onResize = () => setMobile(isMobileViewport());
     window.addEventListener('resize', onResize);
     return () => window.removeEventListener('resize', onResize);
   }, []);

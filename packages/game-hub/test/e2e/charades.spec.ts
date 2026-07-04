@@ -71,4 +71,23 @@ test.describe('Charades solo play', () => {
     await page.getByRole('button', { name: 'Start' }).click();
     await page.waitForURL('**/play/charades/game');
   });
+
+  test('landscape iPhone 13 Pro Max can start and reveal a card', async ({ browser }) => {
+    const context = await browser.newContext({
+      viewport: { width: 926, height: 428 },
+    });
+    const page = await context.newPage();
+
+    await page.goto('/play/charades');
+    await page.locator('.charades-pack-card').filter({ hasText: 'Animals' }).first().click();
+    await page.getByRole('button', { name: 'Easy', exact: true }).click();
+    await page.getByRole('button', { name: 'Start' }).click();
+    await page.waitForURL('**/play/charades/game');
+
+    await expect(page.getByRole('button', { name: 'Reveal', exact: true })).toBeVisible();
+    await page.getByRole('button', { name: 'Reveal', exact: true }).click();
+    await expect(page.getByText('Word', { exact: true })).toBeVisible();
+
+    await context.close();
+  });
 });

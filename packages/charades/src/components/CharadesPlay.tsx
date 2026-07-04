@@ -102,7 +102,9 @@ export function CharadesPlay() {
   );
 
   return (
-    <div className="charades-page charades-play charades-page--fab">
+    <div
+      className={`charades-page charades-play charades-page--fab${pickOpen ? ' charades-page--sheet-open' : ''}`}
+    >
       <div className="charades-page__body">
         <header className="charades-header">
           <h2 className="charades-header__title">{roundTitle}</h2>
@@ -176,8 +178,9 @@ export function CharadesPlay() {
 
       {pickOpen && (
         <div className="charades-sheet" role="dialog" aria-modal="true" aria-label="Pick next card">
-          <button
-            type="button"
+          <div
+            role="button"
+            tabIndex={-1}
             className="charades-sheet__backdrop"
             aria-label="Close pick card"
             onClick={() => setPickOpen(false)}

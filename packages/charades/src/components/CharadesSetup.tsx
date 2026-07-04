@@ -62,7 +62,9 @@ export function CharadesSetup() {
   );
 
   return (
-    <div className="charades-page charades-setup charades-page--fab">
+    <div
+      className={`charades-page charades-setup charades-page--fab${filtersOpen ? ' charades-page--sheet-open' : ''}`}
+    >
       <div className="charades-page__body">
         <header className="charades-header">
           <button type="button" className="charades-header__back" onClick={() => navigate('/')}>
@@ -153,8 +155,9 @@ export function CharadesSetup() {
 
       {filtersOpen && (
         <div className="charades-sheet" role="dialog" aria-modal="true" aria-label="Round filters">
-          <button
-            type="button"
+          <div
+            role="button"
+            tabIndex={-1}
             className="charades-sheet__backdrop"
             aria-label="Close filters"
             onClick={() => setFiltersOpen(false)}

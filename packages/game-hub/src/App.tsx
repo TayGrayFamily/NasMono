@@ -202,6 +202,7 @@ function AppContent({
   };
 
   const isCharadesRoute = location.pathname.startsWith('/play/charades');
+  const isCharadesPlayRoute = location.pathname.startsWith('/play/charades/game');
 
   const headerSubtitle = isCharadesRoute
     ? 'Pick a card. Pass the phone.'
@@ -218,7 +219,9 @@ function AppContent({
         onManageUser={() => navigate('/manage-profile')}
       />
 
-      <main className={`main-content${isCharadesRoute ? ' main-content--charades' : ''}`}>
+      <main
+        className={`main-content${isCharadesRoute ? ' main-content--charades' : ''}${isCharadesPlayRoute ? ' main-content--charades-play' : ''}`}
+      >
         <Routes>
           <Route path="/" element={<PlayHome currentUser={currentUser} />} />
           <Route path="/play/charades/*" element={<CharadesRoutes />} />

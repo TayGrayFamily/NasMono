@@ -18,12 +18,12 @@ test.describe('Charades solo play', () => {
     await page.getByRole('button', { name: 'Start' }).click();
     await page.waitForURL('**/play/charades/game');
 
-    await expect(page.getByText('Tap to reveal')).toBeVisible();
+    await expect(page.getByText('Card hidden')).toBeVisible();
     await page.getByRole('button', { name: 'Reveal', exact: true }).click();
     await expect(page.getByText('Word', { exact: true })).toBeVisible();
 
     await page.getByRole('button', { name: 'Next card' }).click();
-    await expect(page.getByText('Tap to reveal')).toBeVisible();
+    await expect(page.getByText('Card hidden')).toBeVisible();
   });
 
   test('movies pack can disable actors and still start', async ({ page }) => {
@@ -70,6 +70,34 @@ test.describe('Charades solo play', () => {
 
     await page.getByRole('button', { name: 'Start' }).click();
     await page.waitForURL('**/play/charades/game');
+  });
+
+  test('portrait iPhone 13 Pro Max shows action buttons without scrolling', async ({ browser }) => {
+    const context = await browser.newContext({
+      viewport: { width: 428, height: 926 },
+    });
+    const page = await context.newPage();
+
+    await page.goto('/play/charades');
+    await page.locator('.charades-pack-card').filter({ hasText: 'Animals' }).first().click();
+    await page.getByRole('button', { name: 'Easy', exact: true }).click();
+    await page.getByRole('button', { name: 'Start' }).click();
+    await page.waitForURL('**/play/charades/game');
+
+    const reveal = page.getByRole('button', { name: 'Reveal', exact: true });
+    const endRound = page.getByRole('button', { name: 'End round', exact: true });
+    await expect(reveal).toBeVisible();
+    await expect(endRound).toBeVisible();
+
+    const revealBox = await reveal.boundingBox();
+    const endRoundBox = await endRound.boundingBox();
+    const viewport = page.viewportSize();
+    expect(revealBox).not.toBeNull();
+    expect(endRoundBox).not.toBeNull();
+    expect(viewport).not.toBeNull();
+    expect(endRoundBox!.y + endRoundBox!.height).toBeLessThanOrEqual(viewport!.height);
+
+    await context.close();
   });
 
   test('landscape iPhone 13 Pro Max can start and reveal a card', async ({ browser }) => {

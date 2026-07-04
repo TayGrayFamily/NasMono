@@ -1,32 +1,12 @@
-import React, { useEffect } from 'react';
+import { useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { CardFace } from './CardFace.js';
 import { clearSessionConfig, useCharadesPlay } from '../hooks/useCharadesSession.js';
-import { useSwipeGesture } from '../hooks/useSwipeGesture.js';
-import { isMobileViewport } from '../lib/viewport.js';
 import './charades.css';
-
-function useIsMobile(): boolean {
-  const [mobile, setMobile] = React.useState(() => isMobileViewport());
-
-  useEffect(() => {
-    const onResize = () => setMobile(isMobileViewport());
-    window.addEventListener('resize', onResize);
-    return () => window.removeEventListener('resize', onResize);
-  }, []);
-
-  return mobile;
-}
 
 export function CharadesPlay() {
   const navigate = useNavigate();
-  const isMobile = useIsMobile();
   const { pack, currentCard, revealed, reveal, nextCard, isReady } = useCharadesPlay();
-
-  const { onPointerDown, onPointerUp } = useSwipeGesture({
-    onSwipeLeft: revealed ? nextCard : undefined,
-    onSwipeUp: revealed ? nextCard : undefined,
-  });
 
   useEffect(() => {
     if (!isReady) {
@@ -50,22 +30,9 @@ export function CharadesPlay() {
         <p className="charades-header__subtitle">Act it out. Others guess.</p>
       </header>
 
-      <CardFace
-        card={currentCard}
-        revealed={revealed}
-        onReveal={reveal}
-        onPointerDown={onPointerDown}
-        onPointerUp={onPointerUp}
-        showSwipeHint={isMobile && revealed}
-      />
+      <CardFace card={currentCard} revealed={revealed} />
 
-      <p className="charades-play__hint">
-        {isMobile
-          ? 'Tap to reveal. Swipe left or up for the next card.'
-          : 'Click to reveal. Press Space or use the buttons below.'}
-      </p>
-
-      <footer className="charades-action-bar">
+      <footer className="charades-action-bar charades-action-bar--play">
         {!revealed ? (
           <button type="button" className="charades-btn-primary" onClick={reveal}>
             Reveal

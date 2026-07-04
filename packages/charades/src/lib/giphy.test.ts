@@ -3,8 +3,8 @@ import {
   GiphyFetchError,
   clearGiphyCacheForTests,
   isGiphyConfigured,
-  resolveGiphyStillById,
-  searchGiphyStill,
+  resolveGiphyGifById,
+  searchGiphyGif,
 } from './giphy.js';
 
 describe('giphy', () => {
@@ -24,13 +24,14 @@ describe('giphy', () => {
     expect(isGiphyConfigured()).toBe(false);
   });
 
-  it('resolves a still image by gif id', async () => {
+  it('resolves an animated gif by id', async () => {
     const fetchMock = vi.fn().mockResolvedValue({
       ok: true,
       json: async () => ({
         data: {
           id: 'abc123',
           images: {
+            fixed_height: { url: 'https://media.giphy.com/animated.gif' },
             fixed_height_still: { url: 'https://media.giphy.com/still.jpg' },
           },
         },
@@ -38,17 +39,17 @@ describe('giphy', () => {
     });
     vi.stubGlobal('fetch', fetchMock);
 
-    await expect(resolveGiphyStillById('abc123')).resolves.toBe(
-      'https://media.giphy.com/still.jpg',
+    await expect(resolveGiphyGifById('abc123')).resolves.toBe(
+      'https://media.giphy.com/animated.gif',
     );
     expect(fetchMock).toHaveBeenCalledOnce();
-    await expect(resolveGiphyStillById('abc123')).resolves.toBe(
-      'https://media.giphy.com/still.jpg',
+    await expect(resolveGiphyGifById('abc123')).resolves.toBe(
+      'https://media.giphy.com/animated.gif',
     );
     expect(fetchMock).toHaveBeenCalledOnce();
   });
 
-  it('searches giphy and returns the first still', async () => {
+  it('searches giphy and returns the first animated gif', async () => {
     vi.stubGlobal(
       'fetch',
       vi.fn().mockResolvedValue({
@@ -58,6 +59,7 @@ describe('giphy', () => {
             {
               id: 'search-1',
               images: {
+                downsized: { url: 'https://media.giphy.com/search-animated.gif' },
                 downsized_still: { url: 'https://media.giphy.com/search-still.jpg' },
               },
             },
@@ -66,8 +68,8 @@ describe('giphy', () => {
       }),
     );
 
-    await expect(searchGiphyStill('lion king')).resolves.toBe(
-      'https://media.giphy.com/search-still.jpg',
+    await expect(searchGiphyGif('lion king')).resolves.toBe(
+      'https://media.giphy.com/search-animated.gif',
     );
   });
 
@@ -80,7 +82,7 @@ describe('giphy', () => {
       }),
     );
 
-    await expect(searchGiphyStill('lion king')).rejects.toMatchObject({ status: 403 });
-    await expect(searchGiphyStill('lion king')).rejects.toBeInstanceOf(GiphyFetchError);
+    await expect(searchGiphyGif('lion king')).rejects.toMatchObject({ status: 403 });
+    await expect(searchGiphyGif('lion king')).rejects.toBeInstanceOf(GiphyFetchError);
   });
 });

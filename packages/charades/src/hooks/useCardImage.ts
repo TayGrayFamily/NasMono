@@ -3,8 +3,8 @@ import type { CharadesCard } from '../types.js';
 import {
   GiphyFetchError,
   isGiphyConfigured,
-  resolveGiphyStillById,
-  searchGiphyStill,
+  resolveGiphyGifById,
+  searchGiphyGif,
 } from '../lib/giphy.js';
 import { cardHasImageSource, getCardImageSearch } from '../lib/revealExtras.js';
 
@@ -19,9 +19,9 @@ export type CardImageState =
 
 async function resolveCardImage(card: CharadesCard): Promise<string | undefined> {
   if (card.imageUrl) return card.imageUrl;
-  if (card.giphyId) return resolveGiphyStillById(card.giphyId);
+  if (card.giphyId) return resolveGiphyGifById(card.giphyId);
   const query = getCardImageSearch(card);
-  if (query) return searchGiphyStill(query);
+  if (query) return searchGiphyGif(query);
   return undefined;
 }
 

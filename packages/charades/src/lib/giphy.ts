@@ -12,9 +12,11 @@ type GiphyGif = {
   id: string;
   title?: string;
   images?: {
+    fixed_height?: GiphyImageSet;
+    downsized?: GiphyImageSet;
+    original?: GiphyImageSet;
     fixed_height_still?: GiphyImageSet;
     downsized_still?: GiphyImageSet;
-    original_still?: GiphyImageSet;
   };
 };
 
@@ -38,11 +40,14 @@ function getApiKey(): string | undefined {
   return getViteEnv('VITE_GIPHY_API_KEY');
 }
 
-function pickStillUrl(gif: GiphyGif): string | undefined {
+/** Prefer animated renditions; fall back to stills if the API omits them. */
+function pickGifUrl(gif: GiphyGif): string | undefined {
   return (
+    gif.images?.fixed_height?.url ??
+    gif.images?.downsized?.url ??
+    gif.images?.original?.url ??
     gif.images?.fixed_height_still?.url ??
-    gif.images?.downsized_still?.url ??
-    gif.images?.original_still?.url
+    gif.images?.downsized_still?.url
   );
 }
 
@@ -58,7 +63,7 @@ export function isGiphyConfigured(): boolean {
   return Boolean(getApiKey());
 }
 
-export async function resolveGiphyStillById(giphyId: string): Promise<string | undefined> {
+export async function resolveGiphyGifById(giphyId: string): Promise<string | undefined> {
   const cacheKey = `id:${giphyId}`;
   const cached = imageCache.get(cacheKey);
   if (cached) return cached;
@@ -69,12 +74,12 @@ export async function resolveGiphyStillById(giphyId: string): Promise<string | u
   const url = `${GIPHY_API}/${encodeURIComponent(giphyId)}?api_key=${encodeURIComponent(apiKey)}`;
   const payload = await fetchJson(url);
   const gif = Array.isArray(payload.data) ? payload.data[0] : payload.data;
-  const stillUrl = gif ? pickStillUrl(gif) : undefined;
-  if (stillUrl) imageCache.set(cacheKey, stillUrl);
-  return stillUrl;
+  const gifUrl = gif ? pickGifUrl(gif) : undefined;
+  if (gifUrl) imageCache.set(cacheKey, gifUrl);
+  return gifUrl;
 }
 
-export async function searchGiphyStill(query: string): Promise<string | undefined> {
+export async function searchGiphyGif(query: string): Promise<string | undefined> {
   const normalized = query.trim().toLowerCase();
   if (!normalized) return undefined;
 
@@ -95,9 +100,9 @@ export async function searchGiphyStill(query: string): Promise<string | undefine
   const url = `${GIPHY_API}/search?${params.toString()}`;
   const payload = await fetchJson(url);
   const gif = Array.isArray(payload.data) ? payload.data[0] : undefined;
-  const stillUrl = gif ? pickStillUrl(gif) : undefined;
-  if (stillUrl) imageCache.set(cacheKey, stillUrl);
-  return stillUrl;
+  const gifUrl = gif ? pickGifUrl(gif) : undefined;
+  if (gifUrl) imageCache.set(cacheKey, gifUrl);
+  return gifUrl;
 }
 
 export function clearGiphyCacheForTests() {

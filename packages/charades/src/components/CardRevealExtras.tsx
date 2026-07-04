@@ -53,7 +53,7 @@ export function CardRevealExtras({ card, revealed }: CardRevealExtrasProps) {
       {open.has('image') && (
         <div className="card-reveal-extras__panel" role="region" aria-label="Image clue">
           {imageState.status === 'loading' && (
-            <p className="card-reveal-extras__status">Loading image…</p>
+            <p className="card-reveal-extras__status">Loading GIF…</p>
           )}
           {imageState.status === 'ready' && (
             <img

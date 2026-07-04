@@ -38,8 +38,8 @@ Cards may include a `generations` array (who is likely to know the reference) an
 | `guessHint`               | Softer nudge for stuck guessers — **Hint** chip                            |
 | `definition`              | Short definition for terms/places — **Definition** chip                    |
 | `emoji`                   | Quick visual on the card face                                              |
-| `imageUrl`                | Bundled or resolved still image                                            |
-| `giphyId` / `imageSearch` | Loads a still from Giphy when `VITE_GIPHY_API_KEY` is set — **Image** chip |
+| `imageUrl`                | Bundled static image                                                       |
+| `giphyId` / `imageSearch` | Loads an animated GIF from Giphy when `VITE_GIPHY_API_KEY` is set — **Image** chip |
 
 ### Giphy images
 

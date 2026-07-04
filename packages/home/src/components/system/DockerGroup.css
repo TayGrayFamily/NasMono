@@ -5,6 +5,18 @@
   flex-shrink: 0;
 }
 
+.docker-group-updates-badge {
+  font-size: 0.68rem;
+  font-weight: 600;
+  color: var(--status-orange, #e8a317);
+  text-decoration: none;
+  white-space: nowrap;
+}
+
+.docker-group-updates-badge:hover {
+  color: var(--color-text);
+}
+
 .docker-group-view-all {
   font-size: 0.68rem;
   font-weight: 600;

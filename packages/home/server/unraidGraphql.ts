@@ -48,3 +48,10 @@ export async function unraidQuery<T>(
 
   return { data: body.data, warnings };
 }
+
+export async function unraidMutation<T>(
+  mutation: string,
+  variables?: Record<string, unknown>,
+): Promise<{ data: T; warnings: string[] }> {
+  return unraidQuery<T>(mutation, variables);
+}

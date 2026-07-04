@@ -9,6 +9,13 @@ import { createDockerSource } from './createDockerSource.js';
 import { loadMergedLaunchPadApps } from './launchpadConfig.js';
 import { mergeLaunchpadWithContainers } from './mergeLaunchpadApps.js';
 import { fetchAdminOverview } from './adminOverview.js';
+import { isAdminActionsEnabled, getStackUpdateContainerMatch } from './adminActionsConfig.js';
+import {
+  refreshDockerDigests,
+  updateAllOutdatedContainers,
+  updateContainer,
+  updateContainers,
+} from './unraidDockerActions.js';
 import { buildTempAnalytics } from './tempAnalytics.js';
 import { buildMetricsAnalytics } from './metricsAnalytics.js';
 import { METRICS_WINDOW_MS, parseMetricsWindow } from './metricsHistory.js';
@@ -39,6 +46,22 @@ export function resetDockerSourceCache(): void {
   source = null;
 }
 
+function requireAdminActions(res: Response): boolean {
+  if (!isAdminActionsEnabled()) {
+    res.status(403).json({ ok: false, error: 'admin actions disabled' });
+    return false;
+  }
+  return true;
+}
+
+function requireUnraidConfigured(res: Response): boolean {
+  if (!process.env.UNRAID_GRAPHQL_URL?.trim() || !process.env.UNRAID_API_KEY?.trim()) {
+    res.status(503).json({ ok: false, error: 'Unraid GraphQL not configured' });
+    return false;
+  }
+  return true;
+}
+
 export function createApiRouter(): Router {
   const r = Router();
 
@@ -59,6 +82,74 @@ export function createApiRouter(): Router {
     try {
       const overview = await fetchAdminOverview();
       res.json(overview);
+    } catch (err) {
+      next(err);
+    }
+  });
+
+  r.post(
+    '/admin/docker/refresh-digests',
+    async (_req: Request, res: Response, next: NextFunction) => {
+      try {
+        if (!requireAdminActions(res) || !requireUnraidConfigured(res)) return;
+        const result = await refreshDockerDigests();
+        res.json({ ok: result.ok, warnings: result.warnings });
+      } catch (err) {
+        next(err);
+      }
+    },
+  );
+
+  r.post(
+    '/admin/docker/containers/:id/update',
+    async (req: Request, res: Response, next: NextFunction) => {
+      try {
+        if (!requireAdminActions(res) || !requireUnraidConfigured(res)) return;
+        const rawId = req.params.id;
+        const id = decodeURIComponent(
+          Array.isArray(rawId) ? (rawId[0] ?? '') : (rawId ?? ''),
+        ).trim();
+        if (!id) {
+          res.status(400).json({ ok: false, error: 'missing container id' });
+          return;
+        }
+        const result = await updateContainer(id);
+        res.json({ ok: true, container: result.container, warnings: result.warnings });
+      } catch (err) {
+        next(err);
+      }
+    },
+  );
+
+  r.post(
+    '/admin/docker/update-outdated',
+    async (_req: Request, res: Response, next: NextFunction) => {
+      try {
+        if (!requireAdminActions(res) || !requireUnraidConfigured(res)) return;
+        const result = await updateAllOutdatedContainers();
+        res.json({ ok: true, containers: result.containers, warnings: result.warnings });
+      } catch (err) {
+        next(err);
+      }
+    },
+  );
+
+  r.post('/admin/docker/update-stack', async (_req: Request, res: Response, next: NextFunction) => {
+    try {
+      if (!requireAdminActions(res) || !requireUnraidConfigured(res)) return;
+      const match = getStackUpdateContainerMatch();
+      if (!match) {
+        res.status(400).json({ ok: false, error: 'STACK_UPDATE_CONTAINER_MATCH not configured' });
+        return;
+      }
+      const overview = await fetchAdminOverview();
+      const ids = overview.containers.items.filter((c) => match.test(c.name)).map((c) => c.id);
+      if (ids.length === 0) {
+        res.status(404).json({ ok: false, error: 'no matching stack containers found' });
+        return;
+      }
+      const result = await updateContainers(ids);
+      res.json({ ok: true, containers: result.containers, warnings: result.warnings });
     } catch (err) {
       next(err);
     }

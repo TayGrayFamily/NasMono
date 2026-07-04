@@ -19,7 +19,10 @@ export type ContainerAttention =
   | 'created';
 
 export type AdminContainerSummary = {
+  id: string;
   name: string;
+  image: string;
+  updateAvailable: boolean;
   state: string;
   status: string;
   autoStart: boolean;
@@ -132,7 +135,13 @@ export type AdminOverview = {
     unhealthy: number;
     restarting: number;
     crashed: number;
+    updatesAvailable: number;
     items: AdminContainerSummary[];
+  };
+  capabilities: {
+    adminActions: boolean;
+    stackUpdateContainerMatch: string | null;
+    composeManagerStackUrl: string | null;
   };
   shares: Array<{ name: string; free: number; used: number }>; // kilobytes (Unraid API)
   services: Array<{ name: string; online: boolean; version: string | null }>;

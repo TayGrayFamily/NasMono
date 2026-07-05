@@ -91,6 +91,7 @@ html:has(.app-container--charades) #root {
 }
 
 .main-content--charades {
+  padding-top: calc(var(--space-page) + var(--safe-top));
   padding-bottom: 0.5rem;
   min-height: 0;
   overflow: hidden;
@@ -100,12 +101,6 @@ html:has(.app-container--charades) #root {
   height: 100dvh;
   max-height: 100dvh;
   overflow: hidden;
-}
-
-.app-container--charades .game-header {
-  position: relative;
-  top: auto;
-  flex-shrink: 0;
 }
 
 .app-container--charades-play .main-content--charades {

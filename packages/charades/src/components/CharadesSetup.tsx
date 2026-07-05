@@ -66,19 +66,19 @@ export function CharadesSetup() {
       className={`charades-page charades-setup charades-page--fab${filtersOpen ? ' charades-page--sheet-open' : ''}`}
     >
       <div className="charades-page__body">
-        <header className="charades-header">
+        <header className="charades-header charades-header--toolbar">
           <button type="button" className="charades-header__back" onClick={() => navigate('/')}>
-            ← Back to games
+            ← Back
           </button>
           <h2 className="charades-header__title">Charades</h2>
-          <p className="charades-header__subtitle">
+        </header>
+
+        <div className="charades-page__scroll">
+          <p className="charades-setup-hint">
             {multiPack
               ? 'Turn on multi-pack in Filters, then choose the packs to mix.'
               : 'Pick a pack, adjust filters if needed, then start the round.'}
           </p>
-        </header>
-
-        <div className="charades-page__scroll">
           <section>
             <h3 className="charades-section-title">
               {multiPack ? 'Choose packs to mix' : 'Choose a pack'}

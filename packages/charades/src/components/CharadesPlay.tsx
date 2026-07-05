@@ -151,9 +151,8 @@ export function CharadesPlay() {
       className={`charades-page charades-play charades-page--fab charades-page--play-filters${difficultyOpen || filtersOpen ? ' charades-page--sheet-open' : ''}`}
     >
       <div className="charades-page__body">
-        <header className="charades-header">
+        <header className="charades-header charades-header--toolbar">
           <h2 className="charades-header__title">{roundTitle}</h2>
-          <p className="charades-header__subtitle">Act it out. Others guess.</p>
         </header>
 
         <div className="charades-page__stage">

@@ -506,12 +506,203 @@
 }
 
 .charades-play-dock-controls--desktop {
+  display: none;
+}
+
+/* Play screen — single-row footer */
+.charades-page--play-footer .charades-page__body {
+  padding-bottom: calc(4.75rem + var(--safe-bottom));
+}
+
+.charades-play-footer {
+  position: fixed;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  z-index: 100;
   display: flex;
+  align-items: center;
   gap: 0.45rem;
-  align-items: flex-end;
-  flex-wrap: wrap;
-  justify-content: center;
+  padding: 0.65rem calc(var(--space-page) + var(--safe-right)) calc(0.65rem + var(--safe-bottom))
+    calc(var(--space-page) + var(--safe-left));
+  background: linear-gradient(to top, var(--bg-color) 55%, rgba(15, 23, 42, 0.92) 80%, transparent);
+}
+
+.charades-play-footer__backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: -1;
+  border: none;
+  margin: 0;
+  padding: 0;
+  background: transparent;
+  cursor: default;
+  touch-action: none;
+}
+
+.charades-play-footer__filters {
+  display: flex;
+  align-items: center;
+  gap: 0.35rem;
+  min-width: 0;
   flex-shrink: 0;
+}
+
+.charades-play-footer__filter-trigger {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 3rem;
+  height: 3rem;
+  flex-shrink: 0;
+  border-radius: 50%;
+  border: 1px solid var(--border-color);
+  background: var(--panel-bg);
+  color: var(--text-color);
+  cursor: pointer;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.35);
+  transition:
+    border-color 0.15s ease,
+    background 0.15s ease,
+    transform 0.15s ease;
+}
+
+.charades-play-footer__filter-trigger--open {
+  border-color: var(--primary-cyan);
+  background: rgba(6, 182, 212, 0.15);
+  color: var(--primary-cyan);
+}
+
+.charades-play-footer__filter-trigger:active:not(:disabled) {
+  transform: scale(0.98);
+}
+
+.charades-play-footer__expand {
+  display: flex;
+  align-items: center;
+  gap: 0.35rem;
+  max-width: min(52vw, 16rem);
+  overflow-x: auto;
+  overscroll-behavior: contain;
+  -webkit-overflow-scrolling: touch;
+  scrollbar-width: none;
+}
+
+.charades-play-footer__expand::-webkit-scrollbar {
+  display: none;
+}
+
+.charades-play-footer__category,
+.charades-play-footer__option {
+  flex-shrink: 0;
+  min-height: 2.5rem;
+  padding: 0.45rem 0.75rem;
+  border-radius: var(--radius-md);
+  border: 2px solid var(--border-color);
+  background: var(--bg-secondary);
+  color: var(--text-color);
+  font-weight: 700;
+  font-size: 0.9rem;
+  cursor: pointer;
+  white-space: nowrap;
+}
+
+.charades-play-footer__options {
+  display: flex;
+  align-items: center;
+  gap: 0.35rem;
+}
+
+.charades-play-footer__option--easy.charades-play-footer__option--selected,
+.charades-play-footer__option--easy:hover {
+  border-color: #22c55e;
+  background: rgba(34, 197, 94, 0.18);
+  color: #86efac;
+}
+
+.charades-play-footer__option--medium.charades-play-footer__option--selected,
+.charades-play-footer__option--medium:hover {
+  border-color: #eab308;
+  background: rgba(234, 179, 8, 0.18);
+  color: #fde047;
+}
+
+.charades-play-footer__option--hard.charades-play-footer__option--selected,
+.charades-play-footer__option--hard:hover {
+  border-color: #f43f5e;
+  background: rgba(244, 63, 94, 0.18);
+  color: #fda4af;
+}
+
+.charades-play-footer__option--any.charades-play-footer__option--selected,
+.charades-play-footer__option--any:hover {
+  border-color: var(--primary-cyan);
+  background: rgba(6, 182, 212, 0.18);
+  color: var(--primary-cyan);
+}
+
+.charades-play-footer__option--pack.charades-play-footer__option--selected,
+.charades-play-footer__option--pack:hover {
+  border-color: var(--primary-cyan);
+  background: rgba(6, 182, 212, 0.18);
+}
+
+.charades-play-footer__end {
+  flex: 1 1 5.5rem;
+  min-width: 4.75rem;
+  min-height: 3rem;
+  border: none;
+  border-radius: var(--radius-md);
+  background: #dc2626;
+  color: white;
+  font-weight: 700;
+  font-size: 0.95rem;
+  cursor: pointer;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.35);
+}
+
+.charades-play-footer__end:hover:not(:disabled) {
+  background: #b91c1c;
+}
+
+.charades-play-footer__flip {
+  flex: 1 1 5.5rem;
+  min-width: 4.75rem;
+  min-height: 3rem;
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-md);
+  background: #64748b;
+  color: white;
+  font-weight: 700;
+  font-size: 0.95rem;
+  cursor: pointer;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.35);
+}
+
+.charades-play-footer__flip:hover:not(:disabled) {
+  background: #475569;
+}
+
+.charades-play-footer__flip:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.charades-play-footer__done {
+  width: 100%;
+  min-height: 3rem;
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-md);
+  background: #64748b;
+  color: white;
+  font-weight: 700;
+  font-size: 1rem;
+  cursor: pointer;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.35);
+}
+
+.charades-play-footer__done:hover:not(:disabled) {
+  background: #475569;
 }
 
 .charades-fab-dock--play {
@@ -714,12 +905,9 @@
   gap: 0.75rem;
 }
 
-.charades-play .card-face {
+.charades-play .card-flip {
   flex: 1;
   min-height: 0;
-  overflow-y: auto;
-  overscroll-behavior: contain;
-  -webkit-overflow-scrolling: touch;
 }
 
 .charades-action-bar--play {
@@ -918,12 +1106,11 @@
   }
 
   .charades-filters--desktop,
-  .charades-action-bar--desktop,
-  .charades-play-dock-controls--desktop {
+  .charades-action-bar--desktop {
     display: none;
   }
 
-  .charades-fab-dock {
+  .charades-fab-dock--setup {
     display: flex;
     position: fixed;
     left: 0;
@@ -954,15 +1141,16 @@
     gap: 0;
   }
 
-  .charades-page--play-filters.charades-page--fab .charades-page__body {
-    padding-bottom: calc(8.5rem + var(--safe-bottom));
+  .charades-page--play-filters.charades-page--fab .charades-page__body,
+  .charades-page--play-footer .charades-page__body {
+    padding-bottom: calc(4.75rem + var(--safe-bottom));
   }
 
   .charades-play .charades-header {
     min-height: 0;
   }
 
-  .charades-play .card-face {
+  .charades-play .card-flip .card-face {
     padding: 1.25rem 1rem;
   }
 }
@@ -1004,7 +1192,7 @@
     gap: 0.5rem;
   }
 
-  .charades-play .card-face {
+  .charades-play .card-flip .card-face {
     padding: 1rem 0.75rem;
   }
 }

@@ -136,7 +136,7 @@ export function CharadesSetup() {
         </div>
       </div>
 
-      <div className="charades-fab-dock" aria-label="Round actions">
+      <div className="charades-fab-dock charades-fab-dock--setup" aria-label="Round actions">
         <button
           type="button"
           className="charades-fab charades-fab--secondary"

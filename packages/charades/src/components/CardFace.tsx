@@ -90,7 +90,7 @@ function CardBack({
       </p>
       <p className="card-face__cover-sub">
         {awaitingDraw
-          ? 'Open Difficulty below and pick one'
+          ? 'Open filters below and pick a difficulty'
           : canTapReveal
             ? 'Tap to reveal'
             : 'Pass the phone to the actor'}

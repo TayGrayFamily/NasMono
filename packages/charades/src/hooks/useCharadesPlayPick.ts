@@ -93,22 +93,17 @@ export function useCharadesPlayPick(
     return [...enabledPackIds];
   })();
 
-  const persist = useCallback(
-    (choice: DifficultyChoice, packIds: string[]) => {
-      savePlayPick({
-        lastDifficulty: choice === ANY_DIFFICULTY ? undefined : choice,
-        lastPickAll: choice === ANY_DIFFICULTY,
-        lastPackIds: packIds,
-      });
-    },
-    [],
-  );
+  const persist = useCallback((choice: DifficultyChoice, packIds: string[]) => {
+    savePlayPick({
+      lastDifficulty: choice === ANY_DIFFICULTY ? undefined : choice,
+      lastPickAll: choice === ANY_DIFFICULTY,
+      lastPackIds: packIds,
+    });
+  }, []);
 
   const buildPick = useCallback((): NextCardPick => {
     const difficulties =
-      pickDifficulty === null || pickDifficulty === ANY_DIFFICULTY
-        ? []
-        : [pickDifficulty];
+      pickDifficulty === null || pickDifficulty === ANY_DIFFICULTY ? [] : [pickDifficulty];
     return {
       difficulties,
       packIds:

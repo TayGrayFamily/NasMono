@@ -37,8 +37,7 @@ export function CharadesFiltersPanel({
   showPackFilters,
 }: CharadesFiltersPanelProps) {
   const allSelected = isAllDifficultiesSelection(enabledDifficulties, availableDifficulties);
-  const singleSelected =
-    enabledDifficulties.length === 1 ? enabledDifficulties[0] : undefined;
+  const singleSelected = enabledDifficulties.length === 1 ? enabledDifficulties[0] : undefined;
 
   return (
     <div className="charades-filters__body">
@@ -63,7 +62,10 @@ export function CharadesFiltersPanel({
         <h4 className="charades-filters__label">Difficulty</h4>
         <p className="charades-filter-hint">
           Pick one level for the round, or Any for all levels in your selected pack
-          {availableDifficulties.length < ALL_DIFFICULTIES.length ? ' (some levels unavailable)' : ''}.
+          {availableDifficulties.length < ALL_DIFFICULTIES.length
+            ? ' (some levels unavailable)'
+            : ''}
+          .
         </p>
         <div className="charades-difficulty" role="group" aria-label="Difficulty">
           <button

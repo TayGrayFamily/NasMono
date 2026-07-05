@@ -93,9 +93,7 @@ export function CharadesDifficultyPicker({
         onClick={() => onOpenChange(!open)}
       >
         <span className="charades-fab__label">{triggerLabel}</span>
-        <span className="charades-fab__hint">
-          {selected === null ? 'Tap to choose' : 'Change'}
-        </span>
+        <span className="charades-fab__hint">{selected === null ? 'Tap to choose' : 'Change'}</span>
       </button>
     </div>
   );

@@ -1,9 +1,5 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest';
-import {
-  clearPlayPick,
-  initialPickDifficulty,
-  savePlayPick,
-} from './useCharadesPlayPick.js';
+import { clearPlayPick, initialPickDifficulty, savePlayPick } from './useCharadesPlayPick.js';
 import { ANY_DIFFICULTY } from '../lib/difficulties.js';
 
 function mockSessionStorage() {
@@ -57,9 +53,9 @@ describe('useCharadesPlayPick persistence', () => {
 
 describe('initialPickDifficulty', () => {
   it('restores single persisted difficulty', () => {
-    expect(
-      initialPickDifficulty({ lastDifficulty: 'easy' }, ['easy', 'medium', 'hard']),
-    ).toBe('easy');
+    expect(initialPickDifficulty({ lastDifficulty: 'easy' }, ['easy', 'medium', 'hard'])).toBe(
+      'easy',
+    );
   });
 
   it('restores any when lastPickAll is set', () => {

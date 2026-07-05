@@ -1,6 +1,10 @@
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { ANY_DIFFICULTY, formatDifficultySummary, formatPickDifficultyLabel } from '../lib/difficulties.js';
+import {
+  ANY_DIFFICULTY,
+  formatDifficultySummary,
+  formatPickDifficultyLabel,
+} from '../lib/difficulties.js';
 import type { DifficultyChoice } from '../lib/difficulties.js';
 import { CardFace } from './CardFace.js';
 import { CharadesDifficultyPicker } from './CharadesDifficultyPicker.js';
@@ -87,8 +91,7 @@ export function CharadesPlay() {
       selectPickDifficulty(choice);
       pickNextCard({
         difficulties: choice === ANY_DIFFICULTY ? [] : [choice],
-        packIds:
-          showPackPick && pickPackIds.length < enabledPackIds.length ? pickPackIds : [],
+        packIds: showPackPick && pickPackIds.length < enabledPackIds.length ? pickPackIds : [],
       });
       markCardDrawn();
     },

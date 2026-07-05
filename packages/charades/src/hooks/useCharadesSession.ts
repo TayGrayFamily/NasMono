@@ -151,21 +151,24 @@ export function useCharadesSetup() {
     setEnabledDifficulties(difficultiesPresentInCards(mergePackCards([id])));
   }, []);
 
-  const togglePack = useCallback((id: string) => {
-    setSelectedPackIds((prev) => {
-      if (prev.includes(id)) {
-        if (prev.length <= 1) return prev;
-        const next = prev.filter((packId) => packId !== id);
-        setEnabledTypes((types) => types.filter((type) => typesForPackIds(next).includes(type)));
+  const togglePack = useCallback(
+    (id: string) => {
+      setSelectedPackIds((prev) => {
+        if (prev.includes(id)) {
+          if (prev.length <= 1) return prev;
+          const next = prev.filter((packId) => packId !== id);
+          setEnabledTypes((types) => types.filter((type) => typesForPackIds(next).includes(type)));
+          syncDifficultiesForPacks(next);
+          return next;
+        }
+        const next = [...prev, id];
+        setEnabledTypes(typesForPackIds(next));
         syncDifficultiesForPacks(next);
         return next;
-      }
-      const next = [...prev, id];
-      setEnabledTypes(typesForPackIds(next));
-      syncDifficultiesForPacks(next);
-      return next;
-    });
-  }, [syncDifficultiesForPacks]);
+      });
+    },
+    [syncDifficultiesForPacks],
+  );
 
   const handlePackPress = useCallback(
     (id: string) => {

@@ -415,8 +415,19 @@
 
 .charades-difficulty {
   display: grid;
-  grid-template-columns: repeat(3, 1fr);
+  grid-template-columns: repeat(4, minmax(0, 1fr));
   gap: 0.5rem;
+}
+
+.charades-difficulty__btn:disabled {
+  opacity: 0.35;
+  cursor: not-allowed;
+}
+
+.charades-difficulty__btn--all.charades-difficulty__btn--selected {
+  border-color: var(--primary-cyan);
+  background: rgba(6, 182, 212, 0.15);
+  color: var(--primary-cyan);
 }
 
 .charades-difficulty__btn {
@@ -632,6 +643,18 @@
 .charades-difficulty-picker--hard .charades-difficulty-picker__trigger {
   border-color: #f43f5e;
   background: rgba(244, 63, 94, 0.15);
+}
+
+.charades-difficulty-picker--any .charades-difficulty-picker__trigger {
+  border-color: var(--primary-cyan);
+  background: rgba(6, 182, 212, 0.15);
+}
+
+.charades-difficulty-picker__option--any.charades-difficulty-picker__option--selected,
+.charades-difficulty-picker__option--any:hover {
+  border-color: var(--primary-cyan);
+  background: rgba(6, 182, 212, 0.18);
+  color: var(--primary-cyan);
 }
 
 .charades-meta {
@@ -891,7 +914,7 @@
   }
 
   .charades-difficulty {
-    grid-template-columns: repeat(3, minmax(0, 1fr));
+    grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 
   .charades-filters--desktop,

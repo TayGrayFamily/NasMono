@@ -8,6 +8,12 @@ import type {
   NextCardPick,
 } from '../types.js';
 import { ALL_DIFFICULTIES } from '../lib/difficulties.js';
+import {
+  ANY_DIFFICULTY,
+  difficultiesPresentInCards,
+  normalizeDifficultySelection,
+} from '../lib/difficulties.js';
+import type { DifficultyChoice } from '../lib/difficulties.js';
 import { getTypesInPack } from '../lib/cardTypes.js';
 import { ALL_GENERATIONS } from '../lib/generations.js';
 import { getPackById } from '../data/index.js';
@@ -67,11 +73,15 @@ function normalizeSessionConfig(raw: unknown): CharadesSessionConfig | null {
         ? [parsed.packId]
         : [];
   const packIds = normalizePackIds(rawPackIds);
-  const enabledDifficulties = parsed.enabledDifficulties?.length
-    ? parsed.enabledDifficulties
-    : parsed.difficulty
-      ? [parsed.difficulty]
-      : DEFAULT_DIFFICULTIES;
+  const availableDifficulties = difficultiesPresentInCards(mergePackCards(packIds));
+  const enabledDifficulties = normalizeDifficultySelection(
+    parsed.enabledDifficulties?.length
+      ? parsed.enabledDifficulties
+      : parsed.difficulty
+        ? [parsed.difficulty]
+        : DEFAULT_DIFFICULTIES,
+    availableDifficulties.length > 0 ? availableDifficulties : DEFAULT_DIFFICULTIES,
+  );
   if (packIds.length === 0 || enabledDifficulties.length === 0 || !parsed.enabledTypes?.length) {
     return null;
   }
@@ -123,11 +133,22 @@ export function useCharadesSetup() {
 
   const selectedPacks = useMemo(() => getPacksByIds(selectedPackIds), [selectedPackIds]);
   const availableTypes = useMemo(() => typesForPackIds(selectedPackIds), [selectedPackIds]);
+  const mergedCards = useMemo(() => mergePackCards(selectedPackIds), [selectedPackIds]);
+  const availableDifficulties = useMemo(
+    () => difficultiesPresentInCards(mergedCards),
+    [mergedCards],
+  );
+
+  const syncDifficultiesForPacks = useCallback((packIds: string[]) => {
+    const present = difficultiesPresentInCards(mergePackCards(packIds));
+    setEnabledDifficulties((prev) => normalizeDifficultySelection(prev, present));
+  }, []);
 
   const selectPack = useCallback((id: string) => {
     setSelectedPackIds([id]);
     const pack = getPacksByIds([id])[0];
     setEnabledTypes(pack ? getTypesInPack(pack) : []);
+    setEnabledDifficulties(difficultiesPresentInCards(mergePackCards([id])));
   }, []);
 
   const togglePack = useCallback((id: string) => {
@@ -136,13 +157,15 @@ export function useCharadesSetup() {
         if (prev.length <= 1) return prev;
         const next = prev.filter((packId) => packId !== id);
         setEnabledTypes((types) => types.filter((type) => typesForPackIds(next).includes(type)));
+        syncDifficultiesForPacks(next);
         return next;
       }
       const next = [...prev, id];
       setEnabledTypes(typesForPackIds(next));
+      syncDifficultiesForPacks(next);
       return next;
     });
-  }, []);
+  }, [syncDifficultiesForPacks]);
 
   const handlePackPress = useCallback(
     (id: string) => {
@@ -163,8 +186,6 @@ export function useCharadesSetup() {
       });
     }
   }, []);
-
-  const mergedCards = useMemo(() => mergePackCards(selectedPackIds), [selectedPackIds]);
 
   const filteredCount = useMemo(() => {
     if (
@@ -199,15 +220,18 @@ export function useCharadesSetup() {
     return config;
   }, [selectedPackIds, multiPack, enabledDifficulties, enabledGenerations, enabledTypes, canStart]);
 
-  const toggleDifficulty = useCallback((difficulty: Difficulty) => {
-    setEnabledDifficulties((prev) => {
-      if (prev.includes(difficulty)) {
-        if (prev.length <= 1) return prev;
-        return prev.filter((level) => level !== difficulty);
+  const toggleDifficulty = useCallback(
+    (choice: DifficultyChoice) => {
+      if (choice === ANY_DIFFICULTY) {
+        setEnabledDifficulties([...availableDifficulties]);
+        return;
       }
-      return [...prev, difficulty];
-    });
-  }, []);
+      if (availableDifficulties.includes(choice)) {
+        setEnabledDifficulties([choice]);
+      }
+    },
+    [availableDifficulties],
+  );
 
   const toggleGeneration = useCallback((generation: Generation) => {
     setEnabledGenerations((prev) => {
@@ -235,6 +259,7 @@ export function useCharadesSetup() {
     selectedPackIds,
     handlePackPress,
     enabledDifficulties,
+    availableDifficulties,
     toggleDifficulty,
     selectedPacks,
     roundTitle,

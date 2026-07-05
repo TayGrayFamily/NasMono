@@ -16,6 +16,7 @@ export function CharadesSetup() {
     selectedPackIds,
     handlePackPress,
     enabledDifficulties,
+    availableDifficulties,
     toggleDifficulty,
     enabledGenerations,
     toggleGeneration,
@@ -30,14 +31,14 @@ export function CharadesSetup() {
   const showPackFilters = availableTypes.length > 1;
 
   const filterSummary = useMemo(() => {
-    const difficultyLabel = formatDifficultySummary(enabledDifficulties);
+    const difficultyLabel = formatDifficultySummary(enabledDifficulties, availableDifficulties);
     const generationLabel =
       enabledGenerations.length === ALL_GENERATIONS.length
         ? 'All players'
         : enabledGenerations.map((g) => GENERATION_LABELS[g]).join(', ');
     const mixLabel = multiPack ? 'Multi-pack' : 'Single pack';
     return `${mixLabel} · ${difficultyLabel} · ${generationLabel}`;
-  }, [multiPack, enabledDifficulties, enabledGenerations]);
+  }, [multiPack, enabledDifficulties, availableDifficulties, enabledGenerations]);
 
   const handleStart = () => {
     const config = startSession();
@@ -51,7 +52,8 @@ export function CharadesSetup() {
       multiPack={multiPack}
       setMultiPackMode={setMultiPackMode}
       enabledDifficulties={enabledDifficulties}
-      toggleDifficulty={toggleDifficulty}
+      availableDifficulties={availableDifficulties}
+      selectDifficulty={toggleDifficulty}
       enabledGenerations={enabledGenerations}
       toggleGeneration={toggleGeneration}
       availableTypes={availableTypes}

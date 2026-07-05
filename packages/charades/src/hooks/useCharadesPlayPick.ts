@@ -1,11 +1,15 @@
 import { useCallback, useState } from 'react';
 import type { Difficulty } from '../types.js';
+import { ANY_DIFFICULTY, isAllDifficultiesSelection } from '../lib/difficulties.js';
+import type { DifficultyChoice } from '../lib/difficulties.js';
 import type { NextCardPick } from '../types.js';
 
 const PLAY_PICK_KEY = 'charades-play-pick';
 
 export interface PlayPickPersisted {
   lastDifficulty?: Difficulty;
+  lastPickAll?: boolean;
+  /** @deprecated Legacy multi-select — normalized on load. */
   lastDifficulties?: Difficulty[];
   lastPackIds?: string[];
 }
@@ -28,6 +32,7 @@ function loadPlayPick(): PlayPickPersisted {
       : undefined;
     return {
       lastDifficulty,
+      lastPickAll: parsed.lastPickAll === true,
       lastDifficulties,
       lastPackIds: Array.isArray(parsed.lastPackIds)
         ? parsed.lastPackIds.filter((id): id is string => typeof id === 'string' && id.length > 0)
@@ -46,20 +51,25 @@ export function clearPlayPick() {
   sessionStorage.removeItem(PLAY_PICK_KEY);
 }
 
-function initialDifficulties(
+export function initialPickDifficulty(
   persisted: PlayPickPersisted,
   enabledDifficulties: Difficulty[],
-): Difficulty[] {
-  const fromList = persisted.lastDifficulties?.filter((d) => enabledDifficulties.includes(d));
-  if (fromList && fromList.length > 0) return fromList;
-  if (persisted.lastDifficulty && enabledDifficulties.includes(persisted.lastDifficulty)) {
-    return [persisted.lastDifficulty];
+): DifficultyChoice | null {
+  if (persisted.lastPickAll) {
+    return enabledDifficulties.length > 0 ? ANY_DIFFICULTY : null;
   }
-  return [];
+  if (persisted.lastDifficulty && enabledDifficulties.includes(persisted.lastDifficulty)) {
+    return persisted.lastDifficulty;
+  }
+  const fromList = persisted.lastDifficulties?.filter((d) => enabledDifficulties.includes(d));
+  if (!fromList || fromList.length === 0) return null;
+  if (fromList.length === 1) return fromList[0]!;
+  if (isAllDifficultiesSelection(fromList, enabledDifficulties)) return ANY_DIFFICULTY;
+  return ANY_DIFFICULTY;
 }
 
 /**
- * Per-card pick state: difficulty persists between turns; pack/multi-difficulty via Filters sheet.
+ * Per-card pick state: single difficulty or any; pack narrowing via Filters sheet.
  */
 export function useCharadesPlayPick(
   enabledPackIds: string[],
@@ -67,8 +77,8 @@ export function useCharadesPlayPick(
   enabledDifficulties: Difficulty[],
 ) {
   const [persisted] = useState(() => loadPlayPick());
-  const [pickDifficulties, setPickDifficulties] = useState<Difficulty[]>(() =>
-    initialDifficulties(persisted, enabledDifficulties),
+  const [pickDifficulty, setPickDifficulty] = useState<DifficultyChoice | null>(() =>
+    initialPickDifficulty(persisted, enabledDifficulties),
   );
   const [pickPackIds, setPickPackIds] = useState<string[]>(() => {
     const saved = persisted.lastPackIds?.filter((id) => enabledPackIds.includes(id));
@@ -83,21 +93,22 @@ export function useCharadesPlayPick(
     return [...enabledPackIds];
   })();
 
-  const persist = useCallback((difficulties: Difficulty[], packIds: string[]) => {
-    savePlayPick({
-      lastDifficulty: difficulties.length === 1 ? difficulties[0] : undefined,
-      lastDifficulties: difficulties,
-      lastPackIds: packIds,
-    });
-  }, []);
+  const persist = useCallback(
+    (choice: DifficultyChoice, packIds: string[]) => {
+      savePlayPick({
+        lastDifficulty: choice === ANY_DIFFICULTY ? undefined : choice,
+        lastPickAll: choice === ANY_DIFFICULTY,
+        lastPackIds: packIds,
+      });
+    },
+    [],
+  );
 
   const buildPick = useCallback((): NextCardPick => {
     const difficulties =
-      pickDifficulties.length > 0
-        ? pickDifficulties
-        : enabledDifficulties.length > 0
-          ? enabledDifficulties
-          : (['easy'] as Difficulty[]);
+      pickDifficulty === null || pickDifficulty === ANY_DIFFICULTY
+        ? []
+        : [pickDifficulty];
     return {
       difficulties,
       packIds:
@@ -105,7 +116,7 @@ export function useCharadesPlayPick(
           ? effectivePickPackIds
           : [],
     };
-  }, [pickDifficulties, effectivePickPackIds, showPackPick, enabledPackIds, enabledDifficulties]);
+  }, [pickDifficulty, effectivePickPackIds, showPackPick, enabledPackIds]);
 
   const resetForNextTurn = useCallback(() => {
     setCardDrawn(false);
@@ -115,28 +126,10 @@ export function useCharadesPlayPick(
     setCardDrawn(true);
   }, []);
 
-  const setSingleDifficulty = useCallback(
-    (level: Difficulty) => {
-      setPickDifficulties([level]);
-      persist([level], effectivePickPackIds);
-    },
-    [persist, effectivePickPackIds],
-  );
-
-  const togglePickDifficulty = useCallback(
-    (level: Difficulty) => {
-      setPickDifficulties((prev) => {
-        let next: Difficulty[];
-        if (prev.includes(level)) {
-          if (prev.length <= 1) return prev;
-          next = prev.filter((item) => item !== level);
-        } else {
-          next = [...prev, level];
-        }
-        persist(next, effectivePickPackIds);
-        return next;
-      });
-      setCardDrawn(false);
+  const selectPickDifficulty = useCallback(
+    (choice: DifficultyChoice) => {
+      setPickDifficulty(choice);
+      persist(choice, effectivePickPackIds);
     },
     [persist, effectivePickPackIds],
   );
@@ -151,30 +144,33 @@ export function useCharadesPlayPick(
         } else {
           next = [...prev, packId];
         }
-        persist(pickDifficulties, next);
+        if (pickDifficulty !== null) {
+          persist(pickDifficulty, next);
+        }
         return next;
       });
       setCardDrawn(false);
     },
-    [persist, pickDifficulties],
+    [persist, pickDifficulty],
   );
 
   const applyFilters = useCallback(() => {
-    persist(pickDifficulties, effectivePickPackIds);
+    if (pickDifficulty !== null) {
+      persist(pickDifficulty, effectivePickPackIds);
+    }
     return buildPick();
-  }, [persist, pickDifficulties, effectivePickPackIds, buildPick]);
+  }, [persist, pickDifficulty, effectivePickPackIds, buildPick]);
 
   return {
-    pickDifficulties,
+    pickDifficulty,
     pickPackIds: effectivePickPackIds,
-    togglePickDifficulty,
     togglePickPack,
-    setSingleDifficulty,
+    selectPickDifficulty,
     buildPick,
     applyFilters,
     cardDrawn,
     resetForNextTurn,
     markCardDrawn,
-    hasDifficultySelected: pickDifficulties.length > 0,
+    hasDifficultySelected: pickDifficulty !== null,
   };
 }

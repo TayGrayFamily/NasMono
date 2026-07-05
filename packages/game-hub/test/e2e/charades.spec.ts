@@ -23,15 +23,7 @@ async function selectOnlyDifficulty(page: Page, level: 'Easy' | 'Normal' | 'Hard
       '.charades-sheet[role="dialog"] .charades-filters__body, details.charades-filters--desktop[open] .charades-filters__body',
     )
     .first();
-  const levels: Array<'Easy' | 'Normal' | 'Hard'> = ['Easy', 'Normal', 'Hard'];
-  for (const name of levels) {
-    const button = panel.getByRole('button', { name, exact: true });
-    const pressed = await button.getAttribute('aria-pressed');
-    const shouldBeOn = name === level;
-    if ((pressed === 'true') !== shouldBeOn) {
-      await button.click();
-    }
-  }
+  await panel.getByRole('button', { name: level, exact: true }).click();
 }
 
 /** Play screen: open difficulty picker and choose a level to draw a card. */

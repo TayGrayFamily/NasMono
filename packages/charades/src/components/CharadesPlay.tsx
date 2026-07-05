@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import type { Difficulty } from '../types.js';
-import { formatDifficultySummary } from '../lib/difficulties.js';
+import { ANY_DIFFICULTY, formatDifficultySummary, formatPickDifficultyLabel } from '../lib/difficulties.js';
+import type { DifficultyChoice } from '../lib/difficulties.js';
 import { CardFace } from './CardFace.js';
 import { CharadesDifficultyPicker } from './CharadesDifficultyPicker.js';
 import { CharadesPickCardPanel } from './CharadesPickCardPanel.js';
@@ -27,11 +27,10 @@ export function CharadesPlay() {
   const enabledPackIds = config?.packIds ?? [];
 
   const {
-    pickDifficulties,
+    pickDifficulty,
     pickPackIds,
-    togglePickDifficulty,
     togglePickPack,
-    setSingleDifficulty,
+    selectPickDifficulty,
     buildPick,
     applyFilters,
     cardDrawn,
@@ -84,16 +83,17 @@ export function CharadesPlay() {
   }, [isReady, navigate]);
 
   const handleSelectDifficulty = useCallback(
-    (level: Difficulty) => {
-      setSingleDifficulty(level);
+    (choice: DifficultyChoice) => {
+      selectPickDifficulty(choice);
       pickNextCard({
-        difficulties: [level],
-        packIds: showPackPick && pickPackIds.length < enabledPackIds.length ? pickPackIds : [],
+        difficulties: choice === ANY_DIFFICULTY ? [] : [choice],
+        packIds:
+          showPackPick && pickPackIds.length < enabledPackIds.length ? pickPackIds : [],
       });
       markCardDrawn();
     },
     [
-      setSingleDifficulty,
+      selectPickDifficulty,
       pickNextCard,
       showPackPick,
       pickPackIds,
@@ -116,9 +116,8 @@ export function CharadesPlay() {
 
   const filterSummary = useMemo(() => {
     const parts: string[] = [];
-    const enabledCount = config?.enabledDifficulties.length ?? 3;
-    if (pickDifficulties.length > 0 && pickDifficulties.length < enabledCount) {
-      parts.push(formatDifficultySummary(pickDifficulties));
+    if (pickDifficulty !== null && pickDifficulty !== ANY_DIFFICULTY) {
+      parts.push(formatPickDifficultyLabel(pickDifficulty));
     }
     if (showPackPick && pickPackIds.length > 0 && pickPackIds.length < enabledPackIds.length) {
       const names = sessionPacks
@@ -127,14 +126,7 @@ export function CharadesPlay() {
       parts.push(names.join(', '));
     }
     return parts.length > 0 ? parts.join(' · ') : 'All cards';
-  }, [
-    pickDifficulties,
-    pickPackIds,
-    showPackPick,
-    config?.enabledDifficulties,
-    enabledPackIds,
-    sessionPacks,
-  ]);
+  }, [pickDifficulty, pickPackIds, showPackPick, enabledPackIds, sessionPacks]);
 
   if (!isReady || !currentCard || !config) {
     return null;
@@ -170,7 +162,7 @@ export function CharadesPlay() {
         <div className="charades-play-dock-controls charades-play-dock-controls--desktop">
           <CharadesDifficultyPicker
             enabledDifficulties={config.enabledDifficulties}
-            selected={pickDifficulties}
+            selected={pickDifficulty}
             open={difficultyOpen}
             onOpenChange={setDifficultyOpen}
             onSelect={handleSelectDifficulty}
@@ -212,7 +204,7 @@ export function CharadesPlay() {
         <div className="charades-fab-dock__pickers">
           <CharadesDifficultyPicker
             enabledDifficulties={config.enabledDifficulties}
-            selected={pickDifficulties}
+            selected={pickDifficulty}
             open={difficultyOpen}
             onOpenChange={setDifficultyOpen}
             onSelect={handleSelectDifficulty}
@@ -267,9 +259,6 @@ export function CharadesPlay() {
               </button>
             </header>
             <CharadesPickCardPanel
-              enabledDifficulties={config.enabledDifficulties}
-              pickDifficulties={pickDifficulties}
-              togglePickDifficulty={togglePickDifficulty}
               showPackFilters={showPackPick}
               sessionPacks={sessionPacks}
               pickPackIds={pickPackIds}

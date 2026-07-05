@@ -22,7 +22,8 @@ Goals:
 - **Difficulty picker:** one FAB trigger that expands an animated list **upward** from the bottom dock. Selecting an option collapses the list and shows the choice on the trigger (green / yellow / red tint for Easy / Normal / Hard).
 - **First card:** player must open Difficulty and pick a level; that draws a matching card immediately.
 - **Subsequent cards:** last difficulty (and pack filters) persist in `sessionStorage` (`charades-play-pick`); the next card **auto-draws** at that difficulty when the turn advances — no extra tap unless the player changes difficulty.
-- **Filters FAB:** opens a bottom sheet with `CharadesPickCardPanel` — multi-select difficulty and pack (multi-pack rounds). **Apply** redraws the current turn card and closes the sheet.
+- **Filters FAB:** opens a bottom sheet with pack narrowing (multi-pack rounds). **Apply** redraws the current turn card. Difficulty is **not** multi-select in the Filters sheet.
+- **Difficulty model:** one level **or** **Any** (all levels enabled for the round). No subsets like Easy+Hard only. Setup filters disable levels that are not present in the selected pack(s).
 - **Reveal** stays disabled until a card is drawn for the current turn.
 - **Card face** shows “Pick a difficulty first” only before the first draw of a turn; after auto-draw on later turns it shows “Card hidden”.
 

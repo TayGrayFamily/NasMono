@@ -2,16 +2,19 @@ import { useId } from 'react';
 import type { Difficulty } from '../types.js';
 import {
   ALL_DIFFICULTIES,
+  ANY_DIFFICULTY,
+  ANY_DIFFICULTY_LABEL,
   DIFFICULTY_LABELS,
-  formatDifficultySummary,
+  formatPickDifficultyLabel,
 } from '../lib/difficulties.js';
+import type { DifficultyChoice } from '../lib/difficulties.js';
 
 interface CharadesDifficultyPickerProps {
   enabledDifficulties: Difficulty[];
-  selected: Difficulty[];
+  selected: DifficultyChoice | null;
   open: boolean;
   onOpenChange: (open: boolean) => void;
-  onSelect: (level: Difficulty) => void;
+  onSelect: (level: DifficultyChoice) => void;
 }
 
 export function CharadesDifficultyPicker({
@@ -22,18 +25,14 @@ export function CharadesDifficultyPicker({
   onSelect,
 }: CharadesDifficultyPickerProps) {
   const listId = useId();
-  const options = ALL_DIFFICULTIES.filter((level) => enabledDifficulties.includes(level));
-  const primary = selected.length === 1 ? selected[0] : undefined;
-  const triggerLabel =
-    selected.length === 0
-      ? 'Difficulty'
-      : selected.length === 1
-        ? DIFFICULTY_LABELS[selected[0]]
-        : formatDifficultySummary(selected);
+  const levelOptions = ALL_DIFFICULTIES.filter((level) => enabledDifficulties.includes(level));
+  const showAny = enabledDifficulties.length > 1;
+  const primary = selected !== null && selected !== ANY_DIFFICULTY ? selected : undefined;
+  const triggerLabel = formatPickDifficultyLabel(selected);
 
   return (
     <div
-      className={`charades-difficulty-picker ${open ? 'charades-difficulty-picker--open' : ''} ${primary ? `charades-difficulty-picker--${primary}` : ''}`}
+      className={`charades-difficulty-picker ${open ? 'charades-difficulty-picker--open' : ''} ${primary ? `charades-difficulty-picker--${primary}` : ''} ${selected === ANY_DIFFICULTY ? 'charades-difficulty-picker--any' : ''}`}
     >
       {open && (
         <button
@@ -51,8 +50,22 @@ export function CharadesDifficultyPicker({
         aria-label="Difficulty"
         hidden={!open}
       >
-        {options.map((level) => {
-          const isSelected = selected.includes(level);
+        {showAny && (
+          <button
+            type="button"
+            role="option"
+            aria-selected={selected === ANY_DIFFICULTY}
+            className={`charades-difficulty-picker__option charades-difficulty-picker__option--any ${selected === ANY_DIFFICULTY ? 'charades-difficulty-picker__option--selected' : ''}`}
+            onClick={() => {
+              onSelect(ANY_DIFFICULTY);
+              onOpenChange(false);
+            }}
+          >
+            {ANY_DIFFICULTY_LABEL}
+          </button>
+        )}
+        {levelOptions.map((level) => {
+          const isSelected = selected === level;
           return (
             <button
               key={level}
@@ -81,7 +94,7 @@ export function CharadesDifficultyPicker({
       >
         <span className="charades-fab__label">{triggerLabel}</span>
         <span className="charades-fab__hint">
-          {selected.length === 0 ? 'Tap to choose' : 'Change'}
+          {selected === null ? 'Tap to choose' : 'Change'}
         </span>
       </button>
     </div>

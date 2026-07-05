@@ -24,11 +24,16 @@ describe('useCharadesPlayPick persistence', () => {
   });
 
   it('saves last difficulty and pack ids to sessionStorage', () => {
-    savePlayPick({ lastDifficulty: 'hard', lastPackIds: ['animals', 'movies'] });
+    savePlayPick({
+      lastDifficulty: 'hard',
+      lastDifficulties: ['hard'],
+      lastPackIds: ['animals', 'movies'],
+    });
     const raw = sessionStorage.getItem('charades-play-pick');
     expect(raw).toBeTruthy();
     expect(JSON.parse(raw!)).toEqual({
       lastDifficulty: 'hard',
+      lastDifficulties: ['hard'],
       lastPackIds: ['animals', 'movies'],
     });
   });

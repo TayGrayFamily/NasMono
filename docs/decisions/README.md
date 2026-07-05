@@ -33,4 +33,4 @@ Skip ADRs for routine fixes, dependency bumps, and formatting.
 | [0007](./0007-game-hub-lobby-first-roadmap.md)      | Game Hub lobby-first roadmap and product direction         | Accepted | game-hub      |
 | [0008](./0008-docker-updates-via-unraid-graphql.md) | Docker image updates via Unraid GraphQL                    | Accepted | packages/home |
 | [0009](./0009-game-hub-lobby-ux.md)                 | Game Hub lobby UX and presence model                       | Accepted | game-hub      |
-| [0010](./0010-charades-play-filter-fabs.md)         | Charades play-screen filter FABs (pass-and-play)           | Accepted | packages/charades |
+| [0010](./0010-charades-play-filter-fabs.md)         | Charades play-screen difficulty picker + filters sheet     | Accepted | packages/charades |

@@ -1,67 +1,69 @@
-# ADR-0010: Charades play-screen filter FABs
+# ADR-0010: Charades play-screen card filters
 
-- **Status:** Accepted
+- **Status:** Accepted (amended 2026-07-05)
 - **Date:** 2026-07-04
 - **Scope:** packages/charades, game-hub
 
 ## Context
 
-Solo / pass-and-play Charades asks each actor to pick a difficulty before revealing their card. The previous **Pick card** bottom sheet hid filters behind an extra tap and menu affordance. Playtest feedback: players passing the phone found it frustrating to get a specific difficulty (especially on mobile).
+Solo / pass-and-play Charades asks each actor to pick a difficulty before revealing their card. The original **Pick card** bottom sheet hid filters behind an extra tap. A follow-up replaced it with always-visible difficulty FABs, but that removed **pack** and **multi-difficulty** narrowing on the play screen.
 
 Goals:
 
 - Obvious, tappable controls for all ages — no tutorial
-- Filters visible on every turn, including the **first card**
-- Persist last choices between turns so the next player sees a hint
-- Reveal disabled until a difficulty is chosen for the current turn
+- **Persist difficulty** between cards so repeat players are not forced to re-tap every turn
+- Restore **Filters** sheet for pack and multi-difficulty (round setup filters stay separate)
+- Reveal disabled until a card is drawn for the current turn
 
 ## Decision
 
 ### Play screen UX
 
-- Replace the **Pick card** sheet with **always-visible filter floating action buttons (FABs)** above the primary dock on mobile (in-flow on desktop).
-- **One difficulty per draw:** tapping Easy, Normal, or Hard immediately draws a matching card and highlights that FAB (green / yellow / red).
-- **Reveal** stays disabled until a difficulty FAB is tapped for the current turn — even on the first card.
-- **Card face** shows “Pick a difficulty first” until draw; prompt text mirrors the FAB labels.
-- **Pack FABs** (multi-pack rounds only) toggle which packs the next draw can come from; changing packs resets the turn so difficulty must be tapped again.
-- **Persist** `lastDifficulty` and `lastPackIds` in `sessionStorage` (`charades-play-pick`); dashed outline on the last-used difficulty as a non-binding hint.
+- **Difficulty picker:** one FAB trigger that expands an animated list **upward** from the bottom dock. Selecting an option collapses the list and shows the choice on the trigger (green / yellow / red tint for Easy / Normal / Hard).
+- **First card:** player must open Difficulty and pick a level; that draws a matching card immediately.
+- **Subsequent cards:** last difficulty (and pack filters) persist in `sessionStorage` (`charades-play-pick`); the next card **auto-draws** at that difficulty when the turn advances — no extra tap unless the player changes difficulty.
+- **Filters FAB:** opens a bottom sheet with `CharadesPickCardPanel` — multi-select difficulty and pack (multi-pack rounds). **Apply** redraws the current turn card and closes the sheet.
+- **Reveal** stays disabled until a card is drawn for the current turn.
+- **Card face** shows “Pick a difficulty first” only before the first draw of a turn; after auto-draw on later turns it shows “Card hidden”.
 
 ### Accessibility and clarity
 
-- Prefer **visible FABs** over hidden menus, `<details>`, or sheet-only flows for pass-and-play filters — larger touch targets, no discoverability step, `aria-pressed` on toggles.
-- Setup screen keeps its Filters sheet for round-wide settings (generations, card types, multi-pack); play screen handles **per-card** difficulty only.
+- Difficulty trigger uses `aria-expanded`, `aria-haspopup="listbox"`, options use `role="option"`.
+- Prefer a **visible Difficulty control** over hidden menus for the primary per-turn choice; secondary narrowing lives in the Filters sheet.
+- Setup screen keeps its Filters sheet for round-wide settings (generations, card types, multi-pack).
 
 ### Setup screen
 
-- Unchanged: round filters remain in the setup Filters FAB / desktop `<details>` — those define the card pool; play FABs narrow **this** card.
+- Unchanged: round filters remain in the setup Filters FAB / desktop `<details>` — those define the card pool; play filters narrow **this** card.
 
 ## Alternatives considered
 
-- **Keep Pick card sheet** — rejected; hidden behind extra tap, poor for pass-and-play.
-- **Multi-select difficulty FABs per draw** — rejected; single difficulty per turn is easier to explain (“tap how hard you want it”).
-- **Auto-reveal last difficulty without a tap** — rejected; each actor must consciously choose before seeing the card.
+- **Keep three difficulty FABs always visible** — rejected; crowded on mobile and no room for pack filters without a second row.
+- **Auto-reveal without any first-tap** — rejected for the first card; each session should start with a conscious difficulty choice.
+- **Hide pack filters entirely on play** — rejected; multi-pack rounds need per-card pack narrowing.
 
 ## Consequences
 
 **Good:**
 
-- Filters are always visible during play; no sheet to discover
-- Reveal gating prevents accidental peek before difficulty is chosen
-- Persisted hint speeds repeat players without skipping the tap
+- Difficulty persists across turns with automatic redraw
+- Pack and multi-difficulty filters restored without sacrificing a simple primary control
+- Animated expand/collapse keeps the dock compact
 
 **Bad / tradeoffs:**
 
-- More vertical space on small phones (fixed filter bar above dock)
-- `CharadesPickCardPanel` is unused on play (kept for now; can delete later)
-- Desktop and mobile share one filter component with responsive positioning
+- Two controls (Difficulty + Filters) to learn, mitigated by hint text on each FAB
+- Filters sheet changes reset `cardDrawn` until Apply — player must tap Apply to redraw
+- Desktop and mobile share one picker with responsive positioning
 
 **Follow-ups:**
 
 - Optional curator mode for Giphy pins (separate backlog)
-- Consider quick difficulty FABs on setup if setup filters sheet remains confusing
 
 ## Links
 
-- Play filter component: `packages/charades/src/components/CharadesPlayFilterFabs.tsx`
+- Difficulty picker: `packages/charades/src/components/CharadesDifficultyPicker.tsx`
+- Play screen: `packages/charades/src/components/CharadesPlay.tsx`
+- Filters panel: `packages/charades/src/components/CharadesPickCardPanel.tsx`
 - Persistence hook: `packages/charades/src/hooks/useCharadesPlayPick.ts`
 - E2E: `packages/game-hub/test/e2e/charades.spec.ts`

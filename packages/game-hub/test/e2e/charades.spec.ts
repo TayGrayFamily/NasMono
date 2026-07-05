@@ -28,9 +28,14 @@ async function selectOnlyDifficulty(page: Page, level: 'Easy' | 'Normal' | 'Hard
   }
 }
 
-/** Play screen: tap a difficulty FAB to draw a card for this turn. */
+/** Play screen: open difficulty picker and choose a level to draw a card. */
 async function drawCardAtDifficulty(page: Page, level: 'Easy' | 'Normal' | 'Hard') {
-  await page.getByRole('button', { name: `Draw ${level} card` }).click();
+  const trigger = page.locator('.charades-difficulty-picker__trigger').locator('visible=true');
+  await trigger.click();
+  await page
+    .locator('.charades-difficulty-picker--open')
+    .getByRole('option', { name: level, exact: true })
+    .click();
 }
 
 test.describe('Charades solo play', () => {
@@ -58,7 +63,8 @@ test.describe('Charades solo play', () => {
     await expect(page.getByText('Word', { exact: true })).toBeVisible();
 
     await page.getByRole('button', { name: 'Next card' }).click();
-    await expect(page.getByText('Pick a difficulty first')).toBeVisible();
+    await expect(page.getByText('Card hidden')).toBeVisible();
+    await expect(reveal).toBeEnabled();
   });
 
   test('movies pack can disable actors and still start', async ({ page }) => {
@@ -160,13 +166,13 @@ test.describe('Charades solo play', () => {
     await expect(page.getByRole('heading', { name: 'Mixed · 2 packs' })).toBeVisible();
   });
 
-  test('play filter FABs draw card by difficulty', async ({ page }) => {
+  test('play difficulty picker draws card by level', async ({ page }) => {
     await page.goto('/play/charades');
     await page.getByRole('button', { name: 'Animals' }).click();
     await page.getByRole('button', { name: /^Start/ }).click();
     await page.waitForURL('**/play/charades/game');
 
-    await expect(page.getByText('Tap Easy, Normal, or Hard to draw your card')).toBeVisible();
+    await expect(page.getByText('Choose a difficulty below, then reveal your card')).toBeVisible();
     await drawCardAtDifficulty(page, 'Hard');
     await page.getByRole('button', { name: 'Reveal', exact: true }).click();
     await expect(page.locator('.card-face--revealed.card-face--difficulty-hard')).toBeVisible();
@@ -196,7 +202,9 @@ test.describe('Charades solo play', () => {
       .getByRole('button', { name: 'End round', exact: true });
     await expect(reveal).toBeVisible();
     await expect(reveal).toBeDisabled();
-    await expect(page.getByRole('button', { name: 'Draw Easy card' })).toBeVisible();
+    await expect(
+      page.locator('.charades-fab-dock .charades-difficulty-picker__trigger'),
+    ).toBeVisible();
     await expect(endRound).toBeVisible();
 
     const endRoundBox = await endRound.boundingBox();

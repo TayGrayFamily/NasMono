@@ -33,13 +33,13 @@ Client-side charades card picker for Game Hub.
 
 Cards may include a `generations` array (who is likely to know the reference) and optional reveal extras:
 
-| Field                     | Purpose                                                                    |
-| ------------------------- | -------------------------------------------------------------------------- |
-| `context`                 | Source or background (film, era) — **Context** chip                        |
-| `guessHint`               | Softer nudge for stuck guessers — **Hint** chip                            |
-| `definition`              | Short definition for terms/places — **Definition** chip                    |
-| `emoji`                   | Quick visual on the card face                                              |
-| `imageUrl`                | Bundled static image                                                       |
+| Field                     | Purpose                                                                            |
+| ------------------------- | ---------------------------------------------------------------------------------- |
+| `context`                 | Source or background (film, era) — **Context** chip                                |
+| `guessHint`               | Softer nudge for stuck guessers — **Hint** chip                                    |
+| `definition`              | Short definition for terms/places — **Definition** chip                            |
+| `emoji`                   | Quick visual on the card face                                                      |
+| `imageUrl`                | Bundled static image                                                               |
 | `giphyId` / `imageSearch` | Loads an animated GIF from Giphy when `VITE_GIPHY_API_KEY` is set — **Image** chip |
 
 ### Giphy images

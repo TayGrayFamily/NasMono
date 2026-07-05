@@ -48,9 +48,7 @@ export function CardFace({ card, revealed, awaitingDraw = false }: CardFaceProps
             {awaitingDraw ? 'Pick a difficulty first' : 'Card hidden'}
           </p>
           <p className="card-face__cover-sub">
-            {awaitingDraw
-              ? 'Tap Easy, Normal, or Hard below'
-              : 'Pass the phone to the actor'}
+            {awaitingDraw ? 'Open Difficulty below and pick one' : 'Pass the phone to the actor'}
           </p>
         </div>
       )}

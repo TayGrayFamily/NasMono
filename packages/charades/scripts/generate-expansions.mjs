@@ -100,7 +100,13 @@ function buildCards({
     if (imageSearch) {
       extra.imageSearch = imageSearch;
     }
-    return [`${prefix}${pad(start + index)}`, normalized.text, normalized.type ?? type, difficulty, extra];
+    return [
+      `${prefix}${pad(start + index)}`,
+      normalized.text,
+      normalized.type ?? type,
+      difficulty,
+      extra,
+    ];
   });
 }
 
@@ -119,7 +125,13 @@ const movieTitles = [
   ['mov-t-029', 'Harry Potter', 'title', 4, { imageSearch: 'harry potter movie' }],
   ['mov-t-030', 'The Hunger Games', 'title', 5, { imageSearch: 'hunger games movie' }],
   ['mov-t-031', 'Twilight', 'title', 4, { imageSearch: 'twilight movie' }],
-  ['mov-t-032', 'The Lord of the Rings', 'title', 6, { imageSearch: 'lord of the rings fellowship' }],
+  [
+    'mov-t-032',
+    'The Lord of the Rings',
+    'title',
+    6,
+    { imageSearch: 'lord of the rings fellowship' },
+  ],
   ['mov-t-033', 'The Hobbit', 'title', 5, { imageSearch: 'the hobbit movie' }],
   ['mov-t-034', 'Pirates of the Caribbean', 'title', 5, { imageSearch: 'pirates caribbean' }],
   ['mov-t-035', 'Indiana Jones', 'title', 5, { imageSearch: 'indiana jones' }],
@@ -130,10 +142,22 @@ const movieTitles = [
   ['mov-t-040', 'Gremlins', 'title', 5, { imageSearch: 'gremlins movie' }],
   ['mov-t-041', 'Beetlejuice', 'title', 5, { imageSearch: 'beetlejuice movie' }],
   ['mov-t-042', 'Edward Scissorhands', 'title', 6, { imageSearch: 'edward scissorhands' }],
-  ['mov-t-043', 'The Nightmare Before Christmas', 'title', 5, { imageSearch: 'nightmare before christmas' }],
+  [
+    'mov-t-043',
+    'The Nightmare Before Christmas',
+    'title',
+    5,
+    { imageSearch: 'nightmare before christmas' },
+  ],
   ['mov-t-044', 'Coraline', 'title', 5, { imageSearch: 'coraline movie' }],
   ['mov-t-045', 'Kung Fu Panda', 'title', 4, { imageSearch: 'kung fu panda' }],
-  ['mov-t-046', 'How to Train Your Dragon', 'title', 5, { imageSearch: 'how to train your dragon' }],
+  [
+    'mov-t-046',
+    'How to Train Your Dragon',
+    'title',
+    5,
+    { imageSearch: 'how to train your dragon' },
+  ],
   ['mov-t-047', 'Madagascar', 'title', 4, { imageSearch: 'madagascar movie' }],
   ['mov-t-048', 'Ice Age', 'title', 4, { imageSearch: 'ice age movie' }],
   ['mov-t-049', 'Despicable Me', 'title', 4, { imageSearch: 'despicable me minions' }],
@@ -192,7 +216,13 @@ const movieTitles = [
   ['mov-t-102', 'Men in Black', 'title', 5, { imageSearch: 'men in black movie' }],
   ['mov-t-103', 'Independence Day', 'title', 6, { imageSearch: 'independence day movie' }],
   ['mov-t-104', 'War of the Worlds', 'title', 7, { imageSearch: 'war of the worlds movie' }],
-  ['mov-t-105', 'Close Encounters of the Third Kind', 'title', 8, { imageSearch: 'close encounters third kind' }],
+  [
+    'mov-t-105',
+    'Close Encounters of the Third Kind',
+    'title',
+    8,
+    { imageSearch: 'close encounters third kind' },
+  ],
   ['mov-t-106', 'E.T. the Extra-Terrestrial', 'title', 5, { imageSearch: 'et extra terrestrial' }],
   ['mov-t-107', 'Jurassic World', 'title', 5, { imageSearch: 'jurassic world' }],
   ['mov-t-108', 'King Kong', 'title', 6, { imageSearch: 'king kong movie' }],
@@ -207,7 +237,13 @@ const movieTitles = [
   ['mov-t-117', 'Knives Out', 'title', 6, { imageSearch: 'knives out movie' }],
   ['mov-t-118', 'Glass Onion', 'title', 6, { imageSearch: 'glass onion movie' }],
   ['mov-t-119', 'Clue', 'title', 7, { imageSearch: 'clue movie 1985' }],
-  ['mov-t-120', 'Murder on the Orient Express', 'title', 7, { imageSearch: 'murder orient express' }],
+  [
+    'mov-t-120',
+    'Murder on the Orient Express',
+    'title',
+    7,
+    { imageSearch: 'murder orient express' },
+  ],
   ['mov-t-121', 'Se7en', 'title', 7, { imageSearch: 'se7en movie' }],
   ['mov-t-122', 'Fight Club', 'title', 7, { imageSearch: 'fight club movie' }],
   ['mov-t-123', 'The Shawshank Redemption', 'title', 7, { imageSearch: 'shawshank redemption' }],
@@ -345,7 +381,10 @@ const movieQuotes = buildCards({
     { text: 'Oh yes, the past can hurt.', context: 'The Lion King' },
     { text: 'I know kung fu.', context: 'The Matrix' },
     { text: "I'm gonna make him an offer he can't refuse.", context: 'The Godfather' },
-    { text: 'Just when I thought I was out, they pull me back in.', context: 'The Godfather Part III' },
+    {
+      text: 'Just when I thought I was out, they pull me back in.',
+      context: 'The Godfather Part III',
+    },
     { text: 'I see you.', context: 'Avatar' },
     { text: 'Choose life.', context: 'Trainspotting' },
     { text: "You're killing me, Smalls!", context: 'The Sandlot' },
@@ -361,7 +400,10 @@ const movieQuotes = buildCards({
     { text: 'I love the smell of napalm in the morning.', context: 'Apocalypse Now' },
     { text: 'We accept the love we think we deserve.', context: 'The Perks of Being a Wallflower' },
     { text: 'Life finds a way.', context: 'Jurassic Park' },
-    { text: 'Nobody leaves this place without singing the blues.', context: 'O Brother, Where Art Thou?' },
+    {
+      text: 'Nobody leaves this place without singing the blues.',
+      context: 'O Brother, Where Art Thou?',
+    },
     { text: 'On your left.', context: 'Captain America: The Winter Soldier' },
     { text: 'I could do this all day.', context: 'Captain America: The First Avenger' },
     { text: 'I am vengeance.', context: 'The Batman' },

@@ -166,7 +166,7 @@ test.describe('Charades solo play', () => {
 
     await page.getByRole('button', { name: 'Animals' }).click();
     await page.getByRole('button', { name: /^Movies/ }).click();
-    await expect(page.getByText(/\d+ cards in this round · 2 packs/)).toBeVisible();
+    await expect(page.getByText(/\d+ cards in this round.*2 packs/)).toBeVisible();
 
     await page.getByRole('button', { name: /^Start/ }).click();
     await page.waitForURL('**/play/charades/game');
@@ -184,7 +184,8 @@ test.describe('Charades solo play', () => {
     ).toBeVisible();
     await drawCardAtDifficulty(page, 'Hard');
     await page.getByRole('button', { name: 'Flip card', exact: true }).click();
-    await expect(page.locator('.card-flip--revealed.card-flip--difficulty-hard')).toBeVisible();
+    await expect(page.locator('.card-flip--revealed.card-flip--difficulty-level')).toBeVisible();
+    await expect(page.locator('.card-face__difficulty')).toHaveText(/^(7|8|9|10)$/);
   });
 
   test('tap card back reveals without filter controls visible', async ({ page }) => {

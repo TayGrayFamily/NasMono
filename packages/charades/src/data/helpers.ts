@@ -1,4 +1,4 @@
-import type { CardType, CharadesCard, Difficulty } from '../types.js';
+import type { CardType, CharadesCard, DifficultyLevel } from '../types.js';
 
 type CardExtras = Pick<
   CharadesCard,
@@ -19,7 +19,7 @@ export function card(
   id: string,
   text: string,
   type: CardType,
-  difficulty: Difficulty,
+  difficulty: DifficultyLevel,
   extra?: CardExtras,
 ): CharadesCard {
   return { id, text, type, difficulty, ...extra };

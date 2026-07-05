@@ -9,7 +9,7 @@ import {
 
 describe('revealExtras', () => {
   it('falls back to actHint as context', () => {
-    const sample = card('q-1', 'Hello there', 'quote', 'easy', { actHint: 'Star Wars' });
+    const sample = card('q-1', 'Hello there', 'quote', 3, { actHint: 'Star Wars' });
     expect(getCardContext(sample)).toBe('Star Wars');
     expect(getAvailableRevealExtras(sample)).toContain('context');
     expect(getCardImageSearch(sample)).toBe('Star Wars');
@@ -17,7 +17,7 @@ describe('revealExtras', () => {
   });
 
   it('lists optional reveal chips when data is present', () => {
-    const sample = card('t-1', 'Frozen', 'title', 'easy', {
+    const sample = card('t-1', 'Frozen', 'title', 3, {
       context: 'Disney, 2013',
       guessHint: 'Ice powers',
       definition: 'To freeze water',
@@ -35,31 +35,29 @@ describe('revealExtras', () => {
   });
 
   it('infers image search for actors and titles', () => {
-    expect(getCardImageSearch(card('a-1', 'Tom Hanks', 'actor', 'easy'))).toBe('Tom Hanks actor');
-    expect(getCardImageSearch(card('t-1', 'Jurassic Park', 'title', 'medium'))).toBe(
-      'Jurassic Park',
-    );
+    expect(getCardImageSearch(card('a-1', 'Tom Hanks', 'actor', 3))).toBe('Tom Hanks actor');
+    expect(getCardImageSearch(card('t-1', 'Jurassic Park', 'title', 6))).toBe('Jurassic Park');
   });
 
   it('infers image search for characters using source material', () => {
-    expect(
-      getCardImageSearch(card('c-1', 'Woody', 'character', 'easy', { context: 'Toy Story' })),
-    ).toBe('Woody Toy Story');
+    expect(getCardImageSearch(card('c-1', 'Woody', 'character', 3, { context: 'Toy Story' }))).toBe(
+      'Woody Toy Story',
+    );
     expect(
       getCardImageSearch(
-        card('c-3', 'Madoka Kaname', 'character', 'hard', {
+        card('c-3', 'Madoka Kaname', 'character', 9, {
           context: 'Puella Magi Madoka Magica',
           packId: 'anime',
         }),
       ),
     ).toBe('Madoka Kaname Madoka Magica');
-    expect(getCardImageSearch(card('c-2', 'Goku', 'person', 'easy'))).toBe('Goku');
+    expect(getCardImageSearch(card('c-2', 'Goku', 'person', 3))).toBe('Goku');
   });
 
   it('prefers explicit imageSearch over inference', () => {
     expect(
       getCardImageSearch(
-        card('c-1', 'Elsa', 'character', 'easy', {
+        card('c-1', 'Elsa', 'character', 3, {
           context: 'Frozen',
           imageSearch: 'elsa frozen disney',
         }),
@@ -68,7 +66,7 @@ describe('revealExtras', () => {
   });
 
   it('does not infer images for word cards', () => {
-    const sample = card('w-1', 'Elephant', 'word', 'easy');
+    const sample = card('w-1', 'Elephant', 'word', 2);
     expect(getCardImageSearch(sample)).toBeUndefined();
     expect(cardHasImageSource(sample)).toBe(false);
   });

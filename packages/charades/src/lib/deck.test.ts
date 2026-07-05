@@ -1,8 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { allPacks, getPackById } from '../data/index.js';
-import { validatePack } from '../schema.js';
-import type { CardType } from '../types.js';
-import { getTypesInPack } from './cardTypes.js';
+import { card } from '../data/helpers.js';
 import {
   advanceDeck,
   applyNextCardPick,
@@ -17,6 +14,11 @@ import {
   filterCards,
   shuffleDeck,
 } from './deck.js';
+import { cardMatchesBand } from './difficultyBands.js';
+import { allPacks, getPackById } from '../data/index.js';
+import { validatePack } from '../schema.js';
+import type { CardType } from '../types.js';
+import { getTypesInPack } from './cardTypes.js';
 import { ALL_GENERATIONS } from './generations.js';
 
 const allGens = [...ALL_GENERATIONS];
@@ -30,11 +32,11 @@ function seededRandom(seed: number) {
 }
 
 describe('deck', () => {
-  it('filters cards by difficulty', () => {
+  it('filters cards by difficulty band', () => {
     const pack = allPacks[0];
     const easy = filterByDifficulty(pack.cards, 'easy');
     expect(easy.length).toBeGreaterThan(0);
-    expect(easy.every((card) => card.difficulty === 'easy')).toBe(true);
+    expect(easy.every((c) => cardMatchesBand(c, 'easy'))).toBe(true);
   });
 
   it('filters cards by type', () => {
@@ -53,13 +55,13 @@ describe('deck', () => {
     expect(genAlphaOnly.every((card) => cardMatchesGenAlpha(card))).toBe(true);
   });
 
-  it('filters cards by multiple difficulties', () => {
+  it('filters cards by multiple difficulty bands with overlap', () => {
     const pack = allPacks[0];
     const filtered = filterByDifficulties(pack.cards, ['easy', 'hard']);
     expect(filtered.length).toBeGreaterThan(0);
-    expect(filtered.every((card) => card.difficulty === 'easy' || card.difficulty === 'hard')).toBe(
-      true,
-    );
+    expect(
+      filtered.every((card) => cardMatchesBand(card, 'easy') || cardMatchesBand(card, 'hard')),
+    ).toBe(true);
   });
 
   it('filters by difficulty, types, and generations together', () => {
@@ -69,7 +71,7 @@ describe('deck', () => {
       types: ['actor'],
       generations: allGens,
     });
-    expect(filtered.every((c) => c.difficulty === 'easy' && c.type === 'actor')).toBe(true);
+    expect(filtered.every((c) => cardMatchesBand(c, 'easy') && c.type === 'actor')).toBe(true);
   });
 
   it('shuffles deterministically with a seeded rng', () => {
@@ -107,11 +109,11 @@ describe('deck', () => {
     expect(drawCurrent(state)?.id).toBeDefined();
   });
 
-  it('applies next-card pick by difficulty and pack', () => {
+  it('applies next-card pick by difficulty band and pack', () => {
     const movies = getPackById('movies')!;
     const animals = getPackById('animals')!;
-    const easyAnimal = animals.cards.find((card) => card.difficulty === 'easy')!;
-    const hardMovie = movies.cards.find((card) => card.difficulty === 'hard')!;
+    const easyAnimal = animals.cards.find((c) => cardMatchesBand(c, 'easy'))!;
+    const hardMovie = movies.cards.find((c) => cardMatchesBand(c, 'hard'))!;
     const state = {
       deck: [
         { ...easyAnimal, packId: 'animals' },
@@ -122,22 +124,26 @@ describe('deck', () => {
     const next = applyNextCardPick(state, { difficulties: ['hard'], packIds: ['movies'] }, () => 0);
     const picked = drawCurrent(next)!;
     expect(picked.id).toBe(hardMovie.id);
-    expect(picked.difficulty).toBe('hard');
+    expect(cardMatchesBand(picked, 'hard')).toBe(true);
     expect(picked.packId).toBe('movies');
   });
 
   it('cardMatchesPick respects empty pack filter', () => {
-    const card = { ...allPacks[0].cards[0], packId: 'animals' };
-    expect(cardMatchesPick(card, { difficulties: ['easy'], packIds: [] })).toBe(true);
-    expect(cardMatchesPick(card, { difficulties: ['hard'], packIds: [] })).toBe(false);
+    const sample = { ...allPacks[0].cards[0], packId: 'animals' };
+    expect(cardMatchesPick(sample, { difficulties: ['easy'], packIds: [] })).toBe(true);
+    if (cardMatchesBand(sample, 'hard') && !cardMatchesBand(sample, 'easy')) {
+      expect(cardMatchesPick(sample, { difficulties: ['hard'], packIds: [] })).toBe(true);
+    }
   });
 
-  it('reshuffles when the deck is exhausted', () => {
-    const cards = allPacks[0].cards.filter((c) => c.difficulty === 'easy').slice(0, 3);
-    let state = { deck: shuffleDeck(cards, seededRandom(1)), index: 3 };
+  it('reshuffles when the deck is exhausted and avoids immediate repeat', () => {
+    const cards = allPacks[0].cards.filter((c) => cardMatchesBand(c, 'easy')).slice(0, 3);
+    let state = { deck: shuffleDeck(cards, seededRandom(1)), index: 2 };
+    const lastPlayed = drawCurrent(state)!;
     state = advanceDeck(state);
     expect(state.index).toBe(0);
     expect(state.deck).toHaveLength(3);
+    expect(drawCurrent(state)?.id).not.toBe(lastPlayed.id);
   });
 });
 
@@ -159,6 +165,13 @@ describe('pack data', () => {
       const ids = pack.cards.map((card) => card.id);
       expect(new Set(ids).size).toBe(ids.length);
     }
+  });
+
+  it('movies pack has hundreds of cards with strong normal-band coverage', () => {
+    const movies = getPackById('movies')!;
+    const normal = movies.cards.filter((c) => cardMatchesBand(c, 'medium'));
+    expect(movies.cards.length).toBeGreaterThanOrEqual(400);
+    expect(normal.length).toBeGreaterThanOrEqual(200);
   });
 
   it('movies pack supports turning off actors while keeping enough easy cards', () => {

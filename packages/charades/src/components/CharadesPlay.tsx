@@ -19,6 +19,7 @@ export function CharadesPlay() {
     reveal,
     nextCard,
     pickNextCard,
+    remainingCount,
     isReady,
   } = useCharadesPlay();
 
@@ -154,6 +155,7 @@ export function CharadesPlay() {
         onFlipCard={handleFlipCard}
         onDone={handleNextCard}
         onEndRound={handleEndRound}
+        remainingCount={remainingCount}
       />
     </div>
   );

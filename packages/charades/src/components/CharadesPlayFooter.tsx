@@ -23,6 +23,7 @@ interface CharadesPlayFooterProps {
   onFlipCard: () => void;
   onDone: () => void;
   onEndRound: () => void;
+  remainingCount: number;
 }
 
 function FilterIcon() {
@@ -55,6 +56,7 @@ export function CharadesPlayFooter({
   onFlipCard,
   onDone,
   onEndRound,
+  remainingCount,
 }: CharadesPlayFooterProps) {
   const listId = useId();
   const [filtersOpen, setFiltersOpen] = useState(false);
@@ -199,6 +201,9 @@ export function CharadesPlayFooter({
       <button type="button" className="charades-play-footer__end" onClick={onEndRound}>
         End round
       </button>
+      <span className="charades-play-footer__remaining" aria-live="polite">
+        {remainingCount} left
+      </span>
 
       <button
         type="button"

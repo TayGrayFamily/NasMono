@@ -1,6 +1,14 @@
 export type CardType = 'word' | 'term' | 'quote' | 'person' | 'title' | 'character' | 'actor';
 
-export type Difficulty = 'easy' | 'medium' | 'hard';
+/** Numeric card difficulty on a 1–10 scale. UI bands map via `difficultyBands.ts`. */
+export type DifficultyLevel = number;
+
+export type { DifficultyBand } from './lib/difficultyBands.js';
+
+import type { DifficultyBand } from './lib/difficultyBands.js';
+
+/** Session/play filter band — labeled Easy / Normal / Hard in the UI. */
+export type Difficulty = DifficultyBand;
 
 export type Generation = 'gen-alpha' | 'gen-z' | 'millennial' | 'gen-x-plus';
 
@@ -10,7 +18,7 @@ export interface CharadesCard {
   id: string;
   text: string;
   type: CardType;
-  difficulty: Difficulty;
+  difficulty: DifficultyLevel;
   /** Set when packs are merged at runtime — used for next-card pack filters. */
   packId?: string;
   /** Optional clue on the revealed card (legacy — prefer `context` for source material). */

@@ -1,4 +1,5 @@
 import type { CharadesCard, CharadesPack, Generation } from '../types.js';
+import { cardMatchesBand } from './difficultyBands.js';
 
 export const ALL_GENERATIONS = [
   'gen-alpha',
@@ -42,21 +43,21 @@ export function inferCardGenerations(card: CharadesCard, packId: string): Genera
   if (UNIVERSAL_PACK_IDS.has(packId)) return undefined;
 
   if (packId === 'disney' || packId === 'nintendo-games') {
-    if (card.difficulty === 'hard') return ['gen-z', 'millennial', 'gen-x-plus'];
+    if (card.difficulty >= 8) return ['gen-z', 'millennial', 'gen-x-plus'];
     return [...ALL_GENERATIONS];
   }
 
   if (packId === 'anime' || packId === 'video-game-characters') {
-    if (card.difficulty === 'hard') return ['gen-alpha', 'gen-z', 'millennial'];
+    if (card.difficulty >= 8) return ['gen-alpha', 'gen-z', 'millennial'];
     return [...ALL_GENERATIONS];
   }
 
-  if (card.type === 'actor' && card.difficulty === 'hard') {
+  if (card.type === 'actor' && card.difficulty >= 8) {
     return ['millennial', 'gen-x-plus'];
   }
 
-  if (card.difficulty === 'easy') return [...ALL_GENERATIONS];
-  if (card.difficulty === 'medium') return ['gen-alpha', 'gen-z', 'millennial', 'gen-x-plus'];
+  if (cardMatchesBand(card, 'easy')) return [...ALL_GENERATIONS];
+  if (card.difficulty <= 7) return ['gen-alpha', 'gen-z', 'millennial', 'gen-x-plus'];
 
   return ['millennial', 'gen-x-plus'];
 }

@@ -1,5 +1,7 @@
+import type { CSSProperties } from 'react';
 import type { CharadesCard } from '../types.js';
 import { CARD_TYPE_PLAY_HINT, formatCardType } from '../lib/cardTypes.js';
+import { getDifficultyCssVars } from '../lib/difficultyColors.js';
 import { CardRevealExtras } from './CardRevealExtras.js';
 import './CardFace.css';
 
@@ -23,10 +25,12 @@ export function CardFace({ card, revealed, awaitingDraw = false, onReveal }: Car
 
   const actInstruction = CARD_TYPE_PLAY_HINT[card.type];
   const canTapReveal = Boolean(onReveal) && !awaitingDraw;
+  const difficultyStyle = getDifficultyCssVars(card.difficulty);
 
   return (
     <div
-      className={`card-flip ${revealed ? 'card-flip--revealed' : ''} card-flip--difficulty-${card.difficulty}`}
+      className={`card-flip ${revealed ? 'card-flip--revealed' : ''} card-flip--difficulty-level`}
+      style={difficultyStyle as CSSProperties}
       aria-live={revealed ? 'polite' : 'off'}
     >
       <div className="card-flip__scene">
@@ -61,6 +65,13 @@ export function CardFace({ card, revealed, awaitingDraw = false, onReveal }: Car
                 </span>
               )}
               <span className="card-face__type">{formatCardType(card.type)}</span>
+              <span
+                className="card-face__difficulty"
+                style={{ color: difficultyStyle['--difficulty-color'] }}
+                aria-label={`Difficulty ${card.difficulty} out of 10`}
+              >
+                {card.difficulty}
+              </span>
               <p className="card-face__text">{card.text}</p>
               {actInstruction && <span className="card-face__hint">{actInstruction}</span>}
               <CardRevealExtras key={card.id} card={card} revealed={revealed} />

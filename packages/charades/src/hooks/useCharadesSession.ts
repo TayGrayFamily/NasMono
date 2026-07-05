@@ -24,6 +24,7 @@ import {
   createDeckState,
   drawCurrent,
   filterCards,
+  remainingCards,
   type DeckState,
 } from '../lib/deck.js';
 
@@ -190,21 +191,23 @@ export function useCharadesSetup() {
     }
   }, []);
 
-  const filteredCount = useMemo(() => {
+  const filteredCards = useMemo(() => {
     if (
       selectedPackIds.length === 0 ||
       enabledTypes.length === 0 ||
       enabledGenerations.length === 0 ||
       enabledDifficulties.length === 0
     ) {
-      return 0;
+      return [];
     }
     return filterCards(mergedCards, {
       difficulties: enabledDifficulties,
       types: enabledTypes,
       generations: enabledGenerations,
-    }).length;
+    });
   }, [mergedCards, selectedPackIds.length, enabledDifficulties, enabledTypes, enabledGenerations]);
+
+  const filteredCount = filteredCards.length;
 
   const canStart = selectedPackIds.length > 0 && filteredCount > 0;
 
@@ -272,6 +275,7 @@ export function useCharadesSetup() {
     enabledTypes,
     toggleType,
     filteredCount,
+    filteredCards,
     canStart,
     startSession,
   };
@@ -318,6 +322,7 @@ export function useCharadesPlay() {
     reveal,
     nextCard,
     pickNextCard,
+    remainingCount: deckState ? remainingCards(deckState) : 0,
     isReady: Boolean(config && mergedCards.length > 0 && deckState && currentCard),
   };
 }

@@ -2,6 +2,7 @@ import { useMemo, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { allPacks } from '../data/index.js';
 import { formatDifficultySummary } from '../lib/difficulties.js';
+import { averageDifficulty, bandSharePercent } from '../lib/difficultyBands.js';
 import { ALL_GENERATIONS, GENERATION_LABELS } from '../lib/generations.js';
 import { useCharadesSetup } from '../hooks/useCharadesSession.js';
 import { CharadesFiltersPanel } from './CharadesFiltersPanel.js';
@@ -24,6 +25,7 @@ export function CharadesSetup() {
     enabledTypes,
     toggleType,
     filteredCount,
+    filteredCards,
     canStart,
     startSession,
   } = useCharadesSetup();
@@ -60,6 +62,7 @@ export function CharadesSetup() {
       enabledTypes={enabledTypes}
       toggleType={toggleType}
       showPackFilters={showPackFilters}
+      filteredCards={filteredCards}
     />
   );
 
@@ -92,6 +95,7 @@ export function CharadesSetup() {
             >
               {allPacks.map((pack) => {
                 const selected = selectedPackIds.includes(pack.id);
+                const packAvg = averageDifficulty(pack.cards);
                 return (
                   <button
                     key={pack.id}
@@ -102,6 +106,9 @@ export function CharadesSetup() {
                   >
                     <span className="charades-pack-card__name">{pack.name}</span>
                     <span className="charades-pack-card__desc">{pack.description}</span>
+                    <span className="charades-pack-card__stats">
+                      {pack.cards.length} cards · avg {packAvg?.toFixed(1) ?? '—'}
+                    </span>
                   </button>
                 );
               })}
@@ -119,6 +126,15 @@ export function CharadesSetup() {
           {selectedPackIds.length > 0 && (
             <p className="charades-meta" aria-live="polite">
               {filteredCount} cards in this round
+              {filteredCount > 0 && (
+                <span className="charades-meta__shares">
+                  {' '}
+                  · avg {averageDifficulty(filteredCards)?.toFixed(1)} · Easy{' '}
+                  {bandSharePercent(filteredCards, 'easy')}% · Normal{' '}
+                  {bandSharePercent(filteredCards, 'medium')}% · Hard{' '}
+                  {bandSharePercent(filteredCards, 'hard')}%
+                </span>
+              )}
               {multiPack && selectedPackIds.length > 1 ? ` · ${selectedPackIds.length} packs` : ''}
             </p>
           )}

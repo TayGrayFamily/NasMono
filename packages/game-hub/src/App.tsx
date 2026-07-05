@@ -209,7 +209,9 @@ function AppContent({
     : 'Join a lobby or start a game.';
 
   return (
-    <div className="app-container">
+    <div
+      className={`app-container${isCharadesRoute ? ' app-container--charades' : ''}${isCharadesPlayRoute ? ' app-container--charades-play' : ''}`}
+    >
       <Header
         title="Game Hub"
         subtitle={headerSubtitle}

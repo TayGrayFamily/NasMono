@@ -78,58 +78,60 @@ export function CharadesSetup() {
           </p>
         </header>
 
-        <section>
-          <h3 className="charades-section-title">
-            {multiPack ? 'Choose packs to mix' : 'Choose a pack'}
-          </h3>
-          <div
-            className={`charades-pack-grid${multiPack ? ' charades-pack-grid--multi' : ''}`}
-            role={multiPack ? 'group' : undefined}
-            aria-label={multiPack ? 'Packs to mix' : undefined}
-          >
-            {allPacks.map((pack) => {
-              const selected = selectedPackIds.includes(pack.id);
-              return (
-                <button
-                  key={pack.id}
-                  type="button"
-                  className={`charades-pack-card ${selected ? 'charades-pack-card--selected' : ''}`}
-                  onClick={() => handlePackPress(pack.id)}
-                  aria-pressed={selected}
-                >
-                  <span className="charades-pack-card__name">{pack.name}</span>
-                  <span className="charades-pack-card__desc">{pack.description}</span>
-                </button>
-              );
-            })}
-          </div>
-        </section>
+        <div className="charades-page__scroll">
+          <section>
+            <h3 className="charades-section-title">
+              {multiPack ? 'Choose packs to mix' : 'Choose a pack'}
+            </h3>
+            <div
+              className={`charades-pack-grid${multiPack ? ' charades-pack-grid--multi' : ''}`}
+              role={multiPack ? 'group' : undefined}
+              aria-label={multiPack ? 'Packs to mix' : undefined}
+            >
+              {allPacks.map((pack) => {
+                const selected = selectedPackIds.includes(pack.id);
+                return (
+                  <button
+                    key={pack.id}
+                    type="button"
+                    className={`charades-pack-card ${selected ? 'charades-pack-card--selected' : ''}`}
+                    onClick={() => handlePackPress(pack.id)}
+                    aria-pressed={selected}
+                  >
+                    <span className="charades-pack-card__name">{pack.name}</span>
+                    <span className="charades-pack-card__desc">{pack.description}</span>
+                  </button>
+                );
+              })}
+            </div>
+          </section>
 
-        <details className="charades-filters charades-filters--desktop">
-          <summary className="charades-filters__summary">
-            <span className="charades-filters__title">Filters</span>
-            <span className="charades-filters__value">{filterSummary}</span>
-          </summary>
-          {filterPanel}
-        </details>
+          <details className="charades-filters charades-filters--desktop">
+            <summary className="charades-filters__summary">
+              <span className="charades-filters__title">Filters</span>
+              <span className="charades-filters__value">{filterSummary}</span>
+            </summary>
+            {filterPanel}
+          </details>
 
-        {selectedPackIds.length > 0 && (
-          <p className="charades-meta" aria-live="polite">
-            {filteredCount} cards in this round
-            {multiPack && selectedPackIds.length > 1 ? ` · ${selectedPackIds.length} packs` : ''}
-          </p>
-        )}
+          {selectedPackIds.length > 0 && (
+            <p className="charades-meta" aria-live="polite">
+              {filteredCount} cards in this round
+              {multiPack && selectedPackIds.length > 1 ? ` · ${selectedPackIds.length} packs` : ''}
+            </p>
+          )}
 
-        <footer className="charades-action-bar charades-action-bar--desktop">
-          <button
-            type="button"
-            className="charades-btn-primary"
-            disabled={!canStart}
-            onClick={handleStart}
-          >
-            Start
-          </button>
-        </footer>
+          <footer className="charades-action-bar charades-action-bar--desktop">
+            <button
+              type="button"
+              className="charades-btn-primary"
+              disabled={!canStart}
+              onClick={handleStart}
+            >
+              Start
+            </button>
+          </footer>
+        </div>
       </div>
 
       <div className="charades-fab-dock" aria-label="Round actions">

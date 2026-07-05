@@ -4,22 +4,28 @@
 import { expect, test, type Page } from '@playwright/test';
 
 async function openCharadesFilters(page: Page) {
-  const fabFilters = page.getByRole('button', { name: 'Filters' });
-  if (await fabFilters.isVisible()) {
-    await fabFilters.click();
+  const desktopFilters = page.locator('details.charades-filters--desktop');
+  if (await desktopFilters.isVisible()) {
+    if ((await desktopFilters.getAttribute('open')) === null) {
+      await desktopFilters.evaluate((el) => {
+        (el as HTMLDetailsElement).open = true;
+      });
+    }
     return;
   }
 
-  const filters = page.locator('details.charades-filters--desktop');
-  if ((await filters.getAttribute('open')) === null) {
-    await filters.locator('summary').click();
-  }
+  await page.locator('.charades-fab-dock').getByRole('button', { name: 'Filters' }).click();
 }
 
 async function selectOnlyDifficulty(page: Page, level: 'Easy' | 'Normal' | 'Hard') {
+  const panel = page
+    .locator(
+      '.charades-sheet[role="dialog"] .charades-filters__body, details.charades-filters--desktop[open] .charades-filters__body',
+    )
+    .first();
   const levels: Array<'Easy' | 'Normal' | 'Hard'> = ['Easy', 'Normal', 'Hard'];
   for (const name of levels) {
-    const button = page.getByRole('button', { name, exact: true });
+    const button = panel.getByRole('button', { name, exact: true });
     const pressed = await button.getAttribute('aria-pressed');
     const shouldBeOn = name === level;
     if ((pressed === 'true') !== shouldBeOn) {

@@ -156,7 +156,9 @@ export function CharadesPlay() {
           <p className="charades-header__subtitle">Act it out. Others guess.</p>
         </header>
 
-        <CardFace card={currentCard} revealed={revealed} awaitingDraw={awaitingDraw} />
+        <div className="charades-page__stage">
+          <CardFace card={currentCard} revealed={revealed} awaitingDraw={awaitingDraw} />
+        </div>
 
         <p className="charades-play-filters__prompt" id="charades-play-filter-prompt">
           {awaitingDraw

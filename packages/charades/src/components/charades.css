@@ -3,10 +3,52 @@
   flex-direction: column;
   gap: 1.5rem;
   width: 100%;
-  min-height: 60vh;
+  flex: 1;
+  min-height: 0;
+  overflow: hidden;
   user-select: none;
   -webkit-user-select: none;
   -webkit-touch-callout: none;
+}
+
+.charades-page__body {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  min-height: 0;
+  overflow: hidden;
+}
+
+.charades-setup,
+.charades-play {
+  height: 100%;
+}
+
+.charades-page__scroll .charades-action-bar--desktop {
+  margin-top: 0;
+  padding-top: 0.5rem;
+}
+
+.charades-setup .charades-page__body {
+  gap: 0.75rem;
+}
+
+.charades-page__scroll {
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  -webkit-overflow-scrolling: touch;
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+}
+
+.charades-play .charades-page__stage {
+  flex: 1;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
 }
 
 .charades-page--sheet-open .charades-page__body,
@@ -18,6 +60,7 @@
   display: flex;
   flex-direction: column;
   gap: 0.5rem;
+  flex-shrink: 0;
 }
 
 .charades-header__back {
@@ -251,6 +294,17 @@
   overflow: hidden;
 }
 
+.charades-filters[open] {
+  overflow: visible;
+}
+
+.charades-page__scroll .charades-filters[open] .charades-filters__body {
+  max-height: min(42dvh, 360px);
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  -webkit-overflow-scrolling: touch;
+}
+
 .charades-filters__summary {
   display: flex;
   align-items: center;
@@ -400,6 +454,7 @@
   text-align: center;
   color: var(--text-color);
   line-height: 1.35;
+  flex-shrink: 0;
 }
 
 .charades-play-dock-controls--desktop {
@@ -408,6 +463,7 @@
   align-items: flex-end;
   flex-wrap: wrap;
   justify-content: center;
+  flex-shrink: 0;
 }
 
 .charades-fab-dock--play {
@@ -553,6 +609,7 @@
   display: flex;
   flex-direction: column;
   gap: 0.75rem;
+  flex-shrink: 0;
 }
 
 .charades-action-bar button {
@@ -590,18 +647,24 @@
   flex: 1;
   min-height: 0;
   overflow: hidden;
+  gap: 0;
 }
 
 .charades-play .charades-page__body {
-  display: grid;
-  grid-template-rows: auto minmax(0, 1fr);
-  gap: 1rem;
+  gap: 0.75rem;
+}
+
+.charades-play .card-face {
+  flex: 1;
   min-height: 0;
-  height: 100%;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  -webkit-overflow-scrolling: touch;
 }
 
 .charades-action-bar--play {
   margin-top: 0;
+  flex-shrink: 0;
 }
 
 /* Floating action buttons — mobile charades setup + play */
@@ -823,19 +886,12 @@
     pointer-events: auto;
   }
 
-  .charades-page--fab .charades-page__body {
+  .charades-page--fab .charades-page__scroll {
     padding-bottom: calc(4.75rem + var(--safe-bottom));
   }
 
   .charades-page.charades-play {
     gap: 0;
-    min-height: 0;
-    height: 100%;
-  }
-
-  .charades-play .charades-page__body {
-    gap: 0.75rem;
-    grid-template-rows: auto minmax(0, 1fr) auto;
   }
 
   .charades-page--play-filters.charades-page--fab .charades-page__body {
@@ -851,10 +907,7 @@
   }
 
   .charades-play .card-face {
-    min-height: 0;
-    height: 100%;
     padding: 1.25rem 1rem;
-    overflow: auto;
   }
 }
 

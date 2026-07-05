@@ -137,7 +137,7 @@ export function CharadesPlay() {
             ? 'Open filters to pick a difficulty, then flip your card'
             : revealed
               ? 'Tap Done when the turn is over'
-              : 'Tap Flip card or the card back when the actor has the phone'}
+              : 'Flip the card when the actor has the phone'}
         </p>
       </div>
 

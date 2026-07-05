@@ -30,41 +30,42 @@ export function CardFace({ card, revealed, awaitingDraw = false, onReveal }: Car
       aria-live={revealed ? 'polite' : 'off'}
     >
       <div className="card-flip__scene">
-        <div className="card-flip__inner">
-          {canTapReveal ? (
-            <button
-              type="button"
-              className="card-flip__face card-flip__face--back card-face card-face--hidden"
-              onClick={onReveal}
-              aria-label="Reveal charades card"
-            >
-              <CardBack awaitingDraw={awaitingDraw} canTapReveal />
-            </button>
-          ) : (
-            <div
-              className="card-flip__face card-flip__face--back card-face card-face--hidden"
-              aria-label="Charades card hidden"
-            >
-              <CardBack awaitingDraw={awaitingDraw} canTapReveal={false} />
-            </div>
-          )}
-
-          <div
-            className="card-flip__face card-flip__face--front card-face card-face--revealed"
-            aria-label={revealed ? `Charades card: ${card.text}` : undefined}
-            aria-hidden={!revealed}
+        {canTapReveal ? (
+          <button
+            type="button"
+            className="card-flip__face card-flip__face--back card-face card-face--hidden"
+            onClick={onReveal}
+            aria-label="Flip charades card"
+            aria-hidden={revealed}
+            tabIndex={revealed ? -1 : 0}
           >
-            <div className="card-face__content">
-              {card.emoji && (
-                <span className="card-face__emoji" aria-hidden="true">
-                  {card.emoji}
-                </span>
-              )}
-              <span className="card-face__type">{formatCardType(card.type)}</span>
-              <p className="card-face__text">{card.text}</p>
-              {actInstruction && <span className="card-face__hint">{actInstruction}</span>}
-              <CardRevealExtras key={card.id} card={card} revealed={revealed} />
-            </div>
+            <CardBack awaitingDraw={awaitingDraw} canTapReveal />
+          </button>
+        ) : (
+          <div
+            className="card-flip__face card-flip__face--back card-face card-face--hidden"
+            aria-label="Charades card hidden"
+            aria-hidden={revealed}
+          >
+            <CardBack awaitingDraw={awaitingDraw} canTapReveal={false} />
+          </div>
+        )}
+
+        <div
+          className="card-flip__face card-flip__face--front card-face card-face--revealed"
+          aria-label={revealed ? `Charades card: ${card.text}` : undefined}
+          aria-hidden={!revealed}
+        >
+          <div className="card-face__content">
+            {card.emoji && (
+              <span className="card-face__emoji" aria-hidden="true">
+                {card.emoji}
+              </span>
+            )}
+            <span className="card-face__type">{formatCardType(card.type)}</span>
+            <p className="card-face__text">{card.text}</p>
+            {actInstruction && <span className="card-face__hint">{actInstruction}</span>}
+            <CardRevealExtras key={card.id} card={card} revealed={revealed} />
           </div>
         </div>
       </div>
@@ -82,19 +83,14 @@ function CardBack({
   return (
     <div className="card-face__cover card-face__cover--back">
       <div className="card-face__back-pattern" aria-hidden="true" />
-      <span className="card-face__back-brand" aria-hidden="true">
-        Charades
+      <span className="card-face__back-mark" aria-hidden="true">
+        ?
       </span>
-      <p className="card-face__cover-text">
-        {awaitingDraw ? 'Pick a difficulty first' : 'Card back'}
-      </p>
-      <p className="card-face__cover-sub">
-        {awaitingDraw
-          ? 'Open filters below and pick a difficulty'
-          : canTapReveal
-            ? 'Tap to reveal'
-            : 'Pass the phone to the actor'}
-      </p>
+      {(awaitingDraw || canTapReveal) && (
+        <p className="card-face__cover-hint">
+          {awaitingDraw ? 'Pick a difficulty in filters' : 'Tap to flip'}
+        </p>
+      )}
     </div>
   );
 }

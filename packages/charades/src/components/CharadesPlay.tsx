@@ -1,10 +1,6 @@
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import {
-  ANY_DIFFICULTY,
-  formatDifficultySummary,
-  formatPickDifficultyLabel,
-} from '../lib/difficulties.js';
+import { ANY_DIFFICULTY, formatPickDifficultyLabel } from '../lib/difficulties.js';
 import type { DifficultyChoice } from '../lib/difficulties.js';
 import { CardFace } from './CardFace.js';
 import { CharadesDifficultyPicker } from './CharadesDifficultyPicker.js';
@@ -58,6 +54,12 @@ export function CharadesPlay() {
     markCardDrawn();
   }, [pickNextCard, buildPick, markCardDrawn]);
 
+  const handleReveal = useCallback(() => {
+    setFiltersOpen(false);
+    setDifficultyOpen(false);
+    reveal();
+  }, [reveal]);
+
   useEffect(() => {
     if (!isReady || revealed || cardDrawn || !hasDifficultySelected) return;
     redrawCard();
@@ -68,7 +70,7 @@ export function CharadesPlay() {
       if (event.code === 'Space') {
         event.preventDefault();
         if (revealed) handleNextCard();
-        else if (cardDrawn) reveal();
+        else if (cardDrawn) handleReveal();
       }
       if (event.code === 'ArrowRight' && revealed) {
         event.preventDefault();
@@ -78,7 +80,7 @@ export function CharadesPlay() {
 
     window.addEventListener('keydown', handleKeyDown);
     return () => window.removeEventListener('keydown', handleKeyDown);
-  }, [revealed, cardDrawn, reveal, handleNextCard]);
+  }, [revealed, cardDrawn, handleReveal, handleNextCard]);
 
   useEffect(() => {
     if (!isReady) {
@@ -89,6 +91,7 @@ export function CharadesPlay() {
   const handleSelectDifficulty = useCallback(
     (choice: DifficultyChoice) => {
       selectPickDifficulty(choice);
+      if (cardDrawn) return;
       pickNextCard({
         difficulties: choice === ANY_DIFFICULTY ? [] : [choice],
         packIds: showPackPick && pickPackIds.length < enabledPackIds.length ? pickPackIds : [],
@@ -97,6 +100,7 @@ export function CharadesPlay() {
     },
     [
       selectPickDifficulty,
+      cardDrawn,
       pickNextCard,
       showPackPick,
       pickPackIds,
@@ -106,10 +110,13 @@ export function CharadesPlay() {
   );
 
   const handleApplyFilters = useCallback(() => {
-    pickNextCard(applyFilters());
-    markCardDrawn();
+    const pick = applyFilters();
+    if (!cardDrawn) {
+      pickNextCard(pick);
+      markCardDrawn();
+    }
     setFiltersOpen(false);
-  }, [applyFilters, pickNextCard, markCardDrawn]);
+  }, [applyFilters, cardDrawn, pickNextCard, markCardDrawn]);
 
   const handleEndRound = () => {
     clearSessionConfig();
@@ -137,7 +144,7 @@ export function CharadesPlay() {
 
   const canReveal = cardDrawn && !revealed;
   const primaryLabel = revealed ? 'Next card' : 'Reveal';
-  const primaryAction = revealed ? handleNextCard : reveal;
+  const primaryAction = revealed ? handleNextCard : handleReveal;
   const primaryDisabled = !revealed && !canReveal;
   const awaitingDraw = !cardDrawn && !revealed;
 
@@ -151,7 +158,12 @@ export function CharadesPlay() {
         </header>
 
         <div className="charades-page__stage">
-          <CardFace card={currentCard} revealed={revealed} awaitingDraw={awaitingDraw} />
+          <CardFace
+            card={currentCard}
+            revealed={revealed}
+            awaitingDraw={awaitingDraw}
+            onReveal={canReveal ? handleReveal : undefined}
+          />
         </div>
 
         <p className="charades-play-filters__prompt" id="charades-play-filter-prompt">
@@ -159,35 +171,37 @@ export function CharadesPlay() {
             ? 'Choose a difficulty below, then reveal your card'
             : revealed
               ? 'Tap Next card when ready for the next player'
-              : 'Ready — tap Reveal when the actor has the phone'}
+              : 'Tap the card back or Reveal when the actor has the phone'}
         </p>
 
-        <div className="charades-play-dock-controls charades-play-dock-controls--desktop">
-          <CharadesDifficultyPicker
-            enabledDifficulties={config.enabledDifficulties}
-            selected={pickDifficulty}
-            open={difficultyOpen}
-            onOpenChange={setDifficultyOpen}
-            onSelect={handleSelectDifficulty}
-          />
-          <button
-            type="button"
-            className="charades-fab charades-fab--secondary"
-            aria-expanded={filtersOpen}
-            aria-haspopup="dialog"
-            onClick={() => setFiltersOpen(true)}
-          >
-            <span className="charades-fab__label">Filters</span>
-            <span className="charades-fab__hint">{filterSummary}</span>
-          </button>
-        </div>
+        {!revealed && (
+          <div className="charades-play-dock-controls charades-play-dock-controls--desktop">
+            <CharadesDifficultyPicker
+              enabledDifficulties={config.enabledDifficulties}
+              selected={pickDifficulty}
+              open={difficultyOpen}
+              onOpenChange={setDifficultyOpen}
+              onSelect={handleSelectDifficulty}
+            />
+            <button
+              type="button"
+              className="charades-fab charades-fab--secondary"
+              aria-expanded={filtersOpen}
+              aria-haspopup="dialog"
+              onClick={() => setFiltersOpen(true)}
+            >
+              <span className="charades-fab__label">Filters</span>
+              <span className="charades-fab__hint">{filterSummary}</span>
+            </button>
+          </div>
+        )}
 
         <footer className="charades-action-bar charades-action-bar--play charades-action-bar--desktop">
           {!revealed ? (
             <button
               type="button"
               className="charades-btn-primary"
-              onClick={reveal}
+              onClick={handleReveal}
               disabled={!canReveal}
             >
               Reveal
@@ -204,25 +218,27 @@ export function CharadesPlay() {
       </div>
 
       <div className="charades-fab-dock charades-fab-dock--play" aria-label="Card actions">
-        <div className="charades-fab-dock__pickers">
-          <CharadesDifficultyPicker
-            enabledDifficulties={config.enabledDifficulties}
-            selected={pickDifficulty}
-            open={difficultyOpen}
-            onOpenChange={setDifficultyOpen}
-            onSelect={handleSelectDifficulty}
-          />
-          <button
-            type="button"
-            className="charades-fab charades-fab--secondary"
-            aria-expanded={filtersOpen}
-            aria-haspopup="dialog"
-            onClick={() => setFiltersOpen(true)}
-          >
-            <span className="charades-fab__label">Filters</span>
-            <span className="charades-fab__hint">{filterSummary}</span>
-          </button>
-        </div>
+        {!revealed && (
+          <div className="charades-fab-dock__pickers">
+            <CharadesDifficultyPicker
+              enabledDifficulties={config.enabledDifficulties}
+              selected={pickDifficulty}
+              open={difficultyOpen}
+              onOpenChange={setDifficultyOpen}
+              onSelect={handleSelectDifficulty}
+            />
+            <button
+              type="button"
+              className="charades-fab charades-fab--secondary"
+              aria-expanded={filtersOpen}
+              aria-haspopup="dialog"
+              onClick={() => setFiltersOpen(true)}
+            >
+              <span className="charades-fab__label">Filters</span>
+              <span className="charades-fab__hint">{filterSummary}</span>
+            </button>
+          </div>
+        )}
         <div className="charades-fab-dock__actions">
           <button
             type="button"

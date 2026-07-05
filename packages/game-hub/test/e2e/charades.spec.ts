@@ -61,7 +61,8 @@ test.describe('Charades solo play', () => {
     await expect(page.getByText('Word', { exact: true })).toBeVisible();
 
     await page.getByRole('button', { name: 'Next card' }).click();
-    await expect(page.getByText('Card hidden')).toBeVisible();
+    await expect(page.locator('.card-face__cover-text', { hasText: 'Card back' })).toBeVisible();
+    await expect(page.getByText('Tap to reveal')).toBeVisible();
     await expect(reveal).toBeEnabled();
   });
 
@@ -173,7 +174,21 @@ test.describe('Charades solo play', () => {
     await expect(page.getByText('Choose a difficulty below, then reveal your card')).toBeVisible();
     await drawCardAtDifficulty(page, 'Hard');
     await page.getByRole('button', { name: 'Reveal', exact: true }).click();
-    await expect(page.locator('.card-face--revealed.card-face--difficulty-hard')).toBeVisible();
+    await expect(page.locator('.card-flip--revealed.card-flip--difficulty-hard')).toBeVisible();
+  });
+
+  test('tap card back reveals without filter controls visible', async ({ page }) => {
+    await page.goto('/play/charades');
+    await page.getByRole('button', { name: 'Animals' }).click();
+    await page.getByRole('button', { name: /^Start/ }).click();
+    await page.waitForURL('**/play/charades/game');
+
+    await drawCardAtDifficulty(page, 'Easy');
+    await expect(page.getByRole('button', { name: 'Filters' })).toBeVisible();
+    await page.getByRole('button', { name: 'Reveal charades card' }).click();
+    await expect(page.getByText('Word', { exact: true })).toBeVisible();
+    await expect(page.getByRole('button', { name: 'Filters' })).toHaveCount(0);
+    await expect(page.locator('.charades-difficulty-picker__trigger')).toHaveCount(0);
   });
 
   test('portrait iPhone 13 Pro Max shows floating action buttons', async ({ browser }) => {

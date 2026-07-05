@@ -144,7 +144,6 @@ export function useCharadesPlayPick(
         }
         return next;
       });
-      setCardDrawn(false);
     },
     [persist, pickDifficulty],
   );

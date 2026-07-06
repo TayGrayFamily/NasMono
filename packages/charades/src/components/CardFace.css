@@ -123,26 +123,20 @@ button.card-flip__face--back:focus-visible {
 .card-face--trading {
   background: #f4f1ea;
   color: #0f172a;
-  border: 3px solid #cbd5e1;
+  border: 3px solid color-mix(in srgb, var(--difficulty-color, #cbd5e1) 65%, transparent);
   box-shadow:
     0 10px 28px rgba(0, 0, 0, 0.28),
     inset 0 0 0 1px rgba(255, 255, 255, 0.85),
     inset 0 0 0 4px rgba(15, 23, 42, 0.06);
 }
 
-.card-face--trading.card-face--difficulty-easy,
-.card-flip--revealed.card-flip--difficulty-easy .card-face--trading {
-  border-color: rgba(34, 197, 94, 0.65);
-}
-
-.card-face--trading.card-face--difficulty-medium,
-.card-flip--revealed.card-flip--difficulty-medium .card-face--trading {
-  border-color: rgba(234, 179, 8, 0.7);
-}
-
-.card-face--trading.card-face--difficulty-hard,
-.card-flip--revealed.card-flip--difficulty-hard .card-face--trading {
-  border-color: rgba(244, 63, 94, 0.7);
+.card-face--trading.card-face--difficulty-level,
+.card-flip--revealed.card-flip--difficulty-level .card-face--trading {
+  border-color: color-mix(in srgb, var(--difficulty-color) 65%, transparent);
+  box-shadow:
+    0 10px 28px rgba(0, 0, 0, 0.28),
+    inset 0 0 0 1px rgba(255, 255, 255, 0.85),
+    inset 0 0 0 4px color-mix(in srgb, var(--difficulty-color) 10%, transparent);
 }
 
 .card-face--empty {
@@ -276,6 +270,17 @@ button.card-flip__face--back:focus-visible {
   background: rgba(6, 182, 212, 0.14);
   padding: 0.25rem 0.75rem;
   border-radius: 999px;
+}
+
+.card-face__difficulty {
+  align-self: center;
+  font-size: 0.7rem;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  padding: 0.15rem 0.5rem;
+  border-radius: 999px;
+  border: 1px solid currentColor;
+  background: color-mix(in srgb, currentColor 12%, transparent);
 }
 
 .card-face__text {

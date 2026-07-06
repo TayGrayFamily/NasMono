@@ -1,23 +1,28 @@
-import type { CardType, CharadesCard, Difficulty, Generation } from '../types.js';
+import type { CardType, CharadesCard, Generation } from '../types.js';
+import type { DifficultyBand } from './difficultyBands.js';
 import type { NextCardPick } from '../types.js';
+import { cardMatchesBand, filterByBands } from './difficultyBands.js';
 import { cardMatchesGenerations } from './generations.js';
+import { loadRecentCardIds, preferUnseenCards, rememberCardId } from './recentCards.js';
 
 export interface DeckFilter {
-  difficulties: Difficulty[];
+  difficulties: DifficultyBand[];
   types: CardType[];
   generations: Generation[];
 }
 
-export function filterByDifficulty(cards: CharadesCard[], difficulty: Difficulty): CharadesCard[] {
-  return cards.filter((c) => c.difficulty === difficulty);
+export function filterByDifficulty(
+  cards: CharadesCard[],
+  difficulty: DifficultyBand,
+): CharadesCard[] {
+  return filterByBands(cards, [difficulty]);
 }
 
 export function filterByDifficulties(
   cards: CharadesCard[],
-  difficulties: Difficulty[],
+  difficulties: DifficultyBand[],
 ): CharadesCard[] {
-  const allowed = new Set(difficulties);
-  return cards.filter((c) => allowed.has(c.difficulty));
+  return filterByBands(cards, difficulties);
 }
 
 export function filterByTypes(cards: CharadesCard[], types: CardType[]): CharadesCard[] {
@@ -80,7 +85,14 @@ export function drawCurrent(state: DeckState): CharadesCard | null {
 export function advanceDeck(state: DeckState): DeckState {
   const nextIndex = state.index + 1;
   if (nextIndex >= state.deck.length) {
-    return { deck: shuffleDeck(state.deck), index: 0 };
+    const lastPlayedIndex = Math.min(state.index, state.deck.length - 1);
+    const lastPlayed = state.deck[lastPlayedIndex];
+    let deck = shuffleDeck(state.deck);
+    if (lastPlayed && deck.length > 1 && deck[0]?.id === lastPlayed.id) {
+      deck = [...deck];
+      [deck[0], deck[1]] = [deck[1]!, deck[0]!];
+    }
+    return { deck, index: 0 };
   }
   return { ...state, index: nextIndex };
 }
@@ -90,8 +102,9 @@ export function remainingCards(state: DeckState): number {
 }
 
 export function cardMatchesPick(card: CharadesCard, pick: NextCardPick): boolean {
-  if (pick.difficulties.length > 0 && !pick.difficulties.includes(card.difficulty)) {
-    return false;
+  if (pick.difficulties.length > 0) {
+    const matchesBand = pick.difficulties.some((band) => cardMatchesBand(card, band));
+    if (!matchesBand) return false;
   }
   if (pick.packIds.length > 0) {
     if (!card.packId || !pick.packIds.includes(card.packId)) return false;
@@ -109,7 +122,9 @@ export function applyNextCardPick(
   const matches = remaining.filter((card) => cardMatchesPick(card, pick));
   if (matches.length === 0) return state;
 
-  const chosen = matches[Math.floor(random() * matches.length)]!;
+  const pool = preferUnseenCards(matches, loadRecentCardIds());
+  const chosen = pool[Math.floor(random() * pool.length)]!;
+  rememberCardId(chosen.id);
   const chosenIndex = deck.findIndex((card, i) => i >= index && card.id === chosen.id);
   if (chosenIndex < 0 || chosenIndex === index) return state;
 

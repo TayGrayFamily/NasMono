@@ -24,6 +24,7 @@ export function CharadesPlay() {
     hideCard,
     advanceDeck,
     pickNextCard,
+    remainingCount,
     isReady,
   } = useCharadesPlay();
 
@@ -202,6 +203,7 @@ export function CharadesPlay() {
         onFlipCard={handleFlipCard}
         onDone={handleDone}
         onEndRound={handleEndRound}
+        remainingCount={remainingCount}
       />
     </div>
   );

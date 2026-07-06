@@ -1,4 +1,4 @@
-import type { CardType, Difficulty, Generation } from '../types.js';
+import type { CardType, CharadesCard, Difficulty, Generation } from '../types.js';
 import { CARD_TYPE_LABELS } from '../lib/cardTypes.js';
 import {
   ALL_DIFFICULTIES,
@@ -8,6 +8,7 @@ import {
 } from '../lib/difficulties.js';
 import type { DifficultyChoice } from '../lib/difficulties.js';
 import { ALL_GENERATIONS, GENERATION_LABELS } from '../lib/generations.js';
+import { DifficultyProfile } from './DifficultyProfile.js';
 
 interface CharadesFiltersPanelProps {
   multiPack: boolean;
@@ -21,6 +22,7 @@ interface CharadesFiltersPanelProps {
   enabledTypes: CardType[];
   toggleType: (type: CardType) => void;
   showPackFilters: boolean;
+  filteredCards: CharadesCard[];
 }
 
 export function CharadesFiltersPanel({
@@ -35,6 +37,7 @@ export function CharadesFiltersPanel({
   enabledTypes,
   toggleType,
   showPackFilters,
+  filteredCards,
 }: CharadesFiltersPanelProps) {
   const allSelected = isAllDifficultiesSelection(enabledDifficulties, availableDifficulties);
   const singleSelected = enabledDifficulties.length === 1 ? enabledDifficulties[0] : undefined;
@@ -94,6 +97,7 @@ export function CharadesFiltersPanel({
             );
           })}
         </div>
+        <DifficultyProfile cards={filteredCards} selectedBand={singleSelected ?? null} />
       </div>
 
       <div className="charades-filters__group">

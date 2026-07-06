@@ -3,8 +3,9 @@
 Client-side charades card picker for Game Hub.
 
 - **Solo / pass-and-play:** `/play/charades` — no login or lobby required
-- **Data:** hardcoded packs in `src/data/` (16 packs)
-- **Generation filter:** optional “Who is playing?” toggles (Gen Alpha, Gen Z, Millennials, Gen X+); all on by default
+- **Data:** hardcoded packs in `src/data/` (16 packs, ~2,500+ cards)
+- **Difficulty:** each card has a numeric level **1–10**; play filters use overlapping bands — Easy (1–4), Normal (4–7), Hard (7–10)
+- **Generation filter:** optional “Who is playing?” toggles (Gen Alpha, Gen Z, Millennials, Gen X+) — all on by default
 - **Pack filters:** optional card-type toggles when a pack has multiple types (e.g. Movies actors/quotes)
 - **Multi-pack:** optional Filters toggle to mix cards from multiple packs in one round
 - **Play filters:** always-visible difficulty FABs (Easy / Normal / Hard) — tap to draw, then Reveal; see [ADR-0010](../../docs/decisions/0010-charades-play-filter-fabs.md)
@@ -67,5 +68,18 @@ UI messages distinguish:
 Legacy `actHint` on quotes still maps to **Context**. Acting instructions come from card type (e.g. “Mouth the line silently”).
 
 Universal packs (animals, actions, etc.) omit `generations` and suit every player. Other packs fall back to difficulty-based defaults when `generations` is omitted — prefer setting it explicitly on pop-culture cards.
+
+### Difficulty scale
+
+| Field / concept | Details                                                                 |
+| --------------- | ----------------------------------------------------------------------- |
+| `difficulty`    | Integer **1–10** on each card (validated by Zod)                        |
+| Easy band       | Levels 1–4 (overlaps Normal at 4)                                       |
+| Normal band     | Levels 4–7 (overlaps Easy at 4, Hard at 7)                              |
+| Hard band       | Levels 7–10 (overlaps Normal at 7)                                      |
+| UI colors       | Green → yellow → red gradient per level; band buttons use band midpoint |
+| Setup stats     | Filter panel shows avg difficulty, histogram, and band share %          |
+
+Bulk expansions live in `src/data/expansions/` — regenerate with `node packages/charades/scripts/generate-expansions.mjs`.
 
 Mobile layout is tested at **iPhone 13 Pro Max** portrait and landscape (see root `AGENTS.md` → Mobile UI testing); CSS must work in both orientations.

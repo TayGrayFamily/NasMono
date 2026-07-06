@@ -10,7 +10,7 @@ export const cardTypeSchema = z.enum([
   'actor',
 ]);
 
-export const difficultySchema = z.enum(['easy', 'medium', 'hard']);
+export const difficultyLevelSchema = z.number().int().min(1).max(10);
 
 export const generationSchema = z.enum(['gen-alpha', 'gen-z', 'millennial', 'gen-x-plus']);
 
@@ -18,7 +18,7 @@ export const charadesCardSchema = z.object({
   id: z.string().min(1),
   text: z.string().min(1),
   type: cardTypeSchema,
-  difficulty: difficultySchema,
+  difficulty: difficultyLevelSchema,
   actHint: z.string().min(1).optional(),
   generations: z.array(generationSchema).min(1).optional(),
   context: z.string().min(1).optional(),

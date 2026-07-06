@@ -1,0 +1,267 @@
+import { card } from '../helpers.js';
+
+/** Auto-generated — run `node packages/charades/scripts/generate-expansions.mjs` */
+export const animeExpansion = [
+  card('anm-t-019', 'Bleach', 'title', 4, { imageSearch: 'Bleach anime' }),
+  card('anm-t-020', 'Hunter x Hunter', 'title', 5, { imageSearch: 'Hunter x Hunter anime' }),
+  card('anm-t-021', 'Jujutsu Kaisen', 'title', 5, { imageSearch: 'Jujutsu Kaisen anime' }),
+  card('anm-t-022', 'One-Punch Man', 'title', 6, { imageSearch: 'One-Punch Man anime' }),
+  card('anm-t-023', 'Chainsaw Man', 'title', 6, { imageSearch: 'Chainsaw Man anime' }),
+  card('anm-t-024', 'Tokyo Ghoul', 'title', 7, { imageSearch: 'Tokyo Ghoul anime' }),
+  card('anm-t-025', 'Blue Lock', 'title', 4, { imageSearch: 'Blue Lock anime' }),
+  card('anm-t-026', 'Haikyuu!!', 'title', 5, { imageSearch: 'Haikyuu!! anime' }),
+  card('anm-t-027', "Kuroko's Basketball", 'title', 6, {
+    imageSearch: "Kuroko's Basketball anime",
+  }),
+  card('anm-t-028', 'Yu-Gi-Oh!', 'title', 7, { imageSearch: 'Yu-Gi-Oh! anime' }),
+  card('anm-t-029', 'Digimon', 'title', 5, { imageSearch: 'Digimon anime' }),
+  card('anm-t-030', 'Spirited Away', 'title', 4, { imageSearch: 'Spirited Away anime' }),
+  card('anm-t-031', 'My Neighbor Totoro', 'title', 4, { imageSearch: 'My Neighbor Totoro anime' }),
+  card('anm-t-032', 'Princess Mononoke', 'title', 5, { imageSearch: 'Princess Mononoke anime' }),
+  card('anm-t-033', 'Your Name', 'title', 5, { imageSearch: 'Your Name anime' }),
+  card('anm-t-034', 'Akira', 'title', 6, { imageSearch: 'Akira anime' }),
+  card('anm-t-035', 'Trigun', 'title', 6, { imageSearch: 'Trigun anime' }),
+  card('anm-t-036', 'Code Geass', 'title', 7, { imageSearch: 'Code Geass anime' }),
+  card('anm-t-037', 'Gurren Lagann', 'title', 4, { imageSearch: 'Gurren Lagann anime' }),
+  card('anm-t-038', 'Mob Psycho 100', 'title', 5, { imageSearch: 'Mob Psycho 100 anime' }),
+  card('anm-t-039', 'Vinland Saga', 'title', 6, { imageSearch: 'Vinland Saga anime' }),
+  card('anm-t-040', "Frieren: Beyond Journey's End", 'title', 7, {
+    imageSearch: "Frieren: Beyond Journey's End anime",
+  }),
+  card('anm-t-041', 'The Apothecary Diaries', 'title', 5, {
+    imageSearch: 'The Apothecary Diaries anime',
+  }),
+  card('anm-t-042', 'Black Clover', 'title', 4, { imageSearch: 'Black Clover anime' }),
+  card('anm-t-043', 'Re:Zero', 'title', 4, { imageSearch: 'Re:Zero anime' }),
+  card('anm-q-019', 'Bankai!', 'quote', 4, { context: 'Bleach', imageSearch: 'Bleach anime' }),
+  card('anm-q-020', 'I am gonna become Hokage!', 'quote', 5, {
+    context: 'Naruto',
+    imageSearch: 'Naruto anime',
+  }),
+  card('anm-q-021', 'Set your heart ablaze.', 'quote', 5, {
+    context: 'Demon Slayer',
+    imageSearch: 'Demon Slayer anime',
+  }),
+  card('anm-q-022', 'El Psy Kongroo.', 'quote', 6, {
+    context: 'Steins;Gate',
+    imageSearch: 'Steins;Gate anime',
+  }),
+  card('anm-q-023', 'Shinzou wo sasageyo!', 'quote', 6, {
+    context: 'Attack on Titan',
+    imageSearch: 'Attack on Titan anime',
+  }),
+  card('anm-q-024', 'I want to live!', 'quote', 7, {
+    context: 'One Piece',
+    imageSearch: 'One Piece anime',
+  }),
+  card('anm-q-025', 'I am here!', 'quote', 4, {
+    context: 'My Hero Academia',
+    imageSearch: 'My Hero Academia anime',
+  }),
+  card('anm-q-026', 'Kamehameha!', 'quote', 5, {
+    context: 'Dragon Ball Z',
+    imageSearch: 'Dragon Ball Z anime',
+  }),
+  card('anm-q-027', 'Give up on your dreams and die.', 'quote', 6, {
+    context: 'Attack on Titan',
+    imageSearch: 'Attack on Titan anime',
+  }),
+  card('anm-q-028', 'I can kill you from here.', 'quote', 7, {
+    context: 'Jujutsu Kaisen',
+    imageSearch: 'Jujutsu Kaisen anime',
+  }),
+  card('anm-q-029', 'Dattebasa!', 'quote', 5, { context: 'Boruto', imageSearch: 'Boruto anime' }),
+  card('anm-q-030', 'The ticket to the future is always open.', 'quote', 4, {
+    context: 'Steins;Gate',
+    imageSearch: 'Steins;Gate anime',
+  }),
+  card('anm-q-031', 'Wake up to reality.', 'quote', 4, {
+    context: 'Naruto Shippuden',
+    imageSearch: 'Naruto Shippuden anime',
+  }),
+  card('anm-q-032', 'A lesson without pain is meaningless.', 'quote', 5, {
+    context: 'Fullmetal Alchemist',
+    imageSearch: 'Fullmetal Alchemist anime',
+  }),
+  card('anm-q-033', 'Mada mada dane.', 'quote', 5, {
+    context: 'The Prince of Tennis',
+    imageSearch: 'The Prince of Tennis anime',
+  }),
+  card('anm-q-034', 'Power comes in response to a need, not a desire.', 'quote', 6, {
+    context: 'Dragon Ball Z',
+    imageSearch: 'Dragon Ball Z anime',
+  }),
+  card('anm-q-035', 'A real ninja endures.', 'quote', 6, {
+    context: 'Naruto',
+    imageSearch: 'Naruto anime',
+  }),
+  card('anm-q-036', "If you don't take risks, you can't create a future.", 'quote', 7, {
+    context: 'One Piece',
+    imageSearch: 'One Piece anime',
+  }),
+  card('anm-q-037', 'Whatever happens, happens.', 'quote', 4, {
+    context: 'Cowboy Bebop',
+    imageSearch: 'Cowboy Bebop anime',
+  }),
+  card('anm-q-038', 'People die if they are killed.', 'quote', 5, {
+    context: 'Fate/stay night',
+    imageSearch: 'Fate/stay night anime',
+  }),
+  card('anm-q-039', "It's not a sin to fight for the right cause.", 'quote', 6, {
+    context: 'Dragon Ball Z',
+    imageSearch: 'Dragon Ball Z anime',
+  }),
+  card('anm-q-040', 'Believe in the you that believes in yourself.', 'quote', 7, {
+    context: 'Gurren Lagann',
+    imageSearch: 'Gurren Lagann anime',
+  }),
+  card('anm-q-041', 'This hand of mine glows with an awesome power!', 'quote', 5, {
+    context: 'Mobile Fighter G Gundam',
+    imageSearch: 'Mobile Fighter G Gundam anime',
+  }),
+  card('anm-q-042', 'A lesson learned from pain is never forgotten.', 'quote', 4, {
+    context: 'Naruto',
+    imageSearch: 'Naruto anime',
+  }),
+  card('anm-q-043', 'Bang.', 'quote', 4, {
+    context: 'Chainsaw Man',
+    imageSearch: 'Chainsaw Man anime',
+  }),
+  card('anm-c-060', 'Gojo Satoru', 'character', 4, {
+    context: 'Jujutsu Kaisen',
+    imageSearch: 'Jujutsu Kaisen anime',
+  }),
+  card('anm-c-061', 'Nobara Kugisaki', 'character', 5, {
+    context: 'Jujutsu Kaisen',
+    imageSearch: 'Jujutsu Kaisen anime',
+  }),
+  card('anm-c-062', 'Megumi Fushiguro', 'character', 5, {
+    context: 'Jujutsu Kaisen',
+    imageSearch: 'Jujutsu Kaisen anime',
+  }),
+  card('anm-c-063', 'Sukuna', 'character', 6, {
+    context: 'Jujutsu Kaisen',
+    imageSearch: 'Jujutsu Kaisen anime',
+  }),
+  card('anm-c-064', 'Yuta Okkotsu', 'character', 6, {
+    context: 'Jujutsu Kaisen',
+    imageSearch: 'Jujutsu Kaisen anime',
+  }),
+  card('anm-c-065', 'Denji', 'character', 7, {
+    context: 'Chainsaw Man',
+    imageSearch: 'Chainsaw Man anime',
+  }),
+  card('anm-c-066', 'Power', 'character', 4, {
+    context: 'Chainsaw Man',
+    imageSearch: 'Chainsaw Man anime',
+  }),
+  card('anm-c-067', 'Aki Hayakawa', 'character', 5, {
+    context: 'Chainsaw Man',
+    imageSearch: 'Chainsaw Man anime',
+  }),
+  card('anm-c-068', 'Makima', 'character', 6, {
+    context: 'Chainsaw Man',
+    imageSearch: 'Chainsaw Man anime',
+  }),
+  card('anm-c-069', 'Frieren', 'character', 7, {
+    context: "Frieren: Beyond Journey's End",
+    imageSearch: "Frieren: Beyond Journey's End anime",
+  }),
+  card('anm-c-070', 'Fern', 'character', 5, {
+    context: "Frieren: Beyond Journey's End",
+    imageSearch: "Frieren: Beyond Journey's End anime",
+  }),
+  card('anm-c-071', 'Himmel', 'character', 4, {
+    context: "Frieren: Beyond Journey's End",
+    imageSearch: "Frieren: Beyond Journey's End anime",
+  }),
+  card('anm-c-072', 'Maomao', 'character', 4, {
+    context: 'The Apothecary Diaries',
+    imageSearch: 'The Apothecary Diaries anime',
+  }),
+  card('anm-c-073', 'Jinshi', 'character', 5, {
+    context: 'The Apothecary Diaries',
+    imageSearch: 'The Apothecary Diaries anime',
+  }),
+  card('anm-c-074', 'Hinata Shoyo', 'character', 5, {
+    context: 'Haikyuu!!',
+    imageSearch: 'Haikyuu!! anime',
+  }),
+  card('anm-c-075', 'Tobio Kageyama', 'character', 6, {
+    context: 'Haikyuu!!',
+    imageSearch: 'Haikyuu!! anime',
+  }),
+  card('anm-c-076', 'Hisoka', 'character', 6, {
+    context: 'Hunter x Hunter',
+    imageSearch: 'Hunter x Hunter anime',
+  }),
+  card('anm-c-077', 'Kurapika', 'character', 7, {
+    context: 'Hunter x Hunter',
+    imageSearch: 'Hunter x Hunter anime',
+  }),
+  card('anm-c-078', 'Chrollo Lucilfer', 'character', 4, {
+    context: 'Hunter x Hunter',
+    imageSearch: 'Hunter x Hunter anime',
+  }),
+  card('anm-c-079', 'Ken Kaneki', 'character', 5, {
+    context: 'Tokyo Ghoul',
+    imageSearch: 'Tokyo Ghoul anime',
+  }),
+  card('anm-c-080', 'Rize Kamishiro', 'character', 6, {
+    context: 'Tokyo Ghoul',
+    imageSearch: 'Tokyo Ghoul anime',
+  }),
+  card('anm-c-081', 'Zero Two', 'character', 7, {
+    context: 'Darling in the Franxx',
+    imageSearch: 'Darling in the Franxx anime',
+  }),
+  card('anm-c-082', 'Marin Kitagawa', 'character', 5, {
+    context: 'My Dress-Up Darling',
+    imageSearch: 'My Dress-Up Darling anime',
+  }),
+  card('anm-c-083', 'Anya Forger', 'character', 4, {
+    context: 'Spy x Family',
+    imageSearch: 'Spy x Family anime',
+  }),
+  card('anm-c-084', 'Loid Forger', 'character', 4, {
+    context: 'Spy x Family',
+    imageSearch: 'Spy x Family anime',
+  }),
+  card('anm-c-085', 'Yor Forger', 'character', 5, {
+    context: 'Spy x Family',
+    imageSearch: 'Spy x Family anime',
+  }),
+  card('anm-c-086', 'Rimuru Tempest', 'character', 5, {
+    context: 'That Time I Got Reincarnated as a Slime',
+    imageSearch: 'That Time I Got Reincarnated as a Slime anime',
+  }),
+  card('anm-c-087', 'Subaru Natsuki', 'character', 6, {
+    context: 'Re:Zero',
+    imageSearch: 'Re:Zero anime',
+  }),
+  card('anm-c-088', 'Kaneda', 'character', 6, { context: 'Akira', imageSearch: 'Akira anime' }),
+  card('anm-c-089', 'Tetsuo Shima', 'character', 7, {
+    context: 'Akira',
+    imageSearch: 'Akira anime',
+  }),
+  card('anm-c-090', 'Shinra Kusakabe', 'character', 4, {
+    context: 'Fire Force',
+    imageSearch: 'Fire Force anime',
+  }),
+  card('anm-c-091', 'Erwin Smith', 'character', 5, {
+    context: 'Attack on Titan',
+    imageSearch: 'Attack on Titan anime',
+  }),
+  card('anm-c-092', 'Armin Arlert', 'character', 6, {
+    context: 'Attack on Titan',
+    imageSearch: 'Attack on Titan anime',
+  }),
+  card('anm-c-093', 'Ryuko Matoi', 'character', 7, {
+    context: 'Kill la Kill',
+    imageSearch: 'Kill la Kill anime',
+  }),
+  card('anm-c-094', 'Koro-sensei', 'character', 5, {
+    context: 'Assassination Classroom',
+    imageSearch: 'Assassination Classroom anime',
+  }),
+];

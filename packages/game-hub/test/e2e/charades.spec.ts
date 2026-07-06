@@ -234,6 +234,46 @@ test.describe('Charades solo play', () => {
     await context.close();
   });
 
+  test('mobile Start button does not click through to pack cards behind dock', async ({ browser }) => {
+    const context = await browser.newContext({
+      viewport: { width: 428, height: 926 },
+    });
+    const page = await context.newPage();
+
+    await page.goto('/play/charades');
+    await page.locator('.charades-pack-card').filter({ hasText: 'Animals' }).first().click();
+    await expect(page.locator('.charades-pack-card--selected')).toHaveCount(1);
+
+    const scroll = page.locator('.charades-page__scroll');
+    await scroll.evaluate((el) => {
+      el.scrollTop = el.scrollHeight;
+    });
+
+    const moviesPack = page.locator('.charades-pack-card').filter({ hasText: /^Movies/ });
+    const startButton = page
+      .locator('.charades-fab-dock--setup')
+      .getByRole('button', { name: /^Start/ });
+    const moviesBox = await moviesPack.boundingBox();
+    const startBox = await startButton.boundingBox();
+    expect(moviesBox).not.toBeNull();
+    expect(startBox).not.toBeNull();
+
+    // After scrolling, a pack tile often sits under the dock; Start must win the hit test.
+    if (
+      moviesBox!.y < startBox!.y + startBox!.height &&
+      moviesBox!.y + moviesBox!.height > startBox!.y
+    ) {
+      await startButton.click({ position: { x: startBox!.width / 2, y: startBox!.height / 2 } });
+      await page.waitForURL('**/play/charades/game');
+      await expect(page.locator('.charades-pack-card--selected')).toHaveCount(0);
+    } else {
+      await startButton.click();
+      await page.waitForURL('**/play/charades/game');
+    }
+
+    await context.close();
+  });
+
   test('landscape iPhone 13 Pro Max can start and flip a card', async ({ browser }) => {
     const context = await browser.newContext({
       viewport: { width: 926, height: 428 },

@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useState } from 'react';
+import { useCallback, useEffect, useRef, useState, type TransitionEvent } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { ANY_DIFFICULTY } from '../lib/difficulties.js';
 import type { DifficultyChoice } from '../lib/difficulties.js';
@@ -7,6 +7,10 @@ import { CharadesPlayFooter } from './CharadesPlayFooter.js';
 import { clearPlayPick, useCharadesPlayPick } from '../hooks/useCharadesPlayPick.js';
 import { clearSessionConfig, useCharadesPlay } from '../hooks/useCharadesSession.js';
 import './charades.css';
+
+const CONTENT_FADE_MS = 220;
+const DEAL_ANIMATION_MS = 480;
+const FLIP_ANIMATION_MS = 520;
 
 export function CharadesPlay() {
   const navigate = useNavigate();
@@ -17,7 +21,8 @@ export function CharadesPlay() {
     currentCard,
     revealed,
     reveal,
-    nextCard,
+    hideCard,
+    advanceDeck,
     pickNextCard,
     remainingCount,
     isReady,
@@ -29,9 +34,9 @@ export function CharadesPlay() {
   const {
     pickDifficulty,
     pickPackIds,
-    togglePickPack,
     selectPickDifficulty,
     buildPick,
+    applyPackFilters,
     cardDrawn,
     resetForNextTurn,
     markCardDrawn,
@@ -39,24 +44,62 @@ export function CharadesPlay() {
   } = useCharadesPlayPick(enabledPackIds, showPackPick, config?.enabledDifficulties ?? []);
 
   const [turn, setTurn] = useState(0);
+  const [contentVisible, setContentVisible] = useState(false);
+  const [dealAnimating, setDealAnimating] = useState(false);
+  const closingTurnRef = useRef(false);
 
-  const handleNextCard = useCallback(() => {
-    nextCard();
+  const startDealAnimation = useCallback(() => {
+    setDealAnimating(true);
+    window.setTimeout(() => setDealAnimating(false), DEAL_ANIMATION_MS);
+  }, []);
+
+  const handleNextTurn = useCallback(() => {
+    advanceDeck();
     resetForNextTurn();
     setTurn((t) => t + 1);
-  }, [nextCard, resetForNextTurn]);
+  }, [advanceDeck, resetForNextTurn]);
 
   const redrawCard = useCallback(() => {
     pickNextCard(buildPick());
     markCardDrawn();
-  }, [pickNextCard, buildPick, markCardDrawn]);
+    startDealAnimation();
+  }, [pickNextCard, buildPick, markCardDrawn, startDealAnimation]);
 
   const handleFlipCard = useCallback(() => {
+    setContentVisible(false);
     reveal();
+    window.setTimeout(() => {
+      if (!closingTurnRef.current) setContentVisible(true);
+    }, FLIP_ANIMATION_MS);
   }, [reveal]);
+
+  const handleDone = useCallback(() => {
+    closingTurnRef.current = true;
+    setContentVisible(false);
+    window.setTimeout(() => hideCard(), CONTENT_FADE_MS);
+    window.setTimeout(
+      () => {
+        if (!closingTurnRef.current) return;
+        closingTurnRef.current = false;
+        handleNextTurn();
+      },
+      CONTENT_FADE_MS + FLIP_ANIMATION_MS + 40,
+    );
+  }, [hideCard, handleNextTurn]);
+
+  const handleCardTransitionEnd = useCallback(
+    (event: TransitionEvent<HTMLDivElement>) => {
+      if (event.target !== event.currentTarget) return;
+      if (revealed && !closingTurnRef.current) {
+        setContentVisible(true);
+      }
+    },
+    [revealed],
+  );
 
   useEffect(() => {
     if (!isReady || revealed || cardDrawn || !hasDifficultySelected) return;
+    // eslint-disable-next-line react-hooks/set-state-in-effect -- intentional turn bootstrap
     redrawCard();
   }, [isReady, revealed, cardDrawn, hasDifficultySelected, turn, redrawCard]);
 
@@ -64,18 +107,18 @@ export function CharadesPlay() {
     const handleKeyDown = (event: KeyboardEvent) => {
       if (event.code === 'Space') {
         event.preventDefault();
-        if (revealed) handleNextCard();
+        if (revealed) handleDone();
         else if (cardDrawn) handleFlipCard();
       }
       if (event.code === 'ArrowRight' && revealed) {
         event.preventDefault();
-        handleNextCard();
+        handleDone();
       }
     };
 
     window.addEventListener('keydown', handleKeyDown);
     return () => window.removeEventListener('keydown', handleKeyDown);
-  }, [revealed, cardDrawn, handleFlipCard, handleNextCard]);
+  }, [revealed, cardDrawn, handleFlipCard, handleDone]);
 
   useEffect(() => {
     if (!isReady) {
@@ -92,6 +135,7 @@ export function CharadesPlay() {
         packIds: showPackPick && pickPackIds.length < enabledPackIds.length ? pickPackIds : [],
       });
       markCardDrawn();
+      startDealAnimation();
     },
     [
       selectPickDifficulty,
@@ -101,6 +145,7 @@ export function CharadesPlay() {
       pickPackIds,
       enabledPackIds.length,
       markCardDrawn,
+      startDealAnimation,
     ],
   );
 
@@ -128,8 +173,11 @@ export function CharadesPlay() {
           <CardFace
             card={currentCard}
             revealed={revealed}
+            contentVisible={contentVisible}
+            dealAnimating={dealAnimating}
             awaitingDraw={awaitingDraw}
             onReveal={canFlip ? handleFlipCard : undefined}
+            onTransitionEnd={handleCardTransitionEnd}
           />
         </div>
 
@@ -138,7 +186,7 @@ export function CharadesPlay() {
             ? 'Open filters to pick a difficulty, then flip your card'
             : revealed
               ? 'Tap Done when the turn is over'
-              : 'Tap Flip card or the card back when the actor has the phone'}
+              : 'Flip the card when the actor has the phone'}
         </p>
       </div>
 
@@ -151,9 +199,9 @@ export function CharadesPlay() {
         sessionPacks={sessionPacks}
         pickPackIds={pickPackIds}
         onSelectDifficulty={handleSelectDifficulty}
-        onTogglePack={togglePickPack}
+        onApplyPackFilters={applyPackFilters}
         onFlipCard={handleFlipCard}
-        onDone={handleNextCard}
+        onDone={handleDone}
         onEndRound={handleEndRound}
         remainingCount={remainingCount}
       />

@@ -19,7 +19,7 @@ import { ALL_GENERATIONS } from '../lib/generations.js';
 import { getPackById } from '../data/index.js';
 import { formatRoundTitle, getPacksByIds, getTypesInPacks, mergePackCards } from '../lib/packs.js';
 import {
-  advanceDeck,
+  advanceDeck as advanceDeckState,
   applyNextCardPick,
   createDeckState,
   drawCurrent,
@@ -304,10 +304,18 @@ export function useCharadesPlay() {
     setRevealed(true);
   }, []);
 
-  const nextCard = useCallback(() => {
-    setDeckState((prev) => (prev ? advanceDeck(prev) : prev));
+  const hideCard = useCallback(() => {
     setRevealed(false);
   }, []);
+
+  const advanceDeck = useCallback(() => {
+    setDeckState((prev) => (prev ? advanceDeckState(prev) : prev));
+  }, []);
+
+  const nextCard = useCallback(() => {
+    advanceDeck();
+    setRevealed(false);
+  }, [advanceDeck]);
 
   const pickNextCard = useCallback((pick: NextCardPick) => {
     setDeckState((prev) => (prev ? applyNextCardPick(prev, pick) : prev));
@@ -320,6 +328,8 @@ export function useCharadesPlay() {
     currentCard,
     revealed,
     reveal,
+    hideCard,
+    advanceDeck,
     nextCard,
     pickNextCard,
     remainingCount: deckState ? remainingCards(deckState) : 0,

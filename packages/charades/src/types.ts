@@ -1,11 +1,11 @@
+import type { DifficultyBand } from './lib/difficultyBands.js';
+
 export type CardType = 'word' | 'term' | 'quote' | 'person' | 'title' | 'character' | 'actor';
 
 /** Numeric card difficulty on a 1–10 scale. UI bands map via `difficultyBands.ts`. */
 export type DifficultyLevel = number;
 
-export type { DifficultyBand } from './lib/difficultyBands.js';
-
-import type { DifficultyBand } from './lib/difficultyBands.js';
+export type { DifficultyBand };
 
 /** Session/play filter band — labeled Easy / Normal / Hard in the UI. */
 export type Difficulty = DifficultyBand;

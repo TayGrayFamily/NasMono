@@ -1,4 +1,4 @@
-import type { CSSProperties } from 'react';
+import type { CSSProperties, TransitionEvent } from 'react';
 import type { CharadesCard } from '../types.js';
 import { CARD_TYPE_PLAY_HINT, formatCardType } from '../lib/cardTypes.js';
 import { getDifficultyCssVars } from '../lib/difficultyColors.js';
@@ -8,13 +8,24 @@ import './CardFace.css';
 interface CardFaceProps {
   card: CharadesCard | null;
   revealed: boolean;
+  contentVisible: boolean;
+  dealAnimating?: boolean;
   /** Player has not drawn a card for this turn yet — show pick-difficulty prompt. */
   awaitingDraw?: boolean;
   /** Tap the card back to reveal (only when drawn and hidden). */
   onReveal?: () => void;
+  onTransitionEnd?: (event: TransitionEvent<HTMLDivElement>) => void;
 }
 
-export function CardFace({ card, revealed, awaitingDraw = false, onReveal }: CardFaceProps) {
+export function CardFace({
+  card,
+  revealed,
+  contentVisible,
+  dealAnimating = false,
+  awaitingDraw = false,
+  onReveal,
+  onTransitionEnd,
+}: CardFaceProps) {
   if (!card) {
     return (
       <div className="card-face card-face--empty">
@@ -29,18 +40,20 @@ export function CardFace({ card, revealed, awaitingDraw = false, onReveal }: Car
 
   return (
     <div
-      className={`card-flip ${revealed ? 'card-flip--revealed' : ''} card-flip--difficulty-level`}
+      className={`card-flip ${revealed ? 'card-flip--revealed' : ''} ${dealAnimating ? 'card-flip--dealing' : ''} card-flip--difficulty-level`}
       style={difficultyStyle as CSSProperties}
       aria-live={revealed ? 'polite' : 'off'}
     >
       <div className="card-flip__scene">
-        <div className="card-flip__inner">
+        <div className="card-flip__inner" onTransitionEnd={onTransitionEnd}>
           {canTapReveal ? (
             <button
               type="button"
               className="card-flip__face card-flip__face--back card-face card-face--hidden"
               onClick={onReveal}
-              aria-label="Reveal charades card"
+              aria-label="Flip charades card"
+              aria-hidden={revealed}
+              tabIndex={revealed ? -1 : 0}
             >
               <CardBack awaitingDraw={awaitingDraw} canTapReveal />
             </button>
@@ -48,17 +61,20 @@ export function CardFace({ card, revealed, awaitingDraw = false, onReveal }: Car
             <div
               className="card-flip__face card-flip__face--back card-face card-face--hidden"
               aria-label="Charades card hidden"
+              aria-hidden={revealed}
             >
               <CardBack awaitingDraw={awaitingDraw} canTapReveal={false} />
             </div>
           )}
 
           <div
-            className="card-flip__face card-flip__face--front card-face card-face--revealed"
+            className="card-flip__face card-flip__face--front card-face card-face--trading"
             aria-label={revealed ? `Charades card: ${card.text}` : undefined}
             aria-hidden={!revealed}
           >
-            <div className="card-face__content">
+            <div
+              className={`card-face__content ${contentVisible ? 'card-face__content--visible' : ''}`}
+            >
               {card.emoji && (
                 <span className="card-face__emoji" aria-hidden="true">
                   {card.emoji}
@@ -74,7 +90,7 @@ export function CardFace({ card, revealed, awaitingDraw = false, onReveal }: Car
               </span>
               <p className="card-face__text">{card.text}</p>
               {actInstruction && <span className="card-face__hint">{actInstruction}</span>}
-              <CardRevealExtras key={card.id} card={card} revealed={revealed} />
+              <CardRevealExtras key={card.id} card={card} revealed={revealed && contentVisible} />
             </div>
           </div>
         </div>
@@ -92,20 +108,19 @@ function CardBack({
 }) {
   return (
     <div className="card-face__cover card-face__cover--back">
-      <div className="card-face__back-pattern" aria-hidden="true" />
-      <span className="card-face__back-brand" aria-hidden="true">
-        Charades
+      <div className="card-face__ripple" aria-hidden="true">
+        <span className="card-face__ripple-wave card-face__ripple-wave--one" />
+        <span className="card-face__ripple-wave card-face__ripple-wave--two" />
+      </div>
+      <div className="card-face__frame" aria-hidden="true" />
+      <span className="card-face__back-mark" aria-hidden="true">
+        ?
       </span>
-      <p className="card-face__cover-text">
-        {awaitingDraw ? 'Pick a difficulty first' : 'Card back'}
-      </p>
-      <p className="card-face__cover-sub">
-        {awaitingDraw
-          ? 'Open filters below and pick a difficulty'
-          : canTapReveal
-            ? 'Tap to reveal'
-            : 'Pass the phone to the actor'}
-      </p>
+      {(awaitingDraw || canTapReveal) && (
+        <p className="card-face__cover-hint">
+          {awaitingDraw ? 'Pick a difficulty in filters' : 'Tap to flip'}
+        </p>
+      )}
     </div>
   );
 }

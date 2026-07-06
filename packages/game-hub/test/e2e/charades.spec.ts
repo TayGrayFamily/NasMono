@@ -27,7 +27,8 @@ async function selectOnlyDifficulty(page: Page, level: 'Easy' | 'Normal' | 'Hard
 }
 
 async function openPlayFilters(page: Page) {
-  await page.locator('.charades-play-footer__filter-trigger').click();
+  await page.getByRole('button', { name: 'Filters' }).click();
+  await expect(page.locator('.charades-play-footer__popup')).toBeVisible();
 }
 
 async function openPlayDifficultyOptions(page: Page) {
@@ -60,7 +61,7 @@ test.describe('Charades solo play', () => {
     await page.getByRole('button', { name: /^Start/ }).click();
     await page.waitForURL('**/play/charades/game');
 
-    await expect(page.getByText('Pick a difficulty first')).toBeVisible();
+    await expect(page.getByText('Pick a difficulty in filters')).toBeVisible();
     const flipCard = page.getByRole('button', { name: 'Flip card', exact: true });
     await expect(flipCard).toBeDisabled();
     await drawCardAtDifficulty(page, 'Easy');
@@ -69,8 +70,7 @@ test.describe('Charades solo play', () => {
     await expect(page.getByText('Word', { exact: true })).toBeVisible();
 
     await page.getByRole('button', { name: 'Done', exact: true }).click();
-    await expect(page.locator('.card-face__cover-text', { hasText: 'Card back' })).toBeVisible();
-    await expect(page.getByText('Tap to reveal')).toBeVisible();
+    await expect(page.getByText('Tap to flip')).toBeVisible();
     await expect(flipCard).toBeEnabled();
   });
 
@@ -195,8 +195,8 @@ test.describe('Charades solo play', () => {
     await page.waitForURL('**/play/charades/game');
 
     await drawCardAtDifficulty(page, 'Easy');
-    await expect(page.locator('.charades-play-footer__filter-trigger')).toBeVisible();
-    await page.getByRole('button', { name: 'Reveal charades card' }).click();
+    await expect(page.getByRole('button', { name: 'Filters' })).toBeVisible();
+    await page.getByRole('button', { name: 'Flip charades card' }).click();
     await expect(page.getByText('Word', { exact: true })).toBeVisible();
     await expect(page.locator('.charades-play-footer__filter-trigger')).toHaveCount(0);
     await expect(page.getByRole('button', { name: 'Done', exact: true })).toBeVisible();

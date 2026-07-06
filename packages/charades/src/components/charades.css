@@ -1041,6 +1041,7 @@
   line-height: 1.2;
   border: none;
   cursor: pointer;
+  touch-action: manipulation;
   box-shadow: 0 4px 16px rgba(0, 0, 0, 0.35);
   transition:
     transform 0.15s ease,
@@ -1075,6 +1076,7 @@
 .charades-fab:disabled {
   opacity: 0.5;
   cursor: not-allowed;
+  pointer-events: none;
 }
 
 .charades-fab__label {
@@ -1216,6 +1218,7 @@
     right: 0;
     bottom: 0;
     z-index: 100;
+    isolation: isolate;
     gap: 0.5rem;
     padding: 0.65rem calc(var(--space-page) + var(--safe-right)) calc(0.65rem + var(--safe-bottom))
       calc(var(--space-page) + var(--safe-left));
@@ -1225,11 +1228,7 @@
       rgba(15, 23, 42, 0.92) 80%,
       transparent
     );
-    pointer-events: none;
-  }
-
-  .charades-fab-dock > * {
-    pointer-events: auto;
+    touch-action: manipulation;
   }
 
   .charades-page--fab .charades-page__scroll {

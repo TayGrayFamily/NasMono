@@ -170,7 +170,15 @@ test.describe('Charades solo play', () => {
 
     await page.getByRole('button', { name: /^Start/ }).click();
     await page.waitForURL('**/play/charades/game');
-    await expect(page.getByRole('heading', { name: 'Mixed · 2 packs' })).toBeVisible();
+    await expect(page.getByText('Mixed · 2 packs')).toBeVisible();
+  });
+
+  test('exit returns to play home from charades setup', async ({ page }) => {
+    await page.goto('/play/charades');
+    await expect(page.getByRole('heading', { name: 'Charades', exact: true })).toBeVisible();
+    await page.getByRole('button', { name: 'Exit', exact: true }).click();
+    await page.waitForURL('**/');
+    await expect(page.getByRole('heading', { name: 'Play', exact: true })).toBeVisible();
   });
 
   test('play filters draw card by difficulty', async ({ page }) => {
@@ -185,7 +193,8 @@ test.describe('Charades solo play', () => {
     await drawCardAtDifficulty(page, 'Hard');
     await page.getByRole('button', { name: 'Flip card', exact: true }).click();
     await expect(page.locator('.card-flip--revealed.card-flip--difficulty-level')).toBeVisible();
-    await expect(page.locator('.card-face__difficulty')).toHaveText(/^(7|8|9|10)$/);
+    const difficulty = await page.locator('.card-flip--revealed').getAttribute('data-difficulty');
+    expect(difficulty).toMatch(/^(7|8|9|10)$/);
   });
 
   test('tap card back reveals without filter controls visible', async ({ page }) => {

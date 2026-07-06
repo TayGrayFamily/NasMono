@@ -1,15 +1,18 @@
 import { useMemo, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { useGameToolbar } from 'game-ui';
 import { allPacks } from '../data/index.js';
 import { formatDifficultySummary } from '../lib/difficulties.js';
 import { averageDifficulty, bandSharePercent } from '../lib/difficultyBands.js';
 import { ALL_GENERATIONS, GENERATION_LABELS } from '../lib/generations.js';
 import { useCharadesSetup } from '../hooks/useCharadesSession.js';
+import { charadesGameMeta } from '../gameMeta.js';
 import { CharadesFiltersPanel } from './CharadesFiltersPanel.js';
 import './charades.css';
 
 export function CharadesSetup() {
   const navigate = useNavigate();
+  useGameToolbar(charadesGameMeta.name);
   const [filtersOpen, setFiltersOpen] = useState(false);
   const {
     multiPack,
@@ -71,13 +74,6 @@ export function CharadesSetup() {
       className={`charades-page charades-setup charades-page--fab${filtersOpen ? ' charades-page--sheet-open' : ''}`}
     >
       <div className="charades-page__body">
-        <header className="charades-header charades-header--toolbar">
-          <button type="button" className="charades-header__back" onClick={() => navigate('/')}>
-            ← Back
-          </button>
-          <h2 className="charades-header__title">Charades</h2>
-        </header>
-
         <div className="charades-page__scroll">
           <p className="charades-setup-hint">
             {multiPack

@@ -10,12 +10,7 @@
     "isolatedModules": true,
     "noEmit": true,
     "jsx": "react-jsx",
-    "baseUrl": ".",
-    "paths": {
-      "@/*": ["./src/*"],
-      "charades": ["../charades/src/index.ts"],
-      "game-ui": ["../game-ui/src/index.ts"]
-    }
+    "skipLibCheck": true
   },
-  "include": ["src", "../charades/src", "../game-ui/src"]
+  "include": ["src"]
 }

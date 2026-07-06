@@ -193,7 +193,8 @@ test.describe('Charades solo play', () => {
     await drawCardAtDifficulty(page, 'Hard');
     await page.getByRole('button', { name: 'Flip card', exact: true }).click();
     await expect(page.locator('.card-flip--revealed.card-flip--difficulty-level')).toBeVisible();
-    await expect(page.locator('.card-face__difficulty')).toHaveText(/^(7|8|9|10)$/);
+    const difficulty = await page.locator('.card-flip--revealed').getAttribute('data-difficulty');
+    expect(difficulty).toMatch(/^(7|8|9|10)$/);
   });
 
   test('tap card back reveals without filter controls visible', async ({ page }) => {

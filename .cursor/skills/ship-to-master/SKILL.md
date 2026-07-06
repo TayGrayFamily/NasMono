@@ -39,12 +39,12 @@ pnpm verify    # format + lint + build + unit tests + home smoke
 
 **Targeted extras** (run when those areas changed):
 
-| Changed area | Additional command |
-| ------------ | ------------------ |
-| `packages/home/` | `pnpm smoke` (if verify already ran, optional) |
-| `packages/game-hub/`, `packages/charades/`, `packages/game-server/`, `packages/just-one/` | `pnpm smoke:game` |
-| Charades UI only | `pnpm --filter game-hub build && pnpm --filter game-hub exec playwright test test/e2e/charades.spec.ts` |
-| Game Hub mobile layouts | Charades e2e + portrait/landscape per `AGENTS.md` |
+| Changed area                                                                              | Additional command                                                                                      |
+| ----------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------- |
+| `packages/home/`                                                                          | `pnpm smoke` (if verify already ran, optional)                                                          |
+| `packages/game-hub/`, `packages/charades/`, `packages/game-server/`, `packages/just-one/` | `pnpm smoke:game`                                                                                       |
+| Charades UI only                                                                          | `pnpm --filter game-hub build && pnpm --filter game-hub exec playwright test test/e2e/charades.spec.ts` |
+| Game Hub mobile layouts                                                                   | Charades e2e + portrait/landscape per `AGENTS.md`                                                       |
 
 Shortcut script (verify + auto game smoke when game packages changed):
 
@@ -187,13 +187,13 @@ Summarize for the user:
 
 ## Scope shortcuts
 
-| User says | Do |
-| --------- | -- |
-| “verify only” | Step 1 (+ targeted tests) |
-| “review only” | Step 2 |
-| “check CI” | Step 4 |
-| “merge master in” | Step 3 |
-| “merge” / “ship it” | Full workflow 1–7 |
+| User says                   | Do                             |
+| --------------------------- | ------------------------------ |
+| “verify only”               | Step 1 (+ targeted tests)      |
+| “review only”               | Step 2                         |
+| “check CI”                  | Step 4                         |
+| “merge master in”           | Step 3                         |
+| “merge” / “ship it”         | Full workflow 1–7              |
 | “merge but skip game smoke” | Step 1 with `pnpm verify` only |
 
 ---

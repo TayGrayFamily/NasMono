@@ -15,6 +15,7 @@ COPY package.json pnpm-lock.yaml pnpm-workspace.yaml ./
 COPY packages/game-hub/package.json ./packages/game-hub/
 COPY packages/just-one/package.json ./packages/just-one/
 COPY packages/charades/package.json ./packages/charades/
+COPY packages/game-ui/package.json ./packages/game-ui/
 
 # Install dependencies
 RUN pnpm install --no-frozen-lockfile
@@ -23,6 +24,7 @@ RUN pnpm install --no-frozen-lockfile
 COPY packages/game-hub ./packages/game-hub
 COPY packages/just-one ./packages/just-one
 COPY packages/charades ./packages/charades
+COPY packages/game-ui ./packages/game-ui
 
 RUN pnpm --filter game-hub build
 

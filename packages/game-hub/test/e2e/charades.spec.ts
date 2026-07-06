@@ -243,7 +243,9 @@ test.describe('Charades solo play', () => {
     await context.close();
   });
 
-  test('mobile Start button does not click through to pack cards behind dock', async ({ browser }) => {
+  test('mobile Start button does not click through to pack cards behind dock', async ({
+    browser,
+  }) => {
     const context = await browser.newContext({
       viewport: { width: 428, height: 926 },
     });

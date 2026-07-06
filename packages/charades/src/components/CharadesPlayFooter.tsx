@@ -7,8 +7,7 @@ import {
   DIFFICULTY_LABELS,
 } from '../lib/difficulties.js';
 import type { DifficultyChoice } from '../lib/difficulties.js';
-
-type FilterPanel = 'difficulty' | 'pack';
+import { CharadesPlayPackSheet } from './CharadesPlayPackSheet.js';
 
 interface CharadesPlayFooterProps {
   revealed: boolean;
@@ -19,7 +18,7 @@ interface CharadesPlayFooterProps {
   sessionPacks: CharadesPack[];
   pickPackIds: string[];
   onSelectDifficulty: (choice: DifficultyChoice) => void;
-  onTogglePack: (packId: string) => void;
+  onApplyPackFilters: (packIds: string[]) => void;
   onFlipCard: () => void;
   onDone: () => void;
   onEndRound: () => void;
@@ -28,16 +27,14 @@ interface CharadesPlayFooterProps {
 function FilterIcon() {
   return (
     <svg
-      aria-hidden
-      width="22"
-      height="22"
+      className="charades-play-footer__filter-icon"
+      aria-hidden="true"
+      width="24"
+      height="24"
       viewBox="0 0 24 24"
-      fill="none"
-      stroke="currentColor"
-      strokeWidth="2"
-      strokeLinecap="round"
+      fill="currentColor"
     >
-      <path d="M4 6h16M7 12h10M10 18h4" />
+      <path d="M3 5a1 1 0 0 1 1-1h16a1 1 0 0 1 .8 1.6l-5.2 6.93V18a1 1 0 0 1-.55.9l-4 2A1 1 0 0 1 10 20v-6.47L4.2 5.6A1 1 0 0 1 5 4h14Z" />
     </svg>
   );
 }
@@ -51,26 +48,24 @@ export function CharadesPlayFooter({
   sessionPacks,
   pickPackIds,
   onSelectDifficulty,
-  onTogglePack,
+  onApplyPackFilters,
   onFlipCard,
   onDone,
   onEndRound,
 }: CharadesPlayFooterProps) {
   const listId = useId();
   const [filtersOpen, setFiltersOpen] = useState(false);
-  const [activePanel, setActivePanel] = useState<FilterPanel | null>(null);
+  const [showDifficultyOptions, setShowDifficultyOptions] = useState(false);
+  const [packSheetOpen, setPackSheetOpen] = useState(false);
+  const [packDraftIds, setPackDraftIds] = useState<string[]>(pickPackIds);
 
   const levelOptions = ALL_DIFFICULTIES.filter((level) => enabledDifficulties.includes(level));
   const showAny = enabledDifficulties.length > 1;
-  const categories: FilterPanel[] = showPackPick ? ['difficulty', 'pack'] : ['difficulty'];
-  const showCategories = categories.length > 1 && activePanel === null;
-  const showDifficultyOptions =
-    activePanel === 'difficulty' || (filtersOpen && categories.length === 1);
-  const showPackOptions = activePanel === 'pack';
+  const showCategories = showPackPick && filtersOpen && !showDifficultyOptions;
 
   const closeFilters = () => {
     setFiltersOpen(false);
-    setActivePanel(null);
+    setShowDifficultyOptions(false);
   };
 
   const toggleFilters = () => {
@@ -79,12 +74,28 @@ export function CharadesPlayFooter({
       return;
     }
     setFiltersOpen(true);
-    setActivePanel(categories.length === 1 ? 'difficulty' : null);
+    setShowDifficultyOptions(!showPackPick);
   };
 
   const handleSelectDifficulty = (choice: DifficultyChoice) => {
     onSelectDifficulty(choice);
     closeFilters();
+  };
+
+  const openPackSheet = () => {
+    closeFilters();
+    setPackDraftIds(pickPackIds);
+    setPackSheetOpen(true);
+  };
+
+  const toggleDraftPack = (packId: string) => {
+    setPackDraftIds((prev) => {
+      if (prev.includes(packId)) {
+        if (prev.length <= 1) return prev;
+        return prev.filter((id) => id !== packId);
+      }
+      return [...prev, packId];
+    });
   };
 
   if (revealed) {
@@ -98,116 +109,125 @@ export function CharadesPlayFooter({
   }
 
   return (
-    <footer
-      className={`charades-play-footer${filtersOpen ? ' charades-play-footer--filters-open' : ''}`}
-      aria-label="Card actions"
-    >
-      {filtersOpen && (
-        <button
-          type="button"
-          className="charades-play-footer__backdrop"
-          aria-label="Close filters"
-          onClick={closeFilters}
-        />
-      )}
-
-      <div className="charades-play-footer__filters">
-        <button
-          type="button"
-          className={`charades-play-footer__filter-trigger${filtersOpen ? ' charades-play-footer__filter-trigger--open' : ''}`}
-          aria-expanded={filtersOpen}
-          aria-haspopup="true"
-          aria-controls={listId}
-          aria-label="Filters"
-          onClick={toggleFilters}
-        >
-          <FilterIcon />
-        </button>
-
-        {filtersOpen && (
-          <div
-            id={listId}
-            className="charades-play-footer__expand"
-            role="group"
-            aria-label="Filters"
-          >
-            {showCategories &&
-              categories.map((category) => (
-                <button
-                  key={category}
-                  type="button"
-                  className="charades-play-footer__category"
-                  onClick={() => setActivePanel(category)}
-                >
-                  {category === 'difficulty' ? 'Difficulty' : 'Pack'}
-                </button>
-              ))}
-
-            {showDifficultyOptions && (
-              <div className="charades-play-footer__options" role="listbox" aria-label="Difficulty">
-                {showAny && (
-                  <button
-                    type="button"
-                    role="option"
-                    aria-selected={pickDifficulty === ANY_DIFFICULTY}
-                    className={`charades-play-footer__option charades-play-footer__option--any ${pickDifficulty === ANY_DIFFICULTY ? 'charades-play-footer__option--selected' : ''}`}
-                    onClick={() => handleSelectDifficulty(ANY_DIFFICULTY)}
-                  >
-                    {ANY_DIFFICULTY_LABEL}
-                  </button>
-                )}
-                {levelOptions.map((level) => {
-                  const isSelected = pickDifficulty === level;
-                  return (
-                    <button
-                      key={level}
-                      type="button"
-                      role="option"
-                      aria-selected={isSelected}
-                      className={`charades-play-footer__option charades-play-footer__option--${level} ${isSelected ? 'charades-play-footer__option--selected' : ''}`}
-                      onClick={() => handleSelectDifficulty(level)}
-                    >
-                      {DIFFICULTY_LABELS[level]}
-                    </button>
-                  );
-                })}
-              </div>
-            )}
-
-            {showPackOptions && (
-              <div className="charades-play-footer__options" role="group" aria-label="Pack">
-                {sessionPacks.map((pack) => {
-                  const on = pickPackIds.includes(pack.id);
-                  return (
-                    <button
-                      key={pack.id}
-                      type="button"
-                      className={`charades-play-footer__option charades-play-footer__option--pack ${on ? 'charades-play-footer__option--selected' : ''}`}
-                      aria-pressed={on}
-                      onClick={() => onTogglePack(pack.id)}
-                    >
-                      {pack.name}
-                    </button>
-                  );
-                })}
-              </div>
-            )}
-          </div>
-        )}
-      </div>
-
-      <button type="button" className="charades-play-footer__end" onClick={onEndRound}>
-        End round
-      </button>
-
-      <button
-        type="button"
-        className="charades-play-footer__flip"
-        onClick={onFlipCard}
-        disabled={!canFlip}
+    <>
+      <footer
+        className={`charades-play-footer${filtersOpen ? ' charades-play-footer--filters-open' : ''}`}
+        aria-label="Card actions"
       >
-        Flip card
-      </button>
-    </footer>
+        {filtersOpen && (
+          <button
+            type="button"
+            className="charades-play-footer__backdrop"
+            aria-label="Close filters"
+            onClick={closeFilters}
+          />
+        )}
+
+        <div className="charades-play-footer__row">
+          <div className="charades-play-footer__filters">
+            {filtersOpen && (
+              <div
+                id={listId}
+                className="charades-play-footer__popup"
+                role="group"
+                aria-label="Filters"
+              >
+                {showCategories && (
+                  <>
+                    <button
+                      type="button"
+                      className="charades-play-footer__category"
+                      onClick={() => setShowDifficultyOptions(true)}
+                    >
+                      Difficulty
+                    </button>
+                    <button
+                      type="button"
+                      className="charades-play-footer__category"
+                      onClick={openPackSheet}
+                    >
+                      Pack
+                    </button>
+                  </>
+                )}
+
+                {showDifficultyOptions && (
+                  <div
+                    className="charades-play-footer__options"
+                    role="listbox"
+                    aria-label="Difficulty"
+                  >
+                    {showAny && (
+                      <button
+                        type="button"
+                        role="option"
+                        aria-selected={pickDifficulty === ANY_DIFFICULTY}
+                        className={`charades-play-footer__option charades-play-footer__option--any ${pickDifficulty === ANY_DIFFICULTY ? 'charades-play-footer__option--selected' : ''}`}
+                        onClick={() => handleSelectDifficulty(ANY_DIFFICULTY)}
+                      >
+                        {ANY_DIFFICULTY_LABEL}
+                      </button>
+                    )}
+                    {levelOptions.map((level) => {
+                      const isSelected = pickDifficulty === level;
+                      return (
+                        <button
+                          key={level}
+                          type="button"
+                          role="option"
+                          aria-selected={isSelected}
+                          className={`charades-play-footer__option charades-play-footer__option--${level} ${isSelected ? 'charades-play-footer__option--selected' : ''}`}
+                          onClick={() => handleSelectDifficulty(level)}
+                        >
+                          {DIFFICULTY_LABELS[level]}
+                        </button>
+                      );
+                    })}
+                  </div>
+                )}
+              </div>
+            )}
+
+            <button
+              type="button"
+              className={`charades-play-footer__filter-trigger${filtersOpen ? ' charades-play-footer__filter-trigger--open' : ''}`}
+              aria-expanded={filtersOpen}
+              aria-haspopup="true"
+              aria-controls={listId}
+              title="Filters"
+              onClick={toggleFilters}
+            >
+              <FilterIcon />
+              <span className="charades-play-footer__filter-label">Filters</span>
+            </button>
+          </div>
+
+          <button type="button" className="charades-play-footer__end" onClick={onEndRound}>
+            End round
+          </button>
+
+          <button
+            type="button"
+            className="charades-play-footer__flip"
+            onClick={onFlipCard}
+            disabled={!canFlip}
+          >
+            Flip card
+          </button>
+        </div>
+      </footer>
+
+      <CharadesPlayPackSheet
+        open={packSheetOpen}
+        sessionPacks={sessionPacks}
+        draftPackIds={packDraftIds}
+        onTogglePack={toggleDraftPack}
+        onClose={() => setPackSheetOpen(false)}
+        onSave={() => {
+          onApplyPackFilters(packDraftIds);
+          setPackSheetOpen(false);
+        }}
+      />
+    </>
   );
 }

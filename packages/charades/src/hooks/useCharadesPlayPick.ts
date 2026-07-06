@@ -148,6 +148,18 @@ export function useCharadesPlayPick(
     [persist, pickDifficulty],
   );
 
+  const applyPackFilters = useCallback(
+    (packIds: string[]) => {
+      const next = packIds.filter((id) => enabledPackIds.includes(id));
+      if (next.length === 0) return;
+      setPickPackIds(next);
+      if (pickDifficulty !== null) {
+        persist(pickDifficulty, next);
+      }
+    },
+    [enabledPackIds, pickDifficulty, persist],
+  );
+
   const applyFilters = useCallback(() => {
     if (pickDifficulty !== null) {
       persist(pickDifficulty, effectivePickPackIds);
@@ -162,6 +174,7 @@ export function useCharadesPlayPick(
     selectPickDifficulty,
     buildPick,
     applyFilters,
+    applyPackFilters,
     cardDrawn,
     resetForNextTurn,
     markCardDrawn,

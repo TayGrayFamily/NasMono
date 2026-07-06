@@ -9,6 +9,7 @@
   height: 100%;
   min-height: inherit;
   perspective: 1200px;
+  -webkit-perspective: 1200px;
 }
 
 .card-flip__inner {
@@ -17,11 +18,26 @@
   height: 100%;
   min-height: inherit;
   transform-style: preserve-3d;
-  transition: transform 0.55s cubic-bezier(0.4, 0.2, 0.2, 1);
+  -webkit-transform-style: preserve-3d;
+  transition: transform 0.5s cubic-bezier(0.4, 0.2, 0.2, 1);
 }
 
 .card-flip--revealed .card-flip__inner {
   transform: rotateY(180deg);
+}
+
+.card-flip--dealing:not(.card-flip--revealed) .card-flip__inner {
+  animation: card-deal-in 0.48s cubic-bezier(0.22, 1, 0.36, 1) forwards;
+}
+
+@keyframes card-deal-in {
+  0% {
+    transform: translate(30%, 38%) scale(0.78) rotate(-5deg);
+  }
+
+  100% {
+    transform: translate(0, 0) scale(1) rotate(0deg);
+  }
 }
 
 .card-flip__face {
@@ -33,12 +49,24 @@
   -webkit-backface-visibility: hidden;
 }
 
-.card-flip__face--front {
-  transform: rotateY(180deg);
+.card-flip__face--back {
+  transform: rotateY(0deg) translateZ(1px);
+  z-index: 2;
+  cursor: default;
 }
 
-.card-flip__face--back {
-  cursor: default;
+.card-flip__face--front {
+  transform: rotateY(180deg) translateZ(1px);
+  z-index: 1;
+  pointer-events: none;
+}
+
+.card-flip--revealed .card-flip__face--back {
+  pointer-events: none;
+}
+
+.card-flip--revealed .card-flip__face--front {
+  pointer-events: auto;
 }
 
 button.card-flip__face--back {
@@ -56,68 +84,73 @@ button.card-flip__face--back:focus-visible {
   .card-flip__inner {
     transition: none;
   }
+
+  .card-flip--dealing:not(.card-flip--revealed) .card-flip__inner {
+    animation: none;
+  }
+
+  .card-face__ripple-wave {
+    animation: none !important;
+  }
 }
 
 .card-face {
   width: 100%;
   min-height: inherit;
   height: 100%;
-  border: 2px solid var(--border-color);
-  border-radius: var(--radius-lg);
-  background: linear-gradient(145deg, var(--bg-secondary), var(--panel-bg));
+  border-radius: 18px;
   color: var(--text-color);
   user-select: none;
-  padding: 2rem 1.5rem;
+  -webkit-user-select: none;
+  -webkit-touch-callout: none;
+  padding: 1.75rem 1.5rem;
   display: flex;
   align-items: center;
   justify-content: center;
   text-align: center;
-}
-
-.card-face--hidden {
-  background:
-    radial-gradient(circle at 20% 15%, rgba(6, 182, 212, 0.14), transparent 42%),
-    radial-gradient(circle at 80% 85%, rgba(59, 130, 246, 0.12), transparent 40%),
-    linear-gradient(155deg, #0f172a 0%, #1e293b 48%, #0f172a 100%);
-  border-color: rgba(6, 182, 212, 0.35);
-  box-shadow:
-    inset 0 0 0 1px rgba(255, 255, 255, 0.06),
-    var(--shadow-lg);
   overflow: hidden;
 }
 
-.card-face--revealed {
-  box-shadow: var(--shadow-lg);
+.card-face--hidden {
+  position: relative;
+  background: #16213f;
+  border: 3px solid rgba(6, 182, 212, 0.45);
+  box-shadow:
+    0 10px 28px rgba(0, 0, 0, 0.35),
+    inset 0 0 0 1px rgba(255, 255, 255, 0.08);
 }
 
-.card-face--revealed.card-face--difficulty-easy,
-.card-flip--revealed.card-flip--difficulty-easy .card-face--revealed {
-  border-color: rgba(34, 197, 94, 0.45);
+.card-face--trading {
+  background: #f4f1ea;
+  color: #0f172a;
+  border: 3px solid #cbd5e1;
   box-shadow:
-    var(--shadow-lg),
-    0 0 0 1px rgba(34, 197, 94, 0.08);
+    0 10px 28px rgba(0, 0, 0, 0.28),
+    inset 0 0 0 1px rgba(255, 255, 255, 0.85),
+    inset 0 0 0 4px rgba(15, 23, 42, 0.06);
 }
 
-.card-face--revealed.card-face--difficulty-medium,
-.card-flip--revealed.card-flip--difficulty-medium .card-face--revealed {
-  border-color: rgba(234, 179, 8, 0.45);
-  box-shadow:
-    var(--shadow-lg),
-    0 0 0 1px rgba(234, 179, 8, 0.08);
+.card-face--trading.card-face--difficulty-easy,
+.card-flip--revealed.card-flip--difficulty-easy .card-face--trading {
+  border-color: rgba(34, 197, 94, 0.65);
 }
 
-.card-face--revealed.card-face--difficulty-hard,
-.card-flip--revealed.card-flip--difficulty-hard .card-face--revealed {
-  border-color: rgba(244, 63, 94, 0.45);
-  box-shadow:
-    var(--shadow-lg),
-    0 0 0 1px rgba(244, 63, 94, 0.08);
+.card-face--trading.card-face--difficulty-medium,
+.card-flip--revealed.card-flip--difficulty-medium .card-face--trading {
+  border-color: rgba(234, 179, 8, 0.7);
+}
+
+.card-face--trading.card-face--difficulty-hard,
+.card-flip--revealed.card-flip--difficulty-hard .card-face--trading {
+  border-color: rgba(244, 63, 94, 0.7);
 }
 
 .card-face--empty {
   cursor: default;
   color: var(--text-muted);
   min-height: 280px;
+  background: var(--panel-bg);
+  border: 2px solid var(--border-color);
 }
 
 .card-face__cover {
@@ -126,97 +159,145 @@ button.card-flip__face--back:focus-visible {
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 0.75rem;
+  justify-content: center;
+  gap: 1rem;
+  width: 100%;
+  height: 100%;
 }
 
 .card-face__cover--back {
-  width: 100%;
+  padding: 1rem;
 }
 
-.card-face__back-pattern {
+.card-face__ripple {
   position: absolute;
-  inset: 1.25rem;
-  border-radius: calc(var(--radius-lg) - 0.5rem);
-  border: 2px dashed rgba(6, 182, 212, 0.28);
-  background: repeating-linear-gradient(
-    45deg,
-    rgba(6, 182, 212, 0.06) 0,
-    rgba(6, 182, 212, 0.06) 2px,
-    transparent 2px,
-    transparent 10px
-  );
+  inset: 0;
+  background: #16213f;
+  overflow: hidden;
   pointer-events: none;
 }
 
-.card-face__back-brand {
-  font-size: 0.8rem;
-  font-weight: 700;
-  letter-spacing: 0.28em;
-  text-transform: uppercase;
-  color: rgba(6, 182, 212, 0.85);
+.card-face__ripple-wave {
+  position: absolute;
+  width: 140%;
+  height: 140%;
+  border-radius: 42%;
+  opacity: 0.28;
+  pointer-events: none;
 }
 
-.card-face__cover-text {
-  margin: 0;
-  font-size: 1.5rem;
-  font-weight: 700;
+.card-face__ripple-wave--one {
+  left: -20%;
+  top: -25%;
+  background: radial-gradient(circle, rgba(6, 182, 212, 0.35) 0%, transparent 68%);
+  animation: card-ripple-drift-a 9s ease-in-out infinite;
 }
 
-.card-face__cover-sub {
+.card-face__ripple-wave--two {
+  right: -25%;
+  bottom: -30%;
+  background: radial-gradient(circle, rgba(59, 130, 246, 0.28) 0%, transparent 70%);
+  animation: card-ripple-drift-b 11s ease-in-out infinite;
+}
+
+@keyframes card-ripple-drift-a {
+  0%,
+  100% {
+    transform: translate(0, 0) rotate(0deg);
+  }
+
+  50% {
+    transform: translate(8%, 10%) rotate(8deg);
+  }
+}
+
+@keyframes card-ripple-drift-b {
+  0%,
+  100% {
+    transform: translate(0, 0) rotate(0deg);
+  }
+
+  50% {
+    transform: translate(-10%, -8%) rotate(-10deg);
+  }
+}
+
+.card-face__frame {
+  position: absolute;
+  inset: 1rem;
+  border-radius: 12px;
+  border: 2px solid rgba(6, 182, 212, 0.22);
+  pointer-events: none;
+}
+
+.card-face__back-mark {
+  position: relative;
+  z-index: 1;
+  font-size: clamp(3.5rem, 14vw, 5rem);
+  font-weight: 700;
+  line-height: 1;
+  color: rgba(148, 210, 255, 0.82);
+  text-shadow: 0 2px 12px rgba(6, 182, 212, 0.25);
+}
+
+.card-face__cover-hint {
+  position: relative;
+  z-index: 1;
   margin: 0;
-  color: var(--text-muted);
+  color: rgba(186, 210, 235, 0.92);
   font-size: 0.95rem;
-}
-
-.card-face--hidden .card-face__cover-text,
-.card-face--hidden .card-face__cover-sub {
-  color: rgba(226, 232, 240, 0.92);
-}
-
-.card-face--hidden .card-face__cover-sub {
-  color: rgba(148, 163, 184, 0.95);
+  font-weight: 600;
 }
 
 .card-face__content {
   display: flex;
   flex-direction: column;
-  gap: 0.75rem;
+  gap: 0.85rem;
   width: 100%;
+  max-height: 100%;
   overflow-y: auto;
   overscroll-behavior: contain;
   -webkit-overflow-scrolling: touch;
+  opacity: 0;
+  transition: opacity 0.24s ease;
+}
+
+.card-face__content--visible {
+  opacity: 1;
 }
 
 .card-face__type {
   align-self: center;
   font-size: 0.75rem;
-  font-weight: 600;
+  font-weight: 700;
   letter-spacing: 0.08em;
   text-transform: uppercase;
-  color: var(--primary-cyan);
-  background: rgba(6, 182, 212, 0.12);
+  color: #0369a1;
+  background: rgba(6, 182, 212, 0.14);
   padding: 0.25rem 0.75rem;
   border-radius: 999px;
 }
 
 .card-face__text {
   margin: 0;
-  font-size: clamp(1.35rem, 4.5vw, 2.25rem);
-  font-weight: 700;
-  line-height: 1.2;
+  font-size: clamp(1.85rem, 7vw, 3.25rem);
+  font-weight: 800;
+  line-height: 1.1;
+  letter-spacing: -0.02em;
   word-break: break-word;
   overflow-wrap: anywhere;
+  color: #0f172a;
 }
 
 .card-face__emoji {
-  font-size: 2.5rem;
+  font-size: 2.75rem;
   line-height: 1;
 }
 
 .card-face__meta,
 .card-face__hint {
-  color: var(--text-muted);
-  font-size: 0.9rem;
+  color: #475569;
+  font-size: 0.95rem;
 }
 
 @media (max-width: 932px), ((max-height: 480px) and (orientation: landscape)) {
@@ -224,7 +305,7 @@ button.card-flip__face--back:focus-visible {
     min-height: 0;
   }
 
-  .card-face__cover-text {
-    font-size: 1.35rem;
+  .card-face {
+    padding: 1.25rem 1rem;
   }
 }

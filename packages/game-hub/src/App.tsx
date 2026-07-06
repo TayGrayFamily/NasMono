@@ -15,7 +15,8 @@ import LobbyList from './components/LobbyList';
 import LobbyDetail from './components/LobbyDetail';
 import ManageUser from './components/ManageUser';
 import { PlayHome } from './components/PlayHome';
-import { CharadesRoutes } from 'charades';
+import { CharadesRoutes, charadesGameMeta } from 'charades';
+import { EmbeddedGameShell } from 'game-ui';
 import { SocketProvider, useSocket } from './components/SocketContext';
 import { Header } from './components/layout/Header';
 import { apiFetch } from './lib/api';
@@ -224,7 +225,14 @@ function AppContent({
       >
         <Routes>
           <Route path="/" element={<PlayHome currentUser={currentUser} />} />
-          <Route path="/play/charades/*" element={<CharadesRoutes />} />
+          <Route
+            path="/play/charades/*"
+            element={
+              <EmbeddedGameShell defaultTitle={charadesGameMeta.name} onExit={() => navigate('/')}>
+                <CharadesRoutes />
+              </EmbeddedGameShell>
+            }
+          />
 
           <Route
             path="/login"

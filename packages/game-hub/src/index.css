@@ -98,7 +98,7 @@ html:has(.app-container--charades) #root {
 }
 
 .main-content--charades {
-  padding-top: calc(var(--space-page) + var(--safe-top));
+  padding-top: calc(0.5rem + var(--safe-top));
   padding-bottom: 0.5rem;
   min-height: 0;
   overflow: hidden;

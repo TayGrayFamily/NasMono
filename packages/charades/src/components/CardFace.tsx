@@ -9,7 +9,7 @@ interface CardFaceProps {
   card: CharadesCard | null;
   revealed: boolean;
   contentVisible: boolean;
-  dealAnimating?: boolean;
+  dealPhase?: 'in' | 'out';
   /** Player has not drawn a card for this turn yet — show pick-difficulty prompt. */
   awaitingDraw?: boolean;
   /** Tap the card back to reveal (only when drawn and hidden). */
@@ -21,7 +21,7 @@ export function CardFace({
   card,
   revealed,
   contentVisible,
-  dealAnimating = false,
+  dealPhase,
   awaitingDraw = false,
   onReveal,
   onTransitionEnd,
@@ -40,8 +40,9 @@ export function CardFace({
 
   return (
     <div
-      className={`card-flip ${revealed ? 'card-flip--revealed' : ''} ${dealAnimating ? 'card-flip--dealing' : ''} card-flip--difficulty-level`}
+      className={`card-flip ${revealed ? 'card-flip--revealed' : ''}${dealPhase === 'in' ? ' card-flip--deal-in' : ''}${dealPhase === 'out' ? ' card-flip--deal-out' : ''} card-flip--difficulty-level`}
       style={difficultyStyle as CSSProperties}
+      data-difficulty={card.difficulty}
       aria-live={revealed ? 'polite' : 'off'}
     >
       <div className="card-flip__scene">
@@ -81,13 +82,6 @@ export function CardFace({
                 </span>
               )}
               <span className="card-face__type">{formatCardType(card.type)}</span>
-              <span
-                className="card-face__difficulty"
-                style={{ color: difficultyStyle['--difficulty-color'] }}
-                aria-label={`Difficulty ${card.difficulty} out of 10`}
-              >
-                {card.difficulty}
-              </span>
               <p className="card-face__text">{card.text}</p>
               {actInstruction && <span className="card-face__hint">{actInstruction}</span>}
               <CardRevealExtras key={card.id} card={card} revealed={revealed && contentVisible} />

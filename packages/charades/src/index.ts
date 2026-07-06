@@ -12,10 +12,4 @@ export { CharadesRoutes } from './components/CharadesRoutes.js';
 export { CharadesSetup } from './components/CharadesSetup.js';
 export { CharadesPlay } from './components/CharadesPlay.js';
 
-export const charadesGameMeta = {
-  id: 'charades',
-  name: 'Charades',
-  description: 'Pick a card, act it out, pass the phone. Solo or pass-and-play.',
-  solo: true,
-  path: '/play/charades',
-} as const;
+export { charadesGameMeta } from './gameMeta.js';

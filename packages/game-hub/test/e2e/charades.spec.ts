@@ -170,7 +170,15 @@ test.describe('Charades solo play', () => {
 
     await page.getByRole('button', { name: /^Start/ }).click();
     await page.waitForURL('**/play/charades/game');
-    await expect(page.getByRole('heading', { name: 'Mixed · 2 packs' })).toBeVisible();
+    await expect(page.getByText('Mixed · 2 packs')).toBeVisible();
+  });
+
+  test('exit returns to play home from charades setup', async ({ page }) => {
+    await page.goto('/play/charades');
+    await expect(page.getByRole('heading', { name: 'Charades', exact: true })).toBeVisible();
+    await page.getByRole('button', { name: 'Exit', exact: true }).click();
+    await page.waitForURL('**/');
+    await expect(page.getByRole('heading', { name: 'Play', exact: true })).toBeVisible();
   });
 
   test('play filters draw card by difficulty', async ({ page }) => {

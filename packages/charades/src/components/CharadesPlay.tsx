@@ -1,11 +1,13 @@
 import { useCallback, useEffect, useRef, useState, type TransitionEvent } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { useGameToolbar } from 'game-ui';
 import { ANY_DIFFICULTY } from '../lib/difficulties.js';
 import type { DifficultyChoice } from '../lib/difficulties.js';
 import { CardFace } from './CardFace.js';
 import { CharadesPlayFooter } from './CharadesPlayFooter.js';
 import { clearPlayPick, useCharadesPlayPick } from '../hooks/useCharadesPlayPick.js';
 import { clearSessionConfig, useCharadesPlay } from '../hooks/useCharadesSession.js';
+import { charadesGameMeta } from '../gameMeta.js';
 import './charades.css';
 
 const CONTENT_FADE_MS = 220;
@@ -155,6 +157,8 @@ export function CharadesPlay() {
     navigate('/play/charades');
   };
 
+  useGameToolbar(charadesGameMeta.name, isReady ? roundTitle : undefined);
+
   if (!isReady || !currentCard || !config) {
     return null;
   }
@@ -165,10 +169,6 @@ export function CharadesPlay() {
   return (
     <div className="charades-page charades-play charades-page--play-footer">
       <div className="charades-page__body">
-        <header className="charades-header charades-header--toolbar">
-          <h2 className="charades-header__title">{roundTitle}</h2>
-        </header>
-
         <div className="charades-page__stage">
           <CardFace
             card={currentCard}

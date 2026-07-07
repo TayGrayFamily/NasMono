@@ -12,11 +12,11 @@ import { charadesGameMeta } from '../gameMeta.js';
 import './charades.css';
 
 const CONTENT_FADE_MS = 220;
-const DEAL_OUT_MS = 540;
+const DEAL_PARK_MS = 540;
 const DEAL_IN_MS = 680;
 const FLIP_ANIMATION_MS = 520;
 
-type DealPhase = 'idle' | 'in' | 'out';
+type DealPhase = 'idle' | 'in' | 'park';
 
 export function CharadesPlay() {
   const navigate = useNavigate();
@@ -52,8 +52,9 @@ export function CharadesPlay() {
   const [turn, setTurn] = useState(0);
   const [contentVisible, setContentVisible] = useState(false);
   const [dealPhase, setDealPhase] = useState<DealPhase>('idle');
-  const [outgoingCard, setOutgoingCard] = useState<CharadesCard | null>(null);
-  const [outgoingRevealed, setOutgoingRevealed] = useState(false);
+  const [completedCards, setCompletedCards] = useState<CharadesCard[]>([]);
+  const [parkingCard, setParkingCard] = useState<CharadesCard | null>(null);
+  const [isDealing, setIsDealing] = useState(false);
   const closingTurnRef = useRef(false);
   const dealTimersRef = useRef<number[]>([]);
 
@@ -74,49 +75,38 @@ export function CharadesPlay() {
     scheduleDeal(() => setDealPhase('idle'), DEAL_IN_MS);
   }, [scheduleDeal]);
 
-  const runDealWithExit = useCallback(
-    (exitCard: CharadesCard | null, exitWasRevealed: boolean, onMidpoint: () => void) => {
+  const drawNextCard = useCallback(
+    (exitCard: CharadesCard) => {
       clearDealTimers();
+      setIsDealing(true);
+      hideCard();
 
-      if (!exitCard) {
-        onMidpoint();
-        startDealIn();
-        return;
-      }
-
-      setOutgoingCard(exitCard);
-      setOutgoingRevealed(exitWasRevealed);
-      setDealPhase('out');
+      setParkingCard(exitCard);
+      setDealPhase('park');
 
       scheduleDeal(() => {
-        setOutgoingCard(null);
-        setOutgoingRevealed(false);
-        onMidpoint();
-        startDealIn();
-      }, DEAL_OUT_MS);
-    },
-    [clearDealTimers, scheduleDeal, startDealIn],
-  );
-
-  const drawNextCard = useCallback(
-    (exitCard: CharadesCard | null, exitWasRevealed: boolean) => {
-      runDealWithExit(exitCard, exitWasRevealed, () => {
-        hideCard();
+        setParkingCard(null);
+        setCompletedCards((prev) => [...prev, exitCard]);
+        setDealPhase('idle');
         advanceDeck();
         resetForNextTurn();
         pickNextCard(buildPick());
         markCardDrawn();
         setTurn((t) => t + 1);
-      });
+        startDealIn();
+        scheduleDeal(() => setIsDealing(false), DEAL_IN_MS);
+      }, DEAL_PARK_MS);
     },
     [
-      runDealWithExit,
+      clearDealTimers,
       hideCard,
+      scheduleDeal,
       advanceDeck,
       resetForNextTurn,
       pickNextCard,
       buildPick,
       markCardDrawn,
+      startDealIn,
     ],
   );
 
@@ -126,7 +116,7 @@ export function CharadesPlay() {
     startDealIn();
   }, [pickNextCard, buildPick, markCardDrawn, startDealIn]);
 
-  const handleFlipCard = useCallback(() => {
+  const handleRevealCard = useCallback(() => {
     setContentVisible(false);
     reveal();
     scheduleDeal(() => {
@@ -135,17 +125,16 @@ export function CharadesPlay() {
   }, [reveal, scheduleDeal]);
 
   const handleDone = useCallback(() => {
-    if (!currentCard) return;
+    if (!currentCard || isDealing) return;
 
     closingTurnRef.current = true;
     setContentVisible(false);
 
     scheduleDeal(() => {
-      const exitCard = currentCard;
-      drawNextCard(exitCard, true);
+      drawNextCard(currentCard);
       closingTurnRef.current = false;
     }, CONTENT_FADE_MS);
-  }, [currentCard, drawNextCard, scheduleDeal]);
+  }, [currentCard, drawNextCard, isDealing, scheduleDeal]);
 
   const handleCardTransitionEnd = useCallback(
     (event: TransitionEvent<HTMLDivElement>) => {
@@ -168,7 +157,7 @@ export function CharadesPlay() {
       if (event.code === 'Space') {
         event.preventDefault();
         if (revealed) handleDone();
-        else if (cardDrawn) handleFlipCard();
+        else if (cardDrawn && !isDealing) handleRevealCard();
       }
       if (event.code === 'ArrowRight' && revealed) {
         event.preventDefault();
@@ -178,7 +167,7 @@ export function CharadesPlay() {
 
     window.addEventListener('keydown', handleKeyDown);
     return () => window.removeEventListener('keydown', handleKeyDown);
-  }, [revealed, cardDrawn, handleFlipCard, handleDone]);
+  }, [revealed, cardDrawn, isDealing, handleRevealCard, handleDone]);
 
   useEffect(() => {
     if (!isReady) {
@@ -221,7 +210,7 @@ export function CharadesPlay() {
     return null;
   }
 
-  const canFlip = cardDrawn && !revealed;
+  const canReveal = cardDrawn && !revealed && !isDealing;
   const awaitingDraw = !cardDrawn && !revealed;
   const activeDealPhase = dealPhase === 'idle' ? undefined : dealPhase;
 
@@ -230,13 +219,25 @@ export function CharadesPlay() {
       <div className="charades-page__body">
         <div className="charades-page__stage">
           <div className="card-deck">
-            {outgoingCard ? (
+            {completedCards.map((card, index) => (
               <CardFace
-                key={`out-${outgoingCard.id}`}
-                card={outgoingCard}
-                revealed={outgoingRevealed}
+                key={`done-${card.id}`}
+                card={card}
+                revealed
+                contentVisible
+                parked
+                dealPhase="parked"
+                parkStackIndex={index}
+              />
+            ))}
+            {parkingCard ? (
+              <CardFace
+                key={`park-${parkingCard.id}`}
+                card={parkingCard}
+                revealed
                 contentVisible={false}
-                dealPhase="out"
+                dealPhase="park"
+                parkStackIndex={completedCards.length}
               />
             ) : (
               <CardFace
@@ -246,7 +247,7 @@ export function CharadesPlay() {
                 contentVisible={contentVisible}
                 dealPhase={activeDealPhase}
                 awaitingDraw={awaitingDraw}
-                onReveal={canFlip ? handleFlipCard : undefined}
+                onReveal={canReveal ? handleRevealCard : undefined}
                 onTransitionEnd={handleCardTransitionEnd}
               />
             )}
@@ -255,16 +256,16 @@ export function CharadesPlay() {
 
         <p className="charades-play-filters__prompt" id="charades-play-filter-prompt">
           {awaitingDraw
-            ? 'Open filters to pick a difficulty, then flip your card'
+            ? 'Open filters to pick a difficulty, then reveal your card'
             : revealed
               ? 'Tap Done when the turn is over'
-              : 'Flip the card when the actor has the phone'}
+              : 'Reveal the card when the actor has the phone'}
         </p>
       </div>
 
       <CharadesPlayFooter
         revealed={revealed}
-        canFlip={canFlip}
+        canReveal={canReveal}
         enabledDifficulties={config.enabledDifficulties}
         pickDifficulty={pickDifficulty}
         showPackPick={showPackPick}
@@ -272,7 +273,7 @@ export function CharadesPlay() {
         pickPackIds={pickPackIds}
         onSelectDifficulty={handleSelectDifficulty}
         onApplyPackFilters={applyPackFilters}
-        onFlipCard={handleFlipCard}
+        onRevealCard={handleRevealCard}
         onDone={handleDone}
         onEndRound={handleEndRound}
         remainingCount={remainingCount}

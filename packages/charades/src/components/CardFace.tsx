@@ -9,7 +9,11 @@ interface CardFaceProps {
   card: CharadesCard | null;
   revealed: boolean;
   contentVisible: boolean;
-  dealPhase?: 'in' | 'out';
+  dealPhase?: 'in' | 'park' | 'parked';
+  /** Smaller face-up cards in the completed stack on the left. */
+  parked?: boolean;
+  /** Offset index in the completed stack (0 = bottom). */
+  parkStackIndex?: number;
   /** Player has not drawn a card for this turn yet — show pick-difficulty prompt. */
   awaitingDraw?: boolean;
   /** Tap the card back to reveal (only when drawn and hidden). */
@@ -22,6 +26,8 @@ export function CardFace({
   revealed,
   contentVisible,
   dealPhase,
+  parked = false,
+  parkStackIndex = 0,
   awaitingDraw = false,
   onReveal,
   onTransitionEnd,
@@ -36,11 +42,14 @@ export function CardFace({
 
   const actInstruction = CARD_TYPE_PLAY_HINT[card.type];
   const canTapReveal = Boolean(onReveal) && !awaitingDraw;
-  const difficultyStyle = getDifficultyCssVars(card.difficulty);
+  const difficultyStyle = {
+    ...getDifficultyCssVars(card.difficulty),
+    '--park-stack': parkStackIndex,
+  };
 
   return (
     <div
-      className={`card-flip ${revealed ? 'card-flip--revealed' : ''}${dealPhase === 'in' ? ' card-flip--deal-in' : ''}${dealPhase === 'out' ? ' card-flip--deal-out' : ''} card-flip--difficulty-level`}
+      className={`card-flip${revealed ? ' card-flip--revealed' : ''}${dealPhase === 'in' ? ' card-flip--deal-in' : ''}${dealPhase === 'park' ? ' card-flip--deal-park' : ''}${dealPhase === 'parked' || parked ? ' card-flip--parked' : ''} card-flip--difficulty-level`}
       style={difficultyStyle as CSSProperties}
       data-difficulty={card.difficulty}
       aria-live={revealed ? 'polite' : 'off'}
@@ -52,7 +61,7 @@ export function CardFace({
               type="button"
               className="card-flip__face card-flip__face--back card-face card-face--hidden"
               onClick={onReveal}
-              aria-label="Flip charades card"
+              aria-label="Reveal charades card"
               aria-hidden={revealed}
               tabIndex={revealed ? -1 : 0}
             >
@@ -112,7 +121,14 @@ function CardBack({
       </span>
       {(awaitingDraw || canTapReveal) && (
         <p className="card-face__cover-hint">
-          {awaitingDraw ? 'Pick a difficulty in filters' : 'Tap to flip'}
+          {awaitingDraw ? (
+            'Choose a difficulty in Filters'
+          ) : (
+            <>
+              <span className="card-face__cover-hint-primary">Your clue is hidden</span>
+              <span className="card-face__cover-hint-secondary">Tap to reveal</span>
+            </>
+          )}
         </p>
       )}
     </div>

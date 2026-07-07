@@ -24,7 +24,6 @@ import {
   createDeckState,
   drawCurrent,
   filterCards,
-  remainingCards,
   type DeckState,
 } from '../lib/deck.js';
 
@@ -332,7 +331,6 @@ export function useCharadesPlay() {
     advanceDeck,
     nextCard,
     pickNextCard,
-    remainingCount: deckState ? remainingCards(deckState) : 0,
     isReady: Boolean(config && mergedCards.length > 0 && deckState && currentCard),
   };
 }

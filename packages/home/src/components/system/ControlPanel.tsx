@@ -1,6 +1,8 @@
 import { Button } from '@chakra-ui/react';
 import { useMemo, type JSX } from 'react';
 import { UNRAID_DASHBOARD_URL } from '@/constants/unraidLinks';
+import { FetchStatusBanner } from '@/components/shared/FetchStatusBanner';
+import { ModuleLoadError } from '@/components/shared/FetchStatusBanner';
 import { useDockerActions } from '@/hooks/useDockerActions';
 import { useTemperatureAnalytics } from '@/hooks/useTemperatureAnalytics';
 import { useMetricsHistory } from '@/hooks/useMetricsHistory';
@@ -14,7 +16,7 @@ import '../shell/Shell.css';
 import './ControlPanel.css';
 
 export function ControlPanel(): JSX.Element {
-  const { data, error, loading, refresh } = useSystemContext();
+  const { data, error, loading, refreshing, isStale, refresh } = useSystemContext();
   const actions = useDockerActions(refresh);
   const { data: tempData } = useTemperatureAnalytics('24h', Boolean(data));
   const { data: metricsData } = useMetricsHistory('24h', Boolean(data));
@@ -27,10 +29,12 @@ export function ControlPanel(): JSX.Element {
   if (error && !data) {
     return (
       <div className="control-panel-error">
-        <p>{error}</p>
-        <Button size="sm" variant="outline" onClick={() => void refresh()}>
-          Retry
-        </Button>
+        <ModuleLoadError
+          title="Could not load system overview"
+          error={error}
+          onRetry={refresh}
+          retrying={loading}
+        />
       </div>
     );
   }
@@ -74,11 +78,20 @@ export function ControlPanel(): JSX.Element {
           >
             Unraid
           </a>
-          <Button size="sm" variant="outline" onClick={() => void refresh()} loading={loading}>
+          <Button size="sm" variant="outline" onClick={() => void refresh()} loading={refreshing}>
             Refresh
           </Button>
         </div>
       </header>
+
+      {isStale ? (
+        <FetchStatusBanner
+          message="System overview refresh failed"
+          detail={`${error} — showing last successful data.`}
+          onRetry={refresh}
+          retrying={refreshing}
+        />
+      ) : null}
 
       <div className="control-panel">
         {report.groups.map((group) =>

@@ -1,0 +1,62 @@
+.fetch-status-banner {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 12px;
+  padding: 10px 12px;
+  border-radius: 10px;
+  border: 1px solid rgba(255, 193, 7, 0.35);
+  background: rgba(255, 193, 7, 0.08);
+  color: var(--color-text);
+}
+
+.fetch-status-banner-text {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  min-width: 0;
+}
+
+.fetch-status-banner-text strong {
+  font-size: 0.82rem;
+  font-weight: 600;
+}
+
+.fetch-status-banner-detail {
+  font-size: 0.78rem;
+  color: var(--color-text-muted);
+  overflow-wrap: anywhere;
+}
+
+.module-load-error {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  min-height: 200px;
+  padding: 24px;
+  text-align: center;
+  color: var(--status-red);
+}
+
+.module-load-error-title {
+  margin: 0;
+  font-size: 1rem;
+  font-weight: 600;
+}
+
+.module-load-error-message {
+  margin: 0;
+  max-width: 36rem;
+  color: var(--color-text-muted);
+  overflow-wrap: anywhere;
+}
+
+.section-fetch-loading {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 120px;
+}

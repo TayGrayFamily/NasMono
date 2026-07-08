@@ -1,5 +1,6 @@
 import * as React from 'react';
 import { Outlet, createRootRoute } from '@tanstack/react-router';
+import { RouteErrorBoundary } from '@/components/shared/ErrorBoundary';
 import { Shell } from '@/components/shell/Shell';
 
 export const Route = createRootRoute({
@@ -10,7 +11,9 @@ function RootComponent() {
   return (
     <React.Fragment>
       <Shell>
-        <Outlet />
+        <RouteErrorBoundary>
+          <Outlet />
+        </RouteErrorBoundary>
       </Shell>
     </React.Fragment>
   );

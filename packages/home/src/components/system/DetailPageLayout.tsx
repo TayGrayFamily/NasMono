@@ -2,6 +2,8 @@ import { Button } from '@chakra-ui/react';
 import { Link } from '@tanstack/react-router';
 import type { JSX, ReactNode } from 'react';
 import { UNRAID_DASHBOARD_URL } from '@/constants/unraidLinks';
+import { FetchStatusBanner } from '@/components/shared/FetchStatusBanner';
+import { ModuleLoadError } from '@/components/shared/FetchStatusBanner';
 import { useSystemContext } from './SystemProvider';
 import '../shell/Shell.css';
 import './DetailPage.css';
@@ -12,7 +14,39 @@ type DetailPageLayoutProps = {
 };
 
 export function DetailPageLayout({ title, children }: DetailPageLayoutProps): JSX.Element {
-  const { loading, refresh } = useSystemContext();
+  const { data, error, loading, refreshing, isStale, refresh } = useSystemContext();
+
+  let body: ReactNode;
+  if (error && !data) {
+    body = (
+      <ModuleLoadError
+        title="Could not load system overview"
+        error={error}
+        onRetry={refresh}
+        retrying={loading}
+      />
+    );
+  } else if (!data) {
+    body = (
+      <div className="system-page-loading">
+        <div className="loading-spinner" />
+      </div>
+    );
+  } else {
+    body = (
+      <>
+        {isStale ? (
+          <FetchStatusBanner
+            message="System overview refresh failed"
+            detail={`${error} — showing last successful data.`}
+            onRetry={refresh}
+            retrying={refreshing}
+          />
+        ) : null}
+        {children}
+      </>
+    );
+  }
 
   return (
     <main className="detail-page-wrap">
@@ -32,12 +66,18 @@ export function DetailPageLayout({ title, children }: DetailPageLayoutProps): JS
           >
             Unraid
           </a>
-          <Button size="sm" variant="outline" onClick={() => void refresh()} loading={loading}>
+          <Button
+            size="sm"
+            variant="outline"
+            onClick={() => void refresh()}
+            loading={refreshing}
+            disabled={!data && loading}
+          >
             Refresh
           </Button>
         </div>
       </header>
-      <div className="detail-page-body">{children}</div>
+      <div className="detail-page-body">{body}</div>
     </main>
   );
 }

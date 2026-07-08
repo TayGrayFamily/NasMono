@@ -6,16 +6,18 @@ type SystemContextValue = {
   data: AdminOverview | null;
   error: string | null;
   loading: boolean;
+  refreshing: boolean;
+  isStale: boolean;
   refresh: () => Promise<void>;
 };
 
 const SystemContext = createContext<SystemContextValue | null>(null);
 
 export function SystemProvider({ children }: { children: ReactNode }): JSX.Element {
-  const { data, error, loading, refresh } = useAdminOverview();
+  const { data, error, loading, refreshing, isStale, refresh } = useAdminOverview();
 
   return (
-    <SystemContext.Provider value={{ data, error, loading, refresh }}>
+    <SystemContext.Provider value={{ data, error, loading, refreshing, isStale, refresh }}>
       {children}
     </SystemContext.Provider>
   );

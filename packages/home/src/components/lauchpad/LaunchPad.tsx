@@ -1,69 +1,33 @@
-import { useEffect, useState, type JSX } from 'react';
-import type { LaunchPadResponse } from '@/types/launchpad';
+import { useState, type JSX } from 'react';
+import { FetchStatusBanner } from '@/components/shared/FetchStatusBanner';
+import { ModuleLoadError } from '@/components/shared/FetchStatusBanner';
+import { useLaunchpad } from '@/hooks/useLaunchpad';
 import { AppTile } from './AppTile';
 import { ContainerTile } from './ContainerTile';
 import '../shell/Shell.css';
 
 export function LaunchPad(): JSX.Element {
-  const [data, setData] = useState<LaunchPadResponse | null>(null);
-  const [error, setError] = useState<string | null>(null);
+  const { data, error, loading, refreshing, isStale, refresh } = useLaunchpad();
   const [isServicesOpen, setIsServicesOpen] = useState(false);
 
-  useEffect(() => {
-    let cancelled = false;
-    fetch('/api/launchpad')
-      .then(async (r) => {
-        if (!r.ok) {
-          const body = await r.json().catch(() => ({}));
-          throw new Error((body as { error?: string }).error ?? r.statusText);
-        }
-        return r.json() as Promise<LaunchPadResponse>;
-      })
-      .then((response) => {
-        if (!cancelled) {
-          setData(response);
-        }
-      })
-      .catch((e: unknown) => {
-        if (!cancelled) setError(e instanceof Error ? e.message : String(e));
-      });
-    return () => {
-      cancelled = true;
-    };
-  }, []);
-
-  if (error) {
+  if (error && !data) {
     return (
-      <div
-        style={{
-          padding: '40px',
-          textAlign: 'center',
-          color: 'var(--status-red)',
-          maxWidth: '800px',
-          margin: '0 auto',
-        }}
-      >
-        <h2>Could not load launchpad</h2>
-        <p>{error}</p>
+      <div className="launchpad-state-wrap">
+        <ModuleLoadError
+          title="Could not load LaunchPad"
+          error={error}
+          onRetry={refresh}
+          retrying={loading}
+        />
       </div>
     );
   }
 
-  if (data === null) {
+  if (!data) {
     return (
-      <div
-        style={{
-          padding: '100px',
-          textAlign: 'center',
-          color: 'var(--color-text-muted)',
-          display: 'flex',
-          flexDirection: 'column',
-          alignItems: 'center',
-          gap: '16px',
-        }}
-      >
+      <div className="launchpad-state-wrap">
         <div className="loading-spinner" />
-        <p>Synchronizing with Docker daemon...</p>
+        <p className="launchpad-loading-text">Synchronizing with Docker daemon...</p>
       </div>
     );
   }
@@ -72,13 +36,26 @@ export function LaunchPad(): JSX.Element {
 
   return (
     <div className="launchpad-container">
+      {isStale ? (
+        <FetchStatusBanner
+          message="LaunchPad refresh failed"
+          detail={`${error} — showing last successful tiles.`}
+          onRetry={refresh}
+          retrying={refreshing}
+        />
+      ) : null}
+
       <section>
         <h2 className="section-title">Web Applications</h2>
-        <div className="container-grid">
-          {apps.map((app) => (
-            <AppTile app={app} key={app.id} />
-          ))}
-        </div>
+        {apps.length === 0 ? (
+          <p className="launchpad-empty-hint">No curated apps configured.</p>
+        ) : (
+          <div className="container-grid">
+            {apps.map((app) => (
+              <AppTile app={app} key={app.id} />
+            ))}
+          </div>
+        )}
       </section>
 
       {otherServices.length > 0 && (

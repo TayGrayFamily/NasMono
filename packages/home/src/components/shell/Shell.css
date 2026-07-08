@@ -100,6 +100,28 @@ body {
   box-sizing: border-box;
 }
 
+.launchpad-state-wrap {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 16px;
+  min-height: 280px;
+  padding: 40px 24px;
+  max-width: 800px;
+  margin: 0 auto;
+}
+
+.launchpad-loading-text {
+  margin: 0;
+  color: var(--color-text-muted);
+}
+
+.launchpad-empty-hint {
+  margin: 0;
+  color: var(--color-text-muted);
+}
+
 .section-title {
   font-size: 1.5rem;
   font-weight: 700;

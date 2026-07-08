@@ -1,3 +1,4 @@
+import { SectionFetchState } from '@/components/shared/SectionFetchState';
 import { useState, type JSX } from 'react';
 import { severityFromPercent } from '@/constants/statusThresholds';
 import { useMetricsHistory } from '@/hooks/useMetricsHistory';
@@ -70,30 +71,19 @@ function metricsHistoryHint(metrics: MetricsAnalytics, windowLabel: string): str
 }
 
 export function ResourcesPage(): JSX.Element {
-  const { data, error } = useSystemContext();
+  const { data } = useSystemContext();
   const [windowKey, setWindowKey] = useState<MetricsWindowKey>('24h');
   const {
     data: metrics,
     error: metricsError,
     loading: metricsLoading,
+    refreshing: metricsRefreshing,
+    isStale: metricsStale,
+    refresh: refreshMetrics,
   } = useMetricsHistory(windowKey, Boolean(data));
 
-  if (error && !data) {
-    return (
-      <DetailPageLayout title="Resources">
-        <p className="system-page-error">{error}</p>
-      </DetailPageLayout>
-    );
-  }
-
   if (!data) {
-    return (
-      <DetailPageLayout title="Resources">
-        <div className="system-page-loading">
-          <div className="loading-spinner" />
-        </div>
-      </DetailPageLayout>
-    );
+    return <DetailPageLayout title="Resources">{null}</DetailPageLayout>;
   }
 
   const limits = pctThresholds(data);
@@ -108,8 +98,9 @@ export function ResourcesPage(): JSX.Element {
   const cpuSev = severityFromPercent(cpuPct, limits);
   const memSev = severityFromPercent(pressurePct, limits);
 
-  const cpuHistory = metrics?.cpu;
-  const memHistory = metrics?.memory;
+  const cpuHistory = metrics?.window === windowKey ? metrics.cpu : undefined;
+  const memHistory = metrics?.window === windowKey ? metrics.memory : undefined;
+  const metricsReady = metrics?.window === windowKey;
   const memRange =
     memHistory?.min != null && memHistory?.max != null ? memHistory.max - memHistory.min : null;
 
@@ -129,16 +120,20 @@ export function ResourcesPage(): JSX.Element {
             </button>
           ))}
         </div>
-        {metrics?.window === windowKey ? (
-          <p className="metrics-history-hint">{metricsHistoryHint(metrics, windowLabel)}</p>
-        ) : null}
-        {metricsError ? <p className="system-page-error">{metricsError}</p> : null}
-        {metricsLoading && !metrics ? (
-          <div className="system-page-loading">
-            <div className="loading-spinner" />
-          </div>
-        ) : (
-          <div className={metricsLoading ? 'metrics-history-loading' : undefined}>
+        <SectionFetchState
+          label="Metrics history"
+          error={metricsError}
+          loading={metricsLoading}
+          ready={metricsReady}
+          isStale={metricsStale}
+          onRetry={refreshMetrics}
+          retrying={metricsRefreshing}
+          unavailableMessage="Charts are unavailable until metrics history loads."
+        >
+          {metrics ? (
+            <p className="metrics-history-hint">{metricsHistoryHint(metrics, windowLabel)}</p>
+          ) : null}
+          <div className={metricsRefreshing ? 'metrics-history-loading' : undefined}>
             <div className="metric-history-block">
               <h3 className="metric-history-block-title">CPU</h3>
               <MetricStatsRow
@@ -184,7 +179,7 @@ export function ResourcesPage(): JSX.Element {
               />
             </div>
           </div>
-        )}
+        </SectionFetchState>
       </section>
 
       <section className="detail-section">

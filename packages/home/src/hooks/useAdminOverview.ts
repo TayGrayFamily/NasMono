@@ -1,5 +1,6 @@
-import { useCallback, useEffect, useState } from 'react';
+import { useCallback } from 'react';
 import type { AdminOverview } from '@/types/admin';
+import { usePollingFetch } from './usePollingFetch';
 
 const POLL_MS = 30_000;
 
@@ -22,33 +23,19 @@ async function fetchOverview(): Promise<AdminOverview> {
 }
 
 export function useAdminOverview(enabled = true) {
-  const [data, setData] = useState<AdminOverview | null>(null);
-  const [error, setError] = useState<string | null>(null);
-  const [loading, setLoading] = useState(true);
+  const fetch = useCallback(() => fetchOverview(), []);
+  const state = usePollingFetch({
+    fetch,
+    enabled,
+    pollMs: POLL_MS,
+  });
 
-  const load = useCallback(async () => {
-    if (!enabled) return;
-    setLoading(true);
-    try {
-      const overview = await fetchOverview();
-      setData(overview);
-      setError(null);
-    } catch (e: unknown) {
-      setError(e instanceof Error ? e.message : String(e));
-    } finally {
-      setLoading(false);
-    }
-  }, [enabled]);
-
-  useEffect(() => {
-    void load();
-  }, [load]);
-
-  useEffect(() => {
-    if (!enabled) return;
-    const id = window.setInterval(() => void load(), POLL_MS);
-    return () => window.clearInterval(id);
-  }, [enabled, load]);
-
-  return { data, error, loading, refresh: load };
+  return {
+    data: state.data,
+    error: state.error,
+    loading: state.loading,
+    refreshing: state.refreshing,
+    isStale: state.isStale,
+    refresh: state.refresh,
+  };
 }

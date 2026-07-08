@@ -165,13 +165,14 @@ Image: `ghcr.io/taygrayfamily/nasmono-home:latest` (published by GitHub Actions 
 
 ## Troubleshooting
 
-| Symptom                          | Likely cause                                                                                                   |
-| -------------------------------- | -------------------------------------------------------------------------------------------------------------- |
-| Connection refused on `:8888`    | Port mapping ≠ `PORT` env inside container — see [ADR-0004](../../docs/decisions/0004-port-8888-home-app.md)   |
-| Docker status wrong / exited     | `containerMatch` hits wrong container; tighten regex                                                           |
-| Responding locally, not deployed | Container can't resolve `*.tower` — see [ADR-0003](../../docs/decisions/0003-reachability-via-host-gateway.md) |
-| Admin URL shows HTTP 403 green   | Expected; add `probeUrl` to a public path                                                                      |
-| Empty LaunchPad                  | Missing/invalid `launchpad.apps.json` or Unraid GraphQL error — check logs                                     |
+| Symptom                          | Likely cause                                                                                                                                    |
+| -------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------- |
+| Connection refused on `:8888`    | Port mapping ≠ `PORT` env inside container — see [ADR-0004](../../docs/decisions/0004-port-8888-home-app.md)                                    |
+| Docker status wrong / exited     | `containerMatch` hits wrong container; tighten regex                                                                                            |
+| Responding locally, not deployed | Container can't resolve `*.tower` — see [ADR-0003](../../docs/decisions/0003-reachability-via-host-gateway.md)                                  |
+| Admin URL shows HTTP 403 green   | Expected; add `probeUrl` to a public path                                                                                                       |
+| Empty LaunchPad                  | Missing/invalid `launchpad.apps.json` or Unraid GraphQL error — check logs                                                                      |
+| Docker shows **(unhealthy)**     | Old images used `wget` for healthcheck but `node:alpine` has no `wget` — recreate after latest image; probe `curl http://tower:8888/api/health` |
 
 Related decisions: [`docs/decisions/`](../../docs/decisions/README.md)
 

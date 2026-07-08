@@ -137,6 +137,49 @@ export function storageSeverity(data: AdminOverview): Severity {
   return severityFromPercent(pct, limits);
 }
 
+export function upsDeviceSeverity(device: AdminOverview['power']['devices'][0]): Severity {
+  const status = device.status.toUpperCase();
+  if (status.includes('BATTERY') || status === 'ONBATT' || status === 'OB') return 'warn';
+  if (device.batteryPercent <= THRESHOLDS.upsBattery.critical) return 'critical';
+  if (device.batteryPercent <= THRESHOLDS.upsBattery.warn) return 'warn';
+  if (device.loadPercent >= THRESHOLDS.upsLoad.critical) return 'critical';
+  if (device.loadPercent >= THRESHOLDS.upsLoad.warn) return 'warn';
+  const health = device.batteryHealth.toUpperCase();
+  if (health === 'REPLACE' || health === 'FAILED') return 'critical';
+  if (health && health !== 'OK' && health !== 'GOOD') return 'warn';
+  return 'ok';
+}
+
+export function powerSeverity(data: AdminOverview): Severity {
+  if (!data.power.available) return 'ok';
+  let worst: Severity = 'ok';
+  for (const device of data.power.devices) {
+    worst = maxSev(worst, upsDeviceSeverity(device));
+  }
+  return worst;
+}
+
+function formatUpsStatus(status: string): string {
+  const normalized = status.toUpperCase();
+  if (normalized === 'ONLINE' || normalized === 'OL') return 'Mains';
+  if (normalized.includes('BATTERY') || normalized === 'ONBATT' || normalized === 'OB') {
+    return 'On battery';
+  }
+  return status;
+}
+
+export function powerSummaryLine(data: AdminOverview): string {
+  if (!data.power.available) return 'No UPS configured';
+  const device = data.power.devices[0];
+  if (!device) return 'No UPS devices';
+  const parts: string[] = [formatUpsStatus(device.status)];
+  if (device.loadPercent > 0) parts.push(`${device.loadPercent}% load`);
+  if (device.batteryPercent > 0 && device.status.toUpperCase().includes('BATT')) {
+    parts.push(`${device.batteryPercent}% battery`);
+  }
+  return parts.join(' · ');
+}
+
 function maxSev(a: Severity, b: Severity): Severity {
   if (a === 'critical' || b === 'critical') return 'critical';
   if (a === 'warn' || b === 'warn') return 'warn';

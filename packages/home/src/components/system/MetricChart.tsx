@@ -14,8 +14,8 @@ type MetricChartProps = {
 
 export function MetricChart({
   samples,
-  warnAt = 70,
-  criticalAt = 90,
+  warnAt,
+  criticalAt,
   label,
   yDomain = 'percent',
   unit = '',
@@ -50,11 +50,11 @@ export function MetricChart({
     const span = vmax - vmin;
     const padding = Math.max(span * 0.25, 0.5);
     yMin = Math.max(0, Math.floor((vmin - padding) * 10) / 10);
-    yMax = Math.min(100, Math.ceil((vmax + padding) * 10) / 10);
+    yMax = Math.ceil((vmax + padding) * 10) / 10;
     if (yMax - yMin < 2) {
       const mid = (vmin + vmax) / 2;
       yMin = Math.max(0, Math.floor((mid - 1) * 10) / 10);
-      yMax = Math.min(100, Math.ceil((mid + 1) * 10) / 10);
+      yMax = Math.ceil((mid + 1) * 10) / 10;
     }
   }
 
@@ -64,12 +64,17 @@ export function MetricChart({
           const step = (yMax - yMin) / Math.max(1, Math.min(4, Math.round((yMax - yMin) * 2)));
           return Math.round((yMin + step * i) * 10) / 10;
         })
-      : [0, 25, 50, 75, 100];
+      : yDomain === 'auto'
+        ? Array.from(
+            { length: 5 },
+            (_, i) => Math.round((yMin + ((yMax - yMin) * i) / 4) * 10) / 10,
+          )
+        : [0, 25, 50, 75, 100];
 
   const stroke =
-    last >= criticalAt
+    criticalAt != null && last >= criticalAt
       ? 'var(--status-red)'
-      : last >= warnAt
+      : warnAt != null && last >= warnAt
         ? 'var(--status-yellow)'
         : 'var(--status-green)';
 
@@ -78,8 +83,8 @@ export function MetricChart({
 
   const points = samples.map((s, i) => `${toX(i)},${toY(s.v)}`).join(' ');
 
-  const warnY = toY(warnAt);
-  const critY = toY(criticalAt);
+  const warnY = warnAt != null ? toY(warnAt) : null;
+  const critY = criticalAt != null ? toY(criticalAt) : null;
 
   return (
     <div className="metric-chart">
@@ -106,20 +111,24 @@ export function MetricChart({
             </text>
           </g>
         ))}
-        <line
-          x1={padLeft}
-          y1={warnY}
-          x2={width - padRight}
-          y2={warnY}
-          className="metric-chart-threshold metric-chart-threshold--warn"
-        />
-        <line
-          x1={padLeft}
-          y1={critY}
-          x2={width - padRight}
-          y2={critY}
-          className="metric-chart-threshold metric-chart-threshold--critical"
-        />
+        {warnY != null ? (
+          <line
+            x1={padLeft}
+            y1={warnY}
+            x2={width - padRight}
+            y2={warnY}
+            className="metric-chart-threshold metric-chart-threshold--warn"
+          />
+        ) : null}
+        {critY != null ? (
+          <line
+            x1={padLeft}
+            y1={critY}
+            x2={width - padRight}
+            y2={critY}
+            className="metric-chart-threshold metric-chart-threshold--critical"
+          />
+        ) : null}
         <polyline
           fill="none"
           stroke={stroke}

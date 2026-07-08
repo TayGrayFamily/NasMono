@@ -16,6 +16,7 @@ import { Route as SystemIndexRouteImport } from './routes/system.index'
 import { Route as SystemTemperatureRouteImport } from './routes/system.temperature'
 import { Route as SystemStorageRouteImport } from './routes/system.storage'
 import { Route as SystemResourcesRouteImport } from './routes/system.resources'
+import { Route as SystemPowerRouteImport } from './routes/system.power'
 import { Route as SystemDockerRouteImport } from './routes/system.docker'
 
 const SystemRoute = SystemRouteImport.update({
@@ -53,6 +54,11 @@ const SystemResourcesRoute = SystemResourcesRouteImport.update({
   path: '/resources',
   getParentRoute: () => SystemRoute,
 } as any)
+const SystemPowerRoute = SystemPowerRouteImport.update({
+  id: '/power',
+  path: '/power',
+  getParentRoute: () => SystemRoute,
+} as any)
 const SystemDockerRoute = SystemDockerRouteImport.update({
   id: '/docker',
   path: '/docker',
@@ -64,6 +70,7 @@ export interface FileRoutesByFullPath {
   '/launchpad': typeof LaunchpadRoute
   '/system': typeof SystemRouteWithChildren
   '/system/docker': typeof SystemDockerRoute
+  '/system/power': typeof SystemPowerRoute
   '/system/resources': typeof SystemResourcesRoute
   '/system/storage': typeof SystemStorageRoute
   '/system/temperature': typeof SystemTemperatureRoute
@@ -73,6 +80,7 @@ export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/launchpad': typeof LaunchpadRoute
   '/system/docker': typeof SystemDockerRoute
+  '/system/power': typeof SystemPowerRoute
   '/system/resources': typeof SystemResourcesRoute
   '/system/storage': typeof SystemStorageRoute
   '/system/temperature': typeof SystemTemperatureRoute
@@ -84,6 +92,7 @@ export interface FileRoutesById {
   '/launchpad': typeof LaunchpadRoute
   '/system': typeof SystemRouteWithChildren
   '/system/docker': typeof SystemDockerRoute
+  '/system/power': typeof SystemPowerRoute
   '/system/resources': typeof SystemResourcesRoute
   '/system/storage': typeof SystemStorageRoute
   '/system/temperature': typeof SystemTemperatureRoute
@@ -96,6 +105,7 @@ export interface FileRouteTypes {
     | '/launchpad'
     | '/system'
     | '/system/docker'
+    | '/system/power'
     | '/system/resources'
     | '/system/storage'
     | '/system/temperature'
@@ -105,6 +115,7 @@ export interface FileRouteTypes {
     | '/'
     | '/launchpad'
     | '/system/docker'
+    | '/system/power'
     | '/system/resources'
     | '/system/storage'
     | '/system/temperature'
@@ -115,6 +126,7 @@ export interface FileRouteTypes {
     | '/launchpad'
     | '/system'
     | '/system/docker'
+    | '/system/power'
     | '/system/resources'
     | '/system/storage'
     | '/system/temperature'
@@ -178,6 +190,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof SystemResourcesRouteImport
       parentRoute: typeof SystemRoute
     }
+    '/system/power': {
+      id: '/system/power'
+      path: '/power'
+      fullPath: '/system/power'
+      preLoaderRoute: typeof SystemPowerRouteImport
+      parentRoute: typeof SystemRoute
+    }
     '/system/docker': {
       id: '/system/docker'
       path: '/docker'
@@ -190,6 +209,7 @@ declare module '@tanstack/react-router' {
 
 interface SystemRouteChildren {
   SystemDockerRoute: typeof SystemDockerRoute
+  SystemPowerRoute: typeof SystemPowerRoute
   SystemResourcesRoute: typeof SystemResourcesRoute
   SystemStorageRoute: typeof SystemStorageRoute
   SystemTemperatureRoute: typeof SystemTemperatureRoute
@@ -198,6 +218,7 @@ interface SystemRouteChildren {
 
 const SystemRouteChildren: SystemRouteChildren = {
   SystemDockerRoute: SystemDockerRoute,
+  SystemPowerRoute: SystemPowerRoute,
   SystemResourcesRoute: SystemResourcesRoute,
   SystemStorageRoute: SystemStorageRoute,
   SystemTemperatureRoute: SystemTemperatureRoute,

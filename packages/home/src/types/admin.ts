@@ -50,6 +50,27 @@ export type MemoryLegend = {
   maxBytes: number;
 };
 
+export type AdminUpsDevice = {
+  id: string;
+  name: string;
+  model: string;
+  status: string;
+  powerWatts: number | null;
+  loadPercent: number;
+  nominalPowerWatts: number | null;
+  inputVoltage: number | null;
+  outputVoltage: number | null;
+  batteryPercent: number;
+  batteryRuntimeSec: number;
+  batteryHealth: string;
+};
+
+export type AdminPowerSummary = {
+  available: boolean;
+  totalWatts: number | null;
+  devices: AdminUpsDevice[];
+};
+
 export type AdminOverview = {
   system: {
     hostname: string;
@@ -150,5 +171,6 @@ export type AdminOverview = {
     archived: number;
     items: AdminNotification[];
   };
+  power: AdminPowerSummary;
   warnings: string[];
 };

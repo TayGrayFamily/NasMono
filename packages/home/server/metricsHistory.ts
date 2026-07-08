@@ -11,6 +11,7 @@ export type MetricsHistoryFile = {
   version: number;
   cpu: MetricSample[];
   memory: MetricSample[];
+  power: MetricSample[];
 };
 
 function getMetricsHistoryPath(): string {
@@ -24,7 +25,7 @@ function getMetricsHistoryPath(): string {
 }
 
 function emptyHistory(): MetricsHistoryFile {
-  return { version: FILE_VERSION, cpu: [], memory: [] };
+  return { version: FILE_VERSION, cpu: [], memory: [], power: [] };
 }
 
 function readHistory(): MetricsHistoryFile {
@@ -37,6 +38,7 @@ function readHistory(): MetricsHistoryFile {
       version: FILE_VERSION,
       cpu: Array.isArray(parsed.cpu) ? parsed.cpu : [],
       memory: Array.isArray(parsed.memory) ? parsed.memory : [],
+      power: Array.isArray(parsed.power) ? parsed.power : [],
     };
   } catch {
     return emptyHistory();
@@ -61,11 +63,18 @@ function appendSample(series: MetricSample[], value: number, now: number): Metri
   return pruneSamples([...series, { t: now, v: Math.round(value * 10) / 10 }], now);
 }
 
-export function recordMetricsSample(cpuPercent: number, memoryPercent: number): void {
+export function recordMetricsSample(
+  cpuPercent: number,
+  memoryPercent: number,
+  powerWatts?: number | null,
+): void {
   const now = Date.now();
   const history = readHistory();
   history.cpu = appendSample(history.cpu, cpuPercent, now);
   history.memory = appendSample(history.memory, memoryPercent, now);
+  if (powerWatts != null && Number.isFinite(powerWatts)) {
+    history.power = appendSample(history.power, powerWatts, now);
+  }
   writeHistory(history);
 }
 
@@ -78,6 +87,7 @@ export function getMetricsHistory(sinceMs?: number): MetricsHistoryFile {
     version: FILE_VERSION,
     cpu: history.cpu.filter((s) => s.t >= cutoff),
     memory: history.memory.filter((s) => s.t >= cutoff),
+    power: history.power.filter((s) => s.t >= cutoff),
   };
 }
 

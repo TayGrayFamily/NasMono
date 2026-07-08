@@ -15,6 +15,7 @@ export type MetricsAnalytics = {
   windowMs: number;
   cpu: MetricSeriesStats;
   memory: MetricSeriesStats;
+  power: MetricSeriesStats | null;
   collecting: boolean;
   sampleCount: number;
   historySpanMs: number;
@@ -46,14 +47,20 @@ export function buildMetricsAnalytics(
   const history = getMetricsHistory(windowMs);
   const cpu = statsForSeries(history.cpu);
   const memory = statsForSeries(history.memory);
-  const sampleCount = Math.max(history.cpu.length, history.memory.length);
-  const spanMs = Math.max(historySpanMs(history.cpu), historySpanMs(history.memory));
+  const power = history.power.length > 0 ? statsForSeries(history.power) : null;
+  const sampleCount = Math.max(history.cpu.length, history.memory.length, history.power.length);
+  const spanMs = Math.max(
+    historySpanMs(history.cpu),
+    historySpanMs(history.memory),
+    historySpanMs(history.power),
+  );
 
   return {
     window,
     windowMs,
     cpu,
     memory,
+    power,
     collecting: sampleCount < 2,
     sampleCount,
     historySpanMs: spanMs,

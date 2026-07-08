@@ -11,6 +11,7 @@ import {
 import { getUnraidConfig, unraidQuery } from './unraidGraphql.js';
 import { extractTempReadings, recordTempSample } from './tempHistory.js';
 import { recordMetricsSample } from './metricsHistory.js';
+import { fetchPowerSummary, type AdminPowerSummary } from './upsOverview.js';
 
 const OVERVIEW_QUERY = `
 query AdminOverview {
@@ -179,7 +180,7 @@ export type AdminNotification = {
   link: string | null;
 };
 
-export type { ContainerAttention };
+export type { AdminPowerSummary, AdminUpsDevice } from './upsOverview.js';
 
 export type AdminContainerSummary = {
   id: string;
@@ -313,6 +314,7 @@ export type AdminOverview = {
     archived: number;
     items: AdminNotification[];
   };
+  power: AdminPowerSummary;
   warnings: string[];
 };
 
@@ -504,6 +506,7 @@ export async function fetchAdminOverview(): Promise<AdminOverview> {
 
   const { data, warnings } = await unraidQuery<GqlOverview>(OVERVIEW_QUERY);
   const { flags: updateFlags, warnings: updateWarnings } = await fetchContainerUpdateFlags();
+  const { power, warnings: powerWarnings } = await fetchPowerSummary();
 
   const overview: AdminOverview = {
     system: {
@@ -563,10 +566,15 @@ export async function fetchAdminOverview(): Promise<AdminOverview> {
         link: n.link,
       })),
     },
-    warnings: [...warnings, ...updateWarnings],
+    power,
+    warnings: [...warnings, ...updateWarnings, ...powerWarnings],
   };
 
   recordTempSample(extractTempReadings(overview));
-  recordMetricsSample(overview.metrics.cpuPercent, overview.metrics.memoryPercent);
+  recordMetricsSample(
+    overview.metrics.cpuPercent,
+    overview.metrics.memoryPercent,
+    overview.power.totalWatts,
+  );
   return overview;
 }

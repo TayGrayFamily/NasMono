@@ -5,6 +5,8 @@ export const THRESHOLDS = {
   memory: { warn: 80, critical: 95 },
   shareFull: { warn: 80, critical: 95 },
   diskTemp: { warn: 45, critical: 55 },
+  upsLoad: { warn: 85, critical: 100 },
+  upsBattery: { warn: 40, critical: 20 },
 } as const;
 
 export function severityFromPercent(

@@ -8,6 +8,8 @@ import {
   collectCurrentTemps,
   containersSeverity,
   pctThresholds,
+  powerSeverity,
+  powerSummaryLine,
   storageSeverity,
   temperatureSeverityFromReadings,
   totalStoragePercent,
@@ -94,6 +96,9 @@ function buildSystemGroup(
       ? `Array started · ${data.array.disks.length} disk${data.array.disks.length === 1 ? '' : 's'}`
       : data.array.state;
 
+  const powerSev = powerSeverity(data);
+  const watts = data.power.totalWatts;
+
   const cards: PanelCard[] = [
     {
       id: 'cpu',
@@ -131,6 +136,20 @@ function buildSystemGroup(
       to: '/system/storage',
     },
   ];
+
+  if (data.power.available) {
+    cards.push({
+      id: 'power',
+      title: 'Power',
+      severity: powerSev,
+      summary: watts != null ? `${watts} W` : '—',
+      detail:
+        metrics?.power?.min != null && metrics?.power?.max != null
+          ? `${metrics.power.min}–${metrics.power.max} W (${metrics.window})`
+          : powerSummaryLine(data),
+      to: '/system/power',
+    });
+  }
 
   return {
     id: 'system',

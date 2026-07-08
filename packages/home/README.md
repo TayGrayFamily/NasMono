@@ -39,6 +39,10 @@ Open **http://localhost:8888**
 
 When `ADMIN_ACTIONS_ENABLED=true`, **System → Docker** shows image version, update badges, and per-container actions (Update image, Check for updates). Requires an Unraid API key with **Docker write** permissions—not read-only.
 
+### UPS / power monitoring (System view)
+
+When a USB (or network) UPS is configured under **Unraid → Settings → UPS Settings**, **System** shows live draw in watts on the control panel and a **Power** detail page with per-device load, voltage, and battery status. Data comes from Unraid GraphQL `upsDevices` (optional query — older API builds degrade gracefully). Set **UPS capacity (W)** in Unraid if wattage is derived from load % instead of `currentPower`.
+
 Compose-managed containers (e.g. `web_app`) can be updated via the same GraphQL mutations. This is not identical to Compose Manager's `compose pull + up -d`; use the **Compose Manager** link for full stack semantics. Updating `web_app` restarts the dashboard briefly.
 
 **Unraid compose env** (see `docker-compose.unraid.yml`):

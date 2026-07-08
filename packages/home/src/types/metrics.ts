@@ -16,6 +16,7 @@ export type MetricsAnalytics = {
   windowMs: number;
   cpu: MetricSeriesStats;
   memory: MetricSeriesStats;
+  power: MetricSeriesStats | null;
   collecting: boolean;
   sampleCount: number;
   historySpanMs: number;

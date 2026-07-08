@@ -164,6 +164,11 @@
   gap: 10px;
 }
 
+.group-panel-body--metrics.group-panel-body--cards-5 {
+  grid-template-columns: repeat(3, 1fr);
+  grid-template-rows: 1fr 1fr;
+}
+
 .panel-card {
   display: flex;
   flex-direction: column;

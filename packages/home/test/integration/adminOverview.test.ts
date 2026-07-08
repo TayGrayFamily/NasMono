@@ -61,6 +61,25 @@ const overviewPayload = {
   },
 };
 
+const upsPayload = {
+  upsDevices: [
+    {
+      id: 'ups-1',
+      name: 'Tower UPS',
+      model: 'USB PSU',
+      status: 'ONLINE',
+      battery: { chargeLevel: 100, estimatedRuntime: 7200, health: 'Good' },
+      power: {
+        inputVoltage: 120,
+        outputVoltage: 120,
+        loadPercentage: 35,
+        nominalPower: 1000,
+        currentPower: 350,
+      },
+    },
+  ],
+};
+
 describe('GET /admin/overview', () => {
   beforeEach(() => {
     process.env.UNRAID_GRAPHQL_URL = 'http://tower:8080/graphql';
@@ -83,6 +102,9 @@ describe('GET /admin/overview', () => {
           data: null,
         });
       }
+      if (body.query.includes('upsDevices')) {
+        return Response.json({ data: upsPayload });
+      }
       return Response.json({ data: overviewPayload });
     });
     vi.stubGlobal('fetch', fetchMock);
@@ -95,6 +117,17 @@ describe('GET /admin/overview', () => {
       image: 'ghcr.io/taygrayfamily/nasmono-home:latest',
       updateAvailable: false,
     });
+    expect(res.body.power).toMatchObject({
+      available: true,
+      totalWatts: 350,
+      devices: [
+        expect.objectContaining({
+          name: 'Tower UPS',
+          powerWatts: 350,
+          loadPercent: 35,
+        }),
+      ],
+    });
     expect(res.body.warnings.some((w: string) => w.includes('update flags unavailable'))).toBe(
       true,
     );
@@ -103,5 +136,28 @@ describe('GET /admin/overview', () => {
     );
     expect(queries.some((q) => q.includes('AdminOverview'))).toBe(true);
     expect(queries.some((q) => q.includes('isUpdateAvailable'))).toBe(true);
+    expect(queries.some((q) => q.includes('upsDevices'))).toBe(true);
+  });
+
+  it('returns overview when upsDevices query is unsupported', async () => {
+    const fetchMock = vi.fn(async (_url: string, init?: RequestInit) => {
+      const body = JSON.parse(String(init?.body)) as { query: string };
+      if (body.query.includes('upsDevices')) {
+        return Response.json({
+          errors: [{ message: 'Cannot query field "upsDevices"' }],
+          data: null,
+        });
+      }
+      if (body.query.includes('isUpdateAvailable')) {
+        return Response.json({ data: { docker: { containers: [] } } });
+      }
+      return Response.json({ data: overviewPayload });
+    });
+    vi.stubGlobal('fetch', fetchMock);
+
+    const res = await request(createApiApp()).get('/admin/overview');
+    expect(res.status).toBe(200);
+    expect(res.body.power).toEqual({ available: false, totalWatts: null, devices: [] });
+    expect(res.body.warnings.some((w: string) => w.includes('UPS power unavailable'))).toBe(true);
   });
 });

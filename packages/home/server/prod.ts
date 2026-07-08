@@ -21,7 +21,7 @@ const __dirname = path.dirname(__filename);
 const distDir = path.resolve(__dirname, '..', 'dist');
 
 // Use environment variables with safe fallbacks
-const port = Number(process.env.PORT || 80);
+const port = Number(process.env.PORT || 8888);
 const host = process.env.SERVER_HOST || '0.0.0.0';
 
 const app = express();

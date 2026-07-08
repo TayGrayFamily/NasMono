@@ -25,10 +25,17 @@ services:
     volumes:
       - /mnt/user/appdata/nasmono-home:/config
     healthcheck:
-      test: ['CMD', 'wget', '-qO-', 'http://localhost:8888/api/health']
+      test:
+        [
+          'CMD',
+          'node',
+          '-e',
+          "fetch('http://127.0.0.1:8888/api/health').then((r)=>process.exit(r.ok?0:1)).catch(()=>process.exit(1))",
+        ]
       interval: 30s
       timeout: 5s
       retries: 3
+      start_period: 15s
     logging: *json-logging
     labels:
       - 'com.tailscale.description=NasMono Home app'

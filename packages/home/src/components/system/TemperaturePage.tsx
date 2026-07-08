@@ -1,4 +1,5 @@
 import { useState, type JSX } from 'react';
+import { SectionFetchState } from '@/components/shared/SectionFetchState';
 import { useTemperatureAnalytics } from '@/hooks/useTemperatureAnalytics';
 import {
   TEMP_ROLE_LABELS,
@@ -127,34 +128,12 @@ function SensorHistoryBlock({
 
 export function TemperaturePage(): JSX.Element {
   const [windowKey, setWindowKey] = useState<TempWindowKey>('24h');
-  const { data, error, loading, refresh } = useTemperatureAnalytics(windowKey);
-
-  if (error && !data) {
-    return (
-      <DetailPageLayout title="Temperature">
-        <div className="temp-page-error">
-          <p>{error}</p>
-          <button type="button" className="launch-button" onClick={() => void refresh()}>
-            Retry
-          </button>
-        </div>
-      </DetailPageLayout>
-    );
-  }
-
-  if (!data) {
-    return (
-      <DetailPageLayout title="Temperature">
-        <div className="temp-page-loading">
-          <div className="loading-spinner" />
-        </div>
-      </DetailPageLayout>
-    );
-  }
+  const { data, error, loading, refreshing, isStale, refresh } = useTemperatureAnalytics(windowKey);
 
   const windowLabel = TEMP_WINDOW_OPTIONS.find((o) => o.key === windowKey)?.label ?? windowKey;
-  const groups = groupSensors(data.sensors);
-  const hottest = data.sensors[0] ?? null;
+  const ready = Boolean(data && data.window === windowKey);
+  const groups = data ? groupSensors(data.sensors) : [];
+  const hottest = data?.sensors[0] ?? null;
 
   return (
     <DetailPageLayout title="Temperature">
@@ -172,47 +151,67 @@ export function TemperaturePage(): JSX.Element {
             </button>
           ))}
         </div>
-        {data.window === windowKey ? (
-          <p className="metrics-history-hint">{tempHistoryHint(data, windowLabel)}</p>
-        ) : null}
-        <p className="temp-page-note">
-          Array slots use Unraid roles (Parity, Disk 1, Cache, …). SMART model names appear as
-          subtitles when they differ.
-        </p>
 
-        <div className={loading ? 'metrics-history-loading' : undefined}>
-          {hottest ? (
-            <div className="metric-history-block">
-              <h3 className="metric-history-block-title">Hottest now</h3>
-              <SensorHistoryBlock sensor={hottest} windowLabel={windowLabel} />
-            </div>
+        <SectionFetchState
+          label="Temperature history"
+          error={error}
+          loading={loading}
+          ready={ready}
+          isStale={isStale}
+          onRetry={refresh}
+          retrying={refreshing}
+          unavailableMessage="Temperature charts are unavailable right now."
+        >
+          {data ? (
+            <>
+              <p className="metrics-history-hint">{tempHistoryHint(data, windowLabel)}</p>
+              <p className="temp-page-note">
+                Array slots use Unraid roles (Parity, Disk 1, Cache, …). SMART model names appear as
+                subtitles when they differ.
+              </p>
+
+              <div className={refreshing ? 'metrics-history-loading' : undefined}>
+                {hottest ? (
+                  <div className="metric-history-block">
+                    <h3 className="metric-history-block-title">Hottest now</h3>
+                    <SensorHistoryBlock sensor={hottest} windowLabel={windowLabel} />
+                  </div>
+                ) : null}
+
+                <section className="temp-role-section">
+                  <h3 className="metric-history-block-title">{TEMP_ROLE_LABELS.cpu}</h3>
+                  {!data.cpu.available ? (
+                    <p className="temp-cpu-unavailable">{data.cpu.message}</p>
+                  ) : null}
+                </section>
+
+                {groups
+                  .filter((g) => g.role !== 'cpu')
+                  .map(({ role, items }) => (
+                    <section key={role} className="temp-role-section">
+                      <h3 className="metric-history-block-title">{TEMP_ROLE_LABELS[role]}</h3>
+                      {items.map((sensor) => (
+                        <SensorHistoryBlock
+                          key={sensor.id}
+                          sensor={sensor}
+                          windowLabel={windowLabel}
+                        />
+                      ))}
+                    </section>
+                  ))}
+
+                {data.sensors.length === 0 ? (
+                  <p className="temp-collecting-hint">
+                    No temperature readings from Unraid right now.
+                  </p>
+                ) : null}
+              </div>
+            </>
           ) : null}
-
-          <section className="temp-role-section">
-            <h3 className="metric-history-block-title">{TEMP_ROLE_LABELS.cpu}</h3>
-            {!data.cpu.available ? (
-              <p className="temp-cpu-unavailable">{data.cpu.message}</p>
-            ) : null}
-          </section>
-
-          {groups
-            .filter((g) => g.role !== 'cpu')
-            .map(({ role, items }) => (
-              <section key={role} className="temp-role-section">
-                <h3 className="metric-history-block-title">{TEMP_ROLE_LABELS[role]}</h3>
-                {items.map((sensor) => (
-                  <SensorHistoryBlock key={sensor.id} sensor={sensor} windowLabel={windowLabel} />
-                ))}
-              </section>
-            ))}
-
-          {data.sensors.length === 0 ? (
-            <p className="temp-collecting-hint">No temperature readings from Unraid right now.</p>
-          ) : null}
-        </div>
+        </SectionFetchState>
       </section>
 
-      {data.anomalies.length > 0 ? (
+      {data && data.anomalies.length > 0 ? (
         <section className="detail-section">
           <h2 className="detail-section-title">Anomalies</h2>
           <div className="temp-anomaly-grid">

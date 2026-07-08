@@ -59,25 +59,11 @@ function groupContainers(items: AdminContainerSummary[]): ContainerSection[] {
 }
 
 export function DockerPage(): JSX.Element {
-  const { data, error, refresh } = useSystemContext();
+  const { data, refresh } = useSystemContext();
   const actions = useDockerActions(refresh);
 
-  if (error && !data) {
-    return (
-      <DetailPageLayout title="Docker">
-        <p className="system-page-error">{error}</p>
-      </DetailPageLayout>
-    );
-  }
-
   if (!data) {
-    return (
-      <DetailPageLayout title="Docker">
-        <div className="system-page-loading">
-          <div className="loading-spinner" />
-        </div>
-      </DetailPageLayout>
-    );
+    return <DetailPageLayout title="Docker">{null}</DetailPageLayout>;
   }
 
   const sections = groupContainers(data.containers.items);

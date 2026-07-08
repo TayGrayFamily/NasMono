@@ -7,3 +7,7 @@ test-results
 blob-report
 
 artifacts/
+metrics-history.json
+temp-history.json
+**/metrics-history.json
+**/temp-history.json

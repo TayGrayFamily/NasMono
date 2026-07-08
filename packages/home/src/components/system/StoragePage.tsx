@@ -13,24 +13,10 @@ import { useSystemContext } from './SystemProvider';
 import './SystemPage.css';
 
 export function StoragePage(): JSX.Element {
-  const { data, error } = useSystemContext();
-
-  if (error && !data) {
-    return (
-      <DetailPageLayout title="Storage">
-        <p className="system-page-error">{error}</p>
-      </DetailPageLayout>
-    );
-  }
+  const { data } = useSystemContext();
 
   if (!data) {
-    return (
-      <DetailPageLayout title="Storage">
-        <div className="system-page-loading">
-          <div className="loading-spinner" />
-        </div>
-      </DetailPageLayout>
-    );
+    return <DetailPageLayout title="Storage">{null}</DetailPageLayout>;
   }
 
   const limits = pctThresholds(data);

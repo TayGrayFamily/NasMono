@@ -11,7 +11,7 @@ import { CharadesPlayPackSheet } from './CharadesPlayPackSheet.js';
 
 interface CharadesPlayFooterProps {
   revealed: boolean;
-  canFlip: boolean;
+  canReveal: boolean;
   enabledDifficulties: Difficulty[];
   pickDifficulty: DifficultyChoice | null;
   showPackPick: boolean;
@@ -19,10 +19,9 @@ interface CharadesPlayFooterProps {
   pickPackIds: string[];
   onSelectDifficulty: (choice: DifficultyChoice) => void;
   onApplyPackFilters: (packIds: string[]) => void;
-  onFlipCard: () => void;
+  onRevealCard: () => void;
   onDone: () => void;
   onEndRound: () => void;
-  remainingCount: number;
 }
 
 function FilterIcon() {
@@ -42,7 +41,7 @@ function FilterIcon() {
 
 export function CharadesPlayFooter({
   revealed,
-  canFlip,
+  canReveal,
   enabledDifficulties,
   pickDifficulty,
   showPackPick,
@@ -50,10 +49,9 @@ export function CharadesPlayFooter({
   pickPackIds,
   onSelectDifficulty,
   onApplyPackFilters,
-  onFlipCard,
+  onRevealCard,
   onDone,
   onEndRound,
-  remainingCount,
 }: CharadesPlayFooterProps) {
   const listId = useId();
   const [filtersOpen, setFiltersOpen] = useState(false);
@@ -208,17 +206,13 @@ export function CharadesPlayFooter({
             End round
           </button>
 
-          <span className="charades-play-footer__remaining" aria-live="polite">
-            {remainingCount} left
-          </span>
-
           <button
             type="button"
             className="charades-play-footer__flip"
-            onClick={onFlipCard}
-            disabled={!canFlip}
+            onClick={onRevealCard}
+            disabled={!canReveal}
           >
-            Flip card
+            Reveal
           </button>
         </div>
       </footer>

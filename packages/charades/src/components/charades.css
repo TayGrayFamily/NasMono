@@ -493,15 +493,6 @@
   color: var(--text-muted);
 }
 
-.charades-play-footer__remaining {
-  flex-shrink: 0;
-  margin-left: auto;
-  margin-right: 0.15rem;
-  font-size: 0.75rem;
-  color: var(--text-muted);
-  white-space: nowrap;
-}
-
 .charades-pick-card-bar {
   display: flex;
   align-items: center;

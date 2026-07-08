@@ -61,17 +61,17 @@ test.describe('Charades solo play', () => {
     await page.getByRole('button', { name: /^Start/ }).click();
     await page.waitForURL('**/play/charades/game');
 
-    await expect(page.getByText('Pick a difficulty in filters')).toBeVisible();
-    const flipCard = page.getByRole('button', { name: 'Flip card', exact: true });
-    await expect(flipCard).toBeDisabled();
+    await expect(page.getByText('Choose a difficulty in Filters')).toBeVisible();
+    const revealCard = page.getByRole('button', { name: 'Reveal', exact: true });
+    await expect(revealCard).toBeDisabled();
     await drawCardAtDifficulty(page, 'Easy');
-    await expect(flipCard).toBeEnabled();
-    await flipCard.click();
+    await expect(revealCard).toBeEnabled();
+    await revealCard.click();
     await expect(page.getByText('Word', { exact: true })).toBeVisible();
 
     await page.getByRole('button', { name: 'Done', exact: true }).click();
-    await expect(page.getByText('Tap to flip')).toBeVisible();
-    await expect(flipCard).toBeEnabled();
+    await expect(page.getByText('Tap to reveal')).toBeVisible({ timeout: 3000 });
+    await expect(revealCard).toBeEnabled({ timeout: 3000 });
   });
 
   test('movies pack can disable actors and still start', async ({ page }) => {
@@ -90,7 +90,7 @@ test.describe('Charades solo play', () => {
     await page.waitForURL('**/play/charades/game');
 
     await drawCardAtDifficulty(page, 'Easy');
-    await page.getByRole('button', { name: 'Flip card', exact: true }).click();
+    await page.getByRole('button', { name: 'Reveal', exact: true }).click();
     await expect(page.getByText('Actor', { exact: true })).not.toBeVisible();
   });
 
@@ -138,7 +138,7 @@ test.describe('Charades solo play', () => {
     await page.waitForURL('**/play/charades/game');
 
     await drawCardAtDifficulty(page, 'Easy');
-    await page.getByRole('button', { name: 'Flip card', exact: true }).click();
+    await page.getByRole('button', { name: 'Reveal', exact: true }).click();
     await expect(page.getByRole('toolbar', { name: 'Extra clues' })).toBeVisible();
     await page.getByRole('button', { name: 'Context', exact: true }).click();
     await expect(page.getByRole('region', { name: 'Context' })).toBeVisible();
@@ -188,10 +188,10 @@ test.describe('Charades solo play', () => {
     await page.waitForURL('**/play/charades/game');
 
     await expect(
-      page.getByText('Open filters to pick a difficulty, then flip your card'),
+      page.getByText('Open filters to pick a difficulty, then reveal your card'),
     ).toBeVisible();
     await drawCardAtDifficulty(page, 'Hard');
-    await page.getByRole('button', { name: 'Flip card', exact: true }).click();
+    await page.getByRole('button', { name: 'Reveal', exact: true }).click();
     await expect(page.locator('.card-flip--revealed.card-flip--difficulty-level')).toBeVisible();
     const difficulty = await page.locator('.card-flip--revealed').getAttribute('data-difficulty');
     expect(difficulty).toMatch(/^(7|8|9|10)$/);
@@ -205,13 +205,13 @@ test.describe('Charades solo play', () => {
 
     await drawCardAtDifficulty(page, 'Easy');
     await expect(page.getByRole('button', { name: 'Filters' })).toBeVisible();
-    await page.getByRole('button', { name: 'Flip charades card' }).click();
+    await page.getByRole('button', { name: 'Reveal charades card' }).click();
     await expect(page.getByText('Word', { exact: true })).toBeVisible();
     await expect(page.locator('.charades-play-footer__filter-trigger')).toHaveCount(0);
     await expect(page.getByRole('button', { name: 'Done', exact: true })).toBeVisible();
   });
 
-  test('play footer shows filter, end round, and flip card in one row', async ({ browser }) => {
+  test('play footer shows filter, end round, and reveal in one row', async ({ browser }) => {
     const context = await browser.newContext({
       viewport: { width: 428, height: 926 },
     });
@@ -225,20 +225,20 @@ test.describe('Charades solo play', () => {
     const footer = page.locator('.charades-play-footer');
     const filter = footer.locator('.charades-play-footer__filter-trigger');
     const endRound = footer.getByRole('button', { name: 'End round', exact: true });
-    const flipCard = footer.getByRole('button', { name: 'Flip card', exact: true });
+    const revealCard = footer.getByRole('button', { name: 'Reveal', exact: true });
     await expect(filter).toBeVisible();
     await expect(endRound).toBeVisible();
-    await expect(flipCard).toBeVisible();
-    await expect(flipCard).toBeDisabled();
+    await expect(revealCard).toBeVisible();
+    await expect(revealCard).toBeDisabled();
 
     const filterBox = await filter.boundingBox();
     const endBox = await endRound.boundingBox();
-    const flipBox = await flipCard.boundingBox();
+    const revealBox = await revealCard.boundingBox();
     expect(filterBox).not.toBeNull();
     expect(endBox).not.toBeNull();
-    expect(flipBox).not.toBeNull();
+    expect(revealBox).not.toBeNull();
     expect(Math.abs(filterBox!.y - endBox!.y)).toBeLessThan(8);
-    expect(Math.abs(endBox!.y - flipBox!.y)).toBeLessThan(8);
+    expect(Math.abs(endBox!.y - revealBox!.y)).toBeLessThan(8);
 
     await context.close();
   });
@@ -285,7 +285,7 @@ test.describe('Charades solo play', () => {
     await context.close();
   });
 
-  test('landscape iPhone 13 Pro Max can start and flip a card', async ({ browser }) => {
+  test('landscape iPhone 13 Pro Max can start and reveal a card', async ({ browser }) => {
     const context = await browser.newContext({
       viewport: { width: 926, height: 428 },
     });
@@ -300,10 +300,10 @@ test.describe('Charades solo play', () => {
     await page.waitForURL('**/play/charades/game');
 
     await expect(
-      page.locator('.charades-play-footer').getByRole('button', { name: 'Flip card', exact: true }),
+      page.locator('.charades-play-footer').getByRole('button', { name: 'Reveal', exact: true }),
     ).toBeVisible();
     await drawCardAtDifficulty(page, 'Easy');
-    await page.getByRole('button', { name: 'Flip card', exact: true }).click();
+    await page.getByRole('button', { name: 'Reveal', exact: true }).click();
     await expect(page.getByText('Word', { exact: true })).toBeVisible();
 
     await context.close();

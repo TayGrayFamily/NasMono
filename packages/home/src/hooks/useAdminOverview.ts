@@ -5,11 +5,20 @@ const POLL_MS = 30_000;
 
 async function fetchOverview(): Promise<AdminOverview> {
   const res = await fetch('/api/admin/overview');
-  if (!res.ok) {
-    const body = await res.json().catch(() => ({}));
-    throw new Error((body as { error?: string }).error ?? res.statusText);
+  const text = await res.text();
+  let body: { error?: string } = {};
+  try {
+    body = JSON.parse(text) as { error?: string };
+  } catch {
+    if (!res.ok) {
+      throw new Error(text.trim() || res.statusText);
+    }
+    throw new Error('Invalid overview response');
   }
-  return res.json() as Promise<AdminOverview>;
+  if (!res.ok) {
+    throw new Error(body.error ?? res.statusText);
+  }
+  return body as AdminOverview;
 }
 
 export function useAdminOverview(enabled = true) {

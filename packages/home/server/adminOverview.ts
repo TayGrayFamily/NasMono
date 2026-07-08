@@ -38,7 +38,7 @@ query AdminOverview {
   }
   disks { name device temperature smartStatus size isSpinning }
   docker {
-    containers { id names image state status autoStart isUpdateAvailable }
+    containers { id names image state status autoStart }
   }
   shares { name free used }
   services { name online version }
@@ -54,6 +54,14 @@ query AdminOverview {
       formattedTimestamp
       link
     }
+  }
+}
+`;
+
+const CONTAINER_UPDATE_FLAGS_QUERY = `
+query ContainerUpdateFlags {
+  docker {
+    containers { id isUpdateAvailable }
   }
 }
 `;
@@ -138,9 +146,8 @@ type GqlOverview = {
       state: string;
       status: string;
       autoStart: boolean;
-      isUpdateAvailable: boolean | null;
-    }>;
-  };
+    }> | null;
+  } | null;
   shares: Array<{ name: string; free: number; used: number }>;
   services: Array<{ name: string; online: boolean; version: string | null }>;
   notifications: {
@@ -420,16 +427,21 @@ function buildSystemCard(data: GqlOverview): AdminOverview['systemCard'] {
   };
 }
 
-function mapContainers(raw: GqlOverview['docker']['containers']): AdminOverview['containers'] {
-  const items: AdminContainerSummary[] = raw.map((c) => {
+function mapContainers(
+  raw: NonNullable<GqlOverview['docker']>['containers'],
+  updateFlags: Map<string, boolean>,
+): AdminOverview['containers'] {
+  const rows = raw ?? [];
+  const items: AdminContainerSummary[] = rows.map((c) => {
     const name = stripLeadingSlash(c.names?.[0] ?? 'unknown');
     const parsed = parseContainerStatus(c.state, c.status);
     const { attention, detail } = containerAttention(c.state, c.status, parsed);
+    const id = c.id?.trim() || name;
     return {
-      id: c.id,
+      id,
       name,
-      image: c.image,
-      updateAvailable: c.isUpdateAvailable === true,
+      image: c.image ?? '',
+      updateAvailable: updateFlags.get(id) === true,
       state: c.state,
       status: c.status,
       autoStart: c.autoStart,
@@ -460,12 +472,38 @@ function mapContainers(raw: GqlOverview['docker']['containers']): AdminOverview[
   };
 }
 
+/** Optional — older Unraid API builds may not expose isUpdateAvailable. */
+async function fetchContainerUpdateFlags(): Promise<{
+  flags: Map<string, boolean>;
+  warnings: string[];
+}> {
+  try {
+    const { data, warnings } = await unraidQuery<{
+      docker: {
+        containers: Array<{ id: string; isUpdateAvailable: boolean | null }> | null;
+      } | null;
+    }>(CONTAINER_UPDATE_FLAGS_QUERY);
+    const flags = new Map<string, boolean>();
+    for (const c of data.docker?.containers ?? []) {
+      const id = c.id?.trim();
+      if (id && c.isUpdateAvailable === true) {
+        flags.set(id, true);
+      }
+    }
+    return { flags, warnings };
+  } catch (err) {
+    const message = err instanceof Error ? err.message : String(err);
+    return { flags: new Map(), warnings: [`update flags unavailable: ${message}`] };
+  }
+}
+
 export async function fetchAdminOverview(): Promise<AdminOverview> {
   if (!getUnraidConfig()) {
     throw new Error('Unraid GraphQL not configured (UNRAID_GRAPHQL_URL / UNRAID_API_KEY)');
   }
 
   const { data, warnings } = await unraidQuery<GqlOverview>(OVERVIEW_QUERY);
+  const { flags: updateFlags, warnings: updateWarnings } = await fetchContainerUpdateFlags();
 
   const overview: AdminOverview = {
     system: {
@@ -503,7 +541,7 @@ export async function fetchAdminOverview(): Promise<AdminOverview> {
       caches: data.array.caches ?? [],
     },
     physicalDisks: mapPhysicalDisks(data.disks, data.array.boot.device),
-    containers: mapContainers(data.docker.containers),
+    containers: mapContainers(data.docker?.containers ?? null, updateFlags),
     capabilities: {
       adminActions: isAdminActionsEnabled(),
       stackUpdateContainerMatch: getStackUpdateContainerMatch()?.source ?? null,
@@ -525,7 +563,7 @@ export async function fetchAdminOverview(): Promise<AdminOverview> {
         link: n.link,
       })),
     },
-    warnings,
+    warnings: [...warnings, ...updateWarnings],
   };
 
   recordTempSample(extractTempReadings(overview));
